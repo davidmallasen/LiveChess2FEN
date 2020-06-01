@@ -1,0 +1,16 @@
+# PyCharm .idea folder
+.idea/
+
+# Python bytecode files
+*.pyc
+
+# Virtual environment
+venv/
+
+# Images
+data/
+predictions/
+
+# Trained models
+selected_models/
+cpmodels/models/
