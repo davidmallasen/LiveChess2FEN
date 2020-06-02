@@ -135,7 +135,7 @@ def __infer_chess_pieces(pieces_probs, a1_pos):
         return [w_bishops, w_knights, w_pawns, w_queens, w_rooks, b_bishops,
                 b_knights, b_pawns, b_queens, b_rooks]
 
-    def max(tops):
+    def _max(tops):
         """Returns the index of the piece with max probability."""
         value = tops[0][0][0]  # B
         idx = 0
@@ -220,7 +220,7 @@ def __infer_chess_pieces(pieces_probs, a1_pos):
     while out_preds_empty > 0:
         # Fill in the square in out_preds that has the piece with the
         # maximum probability of all the board
-        max_idx = max(tops)
+        max_idx = _max(tops)
         # If we haven't maxed that piece type and the square is empty
         if (max_pieces_left[max_idx] > 0
                 and out_preds[tops[max_idx][1]] is None
