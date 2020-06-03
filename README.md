@@ -36,6 +36,11 @@ Nvidia Jetson Nano, following the edge computing paradigm.
  `IMG_SIZE_*` and `PRE_INPUT_*` constants.
 8. Run the `lc2fen_predict.py` script.
 
+## Contributing
+
+Contributions are very welcome! Please check the 
+[CONTRIBUTING](CONTRIBUTING.md) file for more information on how to
+ contribute to LiveChess2FEN.
 
 ## License
 
