@@ -93,10 +93,8 @@ def detect(input_image, output_board):
     :param input_image: Input chessboard image.
     :param output_board: Path (including name and extension) where to
         store the image with the detected chessboard.
-    :return: The coordinates in the original image of the chessboard
-        corners and the coordinates of each of the corners of the
-        chessboard squares as a pair of board_corners and
-        square_corners.
+    :return: Final ImageObject with which to compute the corners if
+        necessary.
     """
     n_layers = 3
 
@@ -107,11 +105,24 @@ def detect(input_image, output_board):
         debug.DebugImage(image['orig']).save(f"end_iteration{i}")
     cv2.imwrite(output_board, image['orig'])
 
-    # Return the coordinates of the board on the original image
-    board_corners, square_corners = __original_points_coords(
-        image.get_points())
+    return image
 
-    debug.DebugImage(input_image) \
+
+def compute_corners(image_object):
+    """
+    Compute the coordinates of the board on the original image from the
+    ImageObject obtained in the detection.
+
+    :param image_object: ImageObject obtained in the detect method.
+    :return: The coordinates in the original image of the chessboard
+        corners and the coordinates of each of the corners of the
+        chessboard squares as a pair of board_corners and
+        square_corners.
+    """
+    board_corners, square_corners = __original_points_coords(
+        image_object.get_points())
+
+    debug.DebugImage(image_object['orig']) \
         .points(square_corners, size=50, color=(0, 0, 255)) \
         .points(board_corners, size=50, color=(0, 255, 0)) \
         .save("corner_points")

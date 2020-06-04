@@ -172,7 +172,8 @@ def process_input_boards(data_path):
     for input_board in tqdm(input_boards):
         output_board = input_board.replace('/input/', '/output/')
         input_image = cv2.imread(input_board)
-        _, square_corners = detect_board.detect(input_image, output_board)
+        image_object = detect_board.detect(input_image, output_board)
+        _, square_corners = detect_board.compute_corners(image_object)
 
         name = os.path.splitext(os.path.basename(input_board))[0]
         split_board_image(input_image, square_corners, name,
