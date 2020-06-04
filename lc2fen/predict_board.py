@@ -10,10 +10,10 @@ import cv2
 import numpy as np
 from keras.preprocessing import image
 
-from lc2fen.board2data import split_square_board_image
 from lc2fen.detectboard.detect_board import detect
-from lc2fen.fen import list_to_board, board_to_list, board_to_fen, compare_fen, \
-    is_white_square
+from lc2fen.fen import list_to_board, board_to_list, board_to_fen, \
+    compare_fen, is_white_square
+from lc2fen.split_board import split_square_board_image
 
 PREDS_DICT = {0: 'B', 1: 'K', 2: 'N', 3: 'P', 4: 'Q', 5: 'R', 6: '_', 7: 'b',
               8: 'k', 9: 'n', 10: 'p', 11: 'q', 12: 'r'}
