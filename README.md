@@ -32,9 +32,9 @@ Nvidia Jetson Nano.
 [releases](https://github.com/davidmallasen/LiveChess2FEN/releases) into
  the `predictions/input_board` folder. You should have 5 test images and a
  boards.fen file.
-7. Edit `lc2fen_predict.py` and set the `ACTIVATE_*`, `MODEL_PATH_*`,
+7. Edit `test_lc2fen.py` and set the `ACTIVATE_*`, `MODEL_PATH_*`,
  `IMG_SIZE_*` and `PRE_INPUT_*` constants.
-8. Run the `lc2fen_predict.py` script.
+8. Run the `test_lc2fen.py` script.
 
 ## Contributing
 
