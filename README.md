@@ -2,7 +2,7 @@
 
 LiveChess2FEN is a fully functional framework that automatically digitizes
 the configuration of a chessboard. It is optimized for execution on a
-Nvidia Jetson Nano, following the edge computing paradigm.
+Nvidia Jetson Nano.
 
 ![](docs/complete_method.png)
 
