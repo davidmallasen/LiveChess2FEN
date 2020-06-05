@@ -4,8 +4,8 @@ Board prediction testing.
 import time
 
 from lc2fen.fen import list_to_board, board_to_fen, compare_fen
-from lc2fen.predict_board import detect_input_board, \
-    obtain_individual_pieces, infer_chess_pieces
+from lc2fen.infer_pieces import infer_chess_pieces
+from lc2fen.predict_board import detect_input_board, obtain_individual_pieces
 
 
 def predict_board(predictions_path, board_name, a1_pos, obtain_pieces_probs):
