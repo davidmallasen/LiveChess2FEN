@@ -18,9 +18,9 @@ Nvidia Jetson Nano.
     - tqdm
 
 2. Depending on the inference engine install the following dependencies:
-    - Keras with tensorflow backend
-    - Onnxruntime
-    - TensorRT
+    - (Optional) Keras with tensorflow backend. Slower than ONNX.
+    - ONNX Runtime.
+    - (Optional) TensorRT. Fastest available, although more tricky to set up.
     
 3. Create a `selected_models` and a `predictions` folder in the project root.
 4. Download the prediction models from the 
