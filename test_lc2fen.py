@@ -1,6 +1,8 @@
 """
 Executes some tests for the complete digitization of a chessboard.
 """
+import os
+
 import numpy as np
 import onnxruntime
 from keras.applications.imagenet_utils import preprocess_input as \
@@ -100,7 +102,8 @@ def __infer(context, bindings, inputs, outputs, stream, batch_size=64):
 def read_correct_fen():
     """Reads the correct fen for testing from boards.fen file."""
     fens = []
-    with open("predictions/input_board/boards.fen", 'r') as fen_fd:
+
+    with open(os.path.join("predictions", "boards.fen"), 'r') as fen_fd:
         lines = fen_fd.read().splitlines()
         for line in lines:
             line = line.split()
@@ -115,19 +118,24 @@ def test_predict_board(obtain_predictions):
     """Tests board prediction."""
     fens = read_correct_fen()
 
-    fen = predict_board("predictions", "test1.jpg", "BL", obtain_predictions)
+    fen = predict_board(os.path.join("predictions", "test1.jpg"), "BL",
+                        obtain_predictions)
     print_fen_comparison("test1.jpg", fen, fens[0], 21)
 
-    fen = predict_board("predictions", "test2.jpg", "BL", obtain_predictions)
+    fen = predict_board(os.path.join("predictions", "test2.jpg"), "BL",
+                        obtain_predictions)
     print_fen_comparison("test2.jpg", fen, fens[1], 32)
 
-    fen = predict_board("predictions", "test3.jpg", "BL", obtain_predictions)
+    fen = predict_board(os.path.join("predictions", "test3.jpg"), "BL",
+                        obtain_predictions)
     print_fen_comparison("test3.jpg", fen, fens[2], 25)
 
-    fen = predict_board("predictions", "test4.jpg", "TL", obtain_predictions)
+    fen = predict_board(os.path.join("predictions", "test4.jpg"), "TL",
+                        obtain_predictions)
     print_fen_comparison("test4.jpg", fen, fens[3], 30)
 
-    fen = predict_board("predictions", "test5.jpg", "TR", obtain_predictions)
+    fen = predict_board(os.path.join("predictions", "test5.jpg"), "TR",
+                        obtain_predictions)
     print_fen_comparison("test5.jpg", fen, fens[4], 24)
 
 

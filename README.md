@@ -22,19 +22,17 @@ Nvidia Jetson Nano.
     - Onnxruntime
     - TensorRT
     
-3. Create a `selected_models` folder in the project root.
+3. Create a `selected_models` and a `predictions` folder in the project root.
 4. Download the prediction models from the 
  [releases](https://github.com/davidmallasen/LiveChess2FEN/releases)
  and save them to the `selected_models` folder.
-5. Create a `predictions/input_board` folder and a `predictions/pieces`
- folder in the project root.
-6. Download the contents of `TestImages.zip->FullDetection` from the
+5. Download the contents of `TestImages.zip->FullDetection` from the
 [releases](https://github.com/davidmallasen/LiveChess2FEN/releases) into
- the `predictions/input_board` folder. You should have 5 test images and a
+ the `predictions` folder. You should have 5 test images and a
  boards.fen file.
-7. Edit `test_lc2fen.py` and set the `ACTIVATE_*`, `MODEL_PATH_*`,
+6. Edit `test_lc2fen.py` and set the `ACTIVATE_*`, `MODEL_PATH_*`,
  `IMG_SIZE_*` and `PRE_INPUT_*` constants.
-8. Run the `test_lc2fen.py` script.
+7. Run the `test_lc2fen.py` script.
 
 ## Contributing
 

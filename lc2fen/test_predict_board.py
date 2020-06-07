@@ -8,7 +8,7 @@ from lc2fen.infer_pieces import infer_chess_pieces
 from lc2fen.predict_board import detect_input_board, obtain_individual_pieces
 
 
-def predict_board(predictions_path, board_name, a1_pos, obtain_pieces_probs):
+def predict_board(board_path, a1_pos, obtain_pieces_probs):
     """
     Predict the fen notation of a chessboard. Prints the elapsed times.
 
@@ -16,9 +16,8 @@ def predict_board(predictions_path, board_name, a1_pos, obtain_pieces_probs):
     methods (such as Keras, ONNX or TensorRT models) that may need
     additional context.
 
-    :param predictions_path: Path to the 'predictions' folder.
-        For example: '../predictions'.
-    :param board_name: Name of the board to predict.
+    :param board_path: Path to the board to detect. Must have rw permission.
+        For example: '../predictions/board.jpg'.
     :param a1_pos: Position of the a1 square. Must be one of the
         following: "BL", "BR", "TL", "TR".
     :param obtain_pieces_probs: Function which receives a list with the
@@ -30,13 +29,13 @@ def predict_board(predictions_path, board_name, a1_pos, obtain_pieces_probs):
     total_time = 0
 
     start = time.perf_counter()
-    detect_input_board(predictions_path, board_name)
+    detect_input_board(board_path)
     elapsed_time = time.perf_counter() - start
     total_time += elapsed_time
     print(f"Elapsed time detecting the input board: {elapsed_time}")
 
     start = time.perf_counter()
-    pieces = obtain_individual_pieces(predictions_path, board_name)
+    pieces = obtain_individual_pieces(board_path)
     elapsed_time = time.perf_counter() - start
     total_time += elapsed_time
     print(f"Elapsed time obtaining the individual pieces: {elapsed_time}")

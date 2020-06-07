@@ -31,38 +31,43 @@ def load_image(img_path, img_size, preprocess_func):
     return preprocess_func(img_tensor)
 
 
-def detect_input_board(predictions_path, board_name):
+def detect_input_board(board_path):
     """
-    Detects the input board and stores the result as 'detected_' +
-    board_name.
+    Detects the input board and stores the result as 'tmp/board_name in
+    the folder containing the board. If the folder tmp exists, deletes
+    its contents. If not, creates the tmp folder.
 
-    :param predictions_path: Path to the 'predictions' folder.
-        For example: '../predictions'.
-    :param board_name: Name of the board to detect.
+    :param board_path: Path to the board to detect. Must have rw permission.
+        For example: '../predictions/board.jpg'.
     """
-    input_image = cv2.imread(predictions_path + "/input_board/" + board_name)
-    detect(input_image,
-           predictions_path + "/input_board/detected_" + board_name)
+    input_image = cv2.imread(board_path)
+    head, tail = os.path.split(board_path)
+    tmp_dir = os.path.join(head, "tmp/")
+    if os.path.exists(tmp_dir):
+        shutil.rmtree(tmp_dir)
+    os.mkdir(tmp_dir)
+    detect(input_image, os.path.join(head, "tmp", tail))
 
 
-def obtain_individual_pieces(predictions_path, board_name):
+def obtain_individual_pieces(board_path):
     """
     Obtain the individual pieces of a board.
 
-    :param predictions_path: Path to the 'predictions' folder.
-        For example: '../predictions'.
-    :param board_name: Name of the board to split.
+    :param board_path: Path to the board to detect. Must have rw permission.
+        The detected board should be in a tmp folder as done by
+        detect_input_board.
+        For example: '../predictions/board.jpg'.
     :return: List with the path to each piece image.
     """
-    shutil.rmtree(predictions_path + "/pieces/")
-    os.mkdir(predictions_path + "/pieces/")
-    split_square_board_image(
-        predictions_path + "/input_board/detected_" + board_name, "",
-        predictions_path + "/pieces")
-    return sorted(glob.glob(predictions_path + "/pieces/*.jpg"))
+    head, tail = os.path.split(board_path)
+    tmp_dir = os.path.join(head, "tmp/")
+    pieces_dir = os.path.join(tmp_dir, "pieces/")
+    os.mkdir(pieces_dir)
+    split_square_board_image(os.path.join(tmp_dir, tail), "", pieces_dir)
+    return sorted(glob.glob(pieces_dir + "/*.jpg"))
 
 
-def predict_board(predictions_path, board_name, a1_pos, obtain_pieces_probs):
+def predict_board(board_path, a1_pos, obtain_pieces_probs):
     """
     Predict the fen notation of a chessboard.
 
@@ -70,9 +75,8 @@ def predict_board(predictions_path, board_name, a1_pos, obtain_pieces_probs):
     methods (such as Keras, ONNX or TensorRT models) that may need
     additional context.
 
-    :param predictions_path: Path to the 'predictions' folder.
-        For example: '../predictions'.
-    :param board_name: Name of the board to predict.
+    :param board_path: Path to the board to detect. Must have rw permission.
+        For example: '../predictions/board.jpg'.
     :param a1_pos: Position of the a1 square. Must be one of the
         following: "BL", "BR", "TL", "TR".
     :param obtain_pieces_probs: Function which receives a list with the
@@ -81,9 +85,8 @@ def predict_board(predictions_path, board_name, a1_pos, obtain_pieces_probs):
         class as another list.
     :return: Predicted fen string representing the chessboard.
     """
-
-    detect_input_board(predictions_path, board_name)
-    pieces = obtain_individual_pieces(predictions_path, board_name)
+    detect_input_board(board_path)
+    pieces = obtain_individual_pieces(board_path)
     pieces_probs = obtain_pieces_probs(pieces)
     predictions = infer_chess_pieces(pieces_probs, a1_pos)
 
