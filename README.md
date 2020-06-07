@@ -18,7 +18,7 @@ Nvidia Jetson Nano.
     - tqdm
 
 2. Depending on the inference engine install the following dependencies:
-    - (Optional) Keras with tensorflow backend. Slower than ONNX.
+    - Keras with tensorflow backend. Slower than ONNX.
     - ONNX Runtime.
     - (Optional) TensorRT. Fastest available, although more tricky to set up.
     
