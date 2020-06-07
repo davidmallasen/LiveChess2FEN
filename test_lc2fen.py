@@ -1,5 +1,5 @@
 """
-Executes the complete digitization of a chessboard.
+Executes some tests for the complete digitization of a chessboard.
 """
 import numpy as np
 import onnxruntime
@@ -19,8 +19,8 @@ except ImportError:
     cuda = None
     trt = None
 
-from lc2fen.predict_board import load_image, predict_board, \
-    print_fen_comparison
+from lc2fen.predict_board import load_image
+from lc2fen.test_predict_board import predict_board, print_fen_comparison
 
 
 # PRE_INPUT example:
