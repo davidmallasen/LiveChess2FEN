@@ -7,7 +7,19 @@ import shutil
 
 import cv2
 import numpy as np
+import onnxruntime
+from keras.engine.saving import load_model
 from keras.preprocessing import image
+
+try:
+    import pycuda.driver as cuda
+    # pycuda.autoinit causes pycuda to automatically manage CUDA context
+    # creation and cleanup.
+    import pycuda.autoinit
+    import tensorrt as trt
+except ImportError:
+    cuda = None
+    trt = None
 
 from lc2fen.detectboard.detect_board import detect
 from lc2fen.fen import list_to_board, board_to_fen
@@ -37,7 +49,8 @@ def detect_input_board(board_path):
     the folder containing the board. If the folder tmp exists, deletes
     its contents. If not, creates the tmp folder.
 
-    :param board_path: Path to the board to detect. Must have rw permission.
+    :param board_path: Path to the board to detect. Must have rw
+        permission.
         For example: '../predictions/board.jpg'.
     """
     input_image = cv2.imread(board_path)
@@ -53,9 +66,9 @@ def obtain_individual_pieces(board_path):
     """
     Obtain the individual pieces of a board.
 
-    :param board_path: Path to the board to detect. Must have rw permission.
-        The detected board should be in a tmp folder as done by
-        detect_input_board.
+    :param board_path: Path to the board to detect. Must have rw
+        permission. The detected board should be in a tmp folder as done
+        by detect_input_board.
         For example: '../predictions/board.jpg'.
     :return: List with the path to each piece image.
     """
@@ -67,6 +80,156 @@ def obtain_individual_pieces(board_path):
     return sorted(glob.glob(pieces_dir + "/*.jpg"))
 
 
+def predict_board_keras(model_path, img_size, pre_input, board_path, a1_pos):
+    """
+    Predict the fen notation of a chessboard using Keras for inference.
+
+    :param model_path: Path to the Keras model.
+    :param img_size: Model image input size.
+    :param pre_input: Model preprocess input function.
+    :param board_path: Path to the board to detect. Must have rw
+        permission. For example: '../predictions/board.jpg'.
+    :param a1_pos: Position of the a1 square. Must be one of the
+        following: "BL", "BR", "TL", "TR".
+    :return: Predicted FEN string representing the chessboard.
+    """
+    model = load_model(model_path)
+
+    def obtain_pieces_probs(pieces):
+        predictions = []
+        for piece in pieces:
+            piece_img = load_image(piece, img_size, pre_input)
+            predictions.append(model.predict(piece_img)[0])
+        return predictions
+
+    return predict_board(board_path, a1_pos, obtain_pieces_probs)
+
+
+def predict_board_onnx(model_path, img_size, pre_input, board_path, a1_pos):
+    """
+    Predict the fen notation of a chessboard using ONNXRuntime for
+    inference.
+
+    :param model_path: Path to the ONNX model.
+    :param img_size: Model image input size.
+    :param pre_input: Model preprocess input function.
+    :param board_path: Path to the board to detect. Must have rw
+        permission.
+        For example: '../predictions/board.jpg'.
+    :param a1_pos: Position of the a1 square. Must be one of the
+        following: "BL", "BR", "TL", "TR".
+    :return: Predicted FEN string representing the chessboard.
+    """
+    sess = onnxruntime.InferenceSession(model_path)
+
+    def obtain_pieces_probs(pieces):
+        predictions = []
+        for piece in pieces:
+            piece_img = load_image(piece, img_size, pre_input)
+            predictions.append(
+                sess.run(None, {sess.get_inputs()[0].name: piece_img})[0][0])
+        return predictions
+
+    return predict_board(board_path, a1_pos, obtain_pieces_probs)
+
+
+def predict_board_trt(model_path, img_size, pre_input, board_path, a1_pos):
+    """
+    Predict the fen notation of a chessboard using TensorRT for
+    inference.
+
+    :param model_path: Path to the TensorRT engine with batch size 64.
+    :param img_size: Model image input size.
+    :param pre_input: Model preprocess input function.
+    :param board_path: Path to the board to detect. Must have rw
+        permission.
+        For example: '../predictions/board.jpg'.
+    :param a1_pos: Position of the a1 square. Must be one of the
+        following: "BL", "BR", "TL", "TR".
+    :return: Predicted FEN string representing the chessboard.
+    """
+    if cuda is None or trt is None:
+        raise ImportError("Unable to import pycuda or tensorrt")
+
+    class __HostDeviceTuple:
+        """A tuple of host and device. Clarifies code."""
+
+        def __init__(self, _host, _device):
+            self.host = _host
+            self.device = _device
+
+    def __allocate_buffers(engine):
+        """Allocates all buffers required for the specified engine."""
+        inputs = []
+        outputs = []
+        bindings = []
+
+        for binding in engine:
+            # Get binding (tensor/buffer) size
+            size = trt.volume(
+                engine.get_binding_shape(binding)) * engine.max_batch_size
+            # Get binding (tensor/buffer) data type (numpy-equivalent)
+            dtype = trt.nptype(engine.get_binding_dtype(binding))
+            # Allocate page-locked memory (i.e., pinned memory) buffers
+            host_mem = cuda.pagelocked_empty(size, dtype)
+            # Allocate linear piece of device memory
+            device_mem = cuda.mem_alloc(host_mem.nbytes)
+
+            bindings.append(int(device_mem))
+
+            if engine.binding_is_input(binding):
+                inputs.append(__HostDeviceTuple(host_mem, device_mem))
+            else:
+                outputs.append(__HostDeviceTuple(host_mem, device_mem))
+
+        stream = cuda.Stream()
+        return inputs, outputs, bindings, stream
+
+    def __infer(context, bindings, inputs, outputs, stream, batch_size=64):
+        """
+        Infer outputs on the IExecutionContext for the specified inputs.
+        """
+        # Transfer input data to the GPU
+        for inp in inputs:
+            cuda.memcpy_htod_async(inp.device, inp.host, stream)
+        # Run inference
+        context.execute_async(batch_size=batch_size, bindings=bindings,
+                              stream_handle=stream.handle)
+        # Transfer predictions back from the GPU
+        for out in outputs:
+            cuda.memcpy_dtoh_async(out.host, out.device, stream)
+
+        stream.synchronize()
+
+        return [out.host for out in outputs]
+
+    trt_logger = trt.Logger(trt.Logger.VERBOSE)
+    # Read and deserialize the serialized ICudaEngine
+    with open(model_path, 'rb') as f, trt.Runtime(trt_logger) as runtime:
+        engine = runtime.deserialize_cuda_engine(f.read())
+
+    inputs, outputs, bindings, stream = __allocate_buffers(engine)
+
+    img_array = np.zeros(
+        (engine.max_batch_size, trt.volume((img_size, img_size, 3))))
+
+    # Create an IExecutionContext (context for executing inference)
+    with engine.create_execution_context() as context:
+
+        def obtain_pieces_probs(pieces):
+            # Assuming batch size == 64
+            for i, piece in enumerate(pieces):
+                img_array[i] = load_image(piece, img_size,
+                                          pre_input).ravel()
+            np.copyto(inputs[0].host, img_array.ravel())
+            trt_outputs = __infer(
+                context, bindings, inputs, outputs, stream)[-1]
+
+            return [trt_outputs[ind:ind + 13] for ind in range(0, 13 * 64, 13)]
+
+        return predict_board(board_path, a1_pos, obtain_pieces_probs)
+
+
 def predict_board(board_path, a1_pos, obtain_pieces_probs):
     """
     Predict the fen notation of a chessboard.
@@ -75,7 +238,8 @@ def predict_board(board_path, a1_pos, obtain_pieces_probs):
     methods (such as Keras, ONNX or TensorRT models) that may need
     additional context.
 
-    :param board_path: Path to the board to detect. Must have rw permission.
+    :param board_path: Path to the board to detect. Must have rw
+        permission.
         For example: '../predictions/board.jpg'.
     :param a1_pos: Position of the a1 square. Must be one of the
         following: "BL", "BR", "TL", "TR".
@@ -83,7 +247,7 @@ def predict_board(board_path, a1_pos, obtain_pieces_probs):
         path to each piece image in FEN notation order and returns the
         corresponding probabilities of each piece belonging to each
         class as another list.
-    :return: Predicted fen string representing the chessboard.
+    :return: Predicted FEN string representing the chessboard.
     """
     detect_input_board(board_path)
     pieces = obtain_individual_pieces(board_path)
