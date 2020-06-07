@@ -64,7 +64,7 @@ def predict_board(board_path, a1_pos, obtain_pieces_probs):
     return fen
 
 
-def print_fen_comparison(board_name, fen, correct_fen, n_pieces):
+def print_fen_comparison(board_name, fen, correct_fen):
     """
     Compares the predicted fen with the correct fen and pretty prints
     the result.
@@ -72,9 +72,7 @@ def print_fen_comparison(board_name, fen, correct_fen, n_pieces):
     :param board_name: Name of the board. For example: 'test1.jpg'
     :param fen: Predicted fen string.
     :param correct_fen: Correct fen string.
-    :param n_pieces: Number of pieces in the board.
     """
     n_dif = compare_fen(fen, correct_fen)
-    print(board_name[:-4] + ': ' + str(n_dif) + " {:.2f}% ".format(
-        1 - (n_dif / 64)) + "{:.2f}% ".format(
-        1 - (n_dif / n_pieces)) + fen + '\n')
+    print(board_name[:-4] + ' - Err:' + str(n_dif)
+          + " Acc:{:.2f}% FEN:".format(1 - (n_dif / 64)) + fen + '\n')

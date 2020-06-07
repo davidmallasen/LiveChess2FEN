@@ -120,23 +120,23 @@ def test_predict_board(obtain_predictions):
 
     fen = predict_board(os.path.join("predictions", "test1.jpg"), "BL",
                         obtain_predictions)
-    print_fen_comparison("test1.jpg", fen, fens[0], 21)
+    print_fen_comparison("test1.jpg", fen, fens[0])
 
     fen = predict_board(os.path.join("predictions", "test2.jpg"), "BL",
                         obtain_predictions)
-    print_fen_comparison("test2.jpg", fen, fens[1], 32)
+    print_fen_comparison("test2.jpg", fen, fens[1])
 
     fen = predict_board(os.path.join("predictions", "test3.jpg"), "BL",
                         obtain_predictions)
-    print_fen_comparison("test3.jpg", fen, fens[2], 25)
+    print_fen_comparison("test3.jpg", fen, fens[2])
 
     fen = predict_board(os.path.join("predictions", "test4.jpg"), "TL",
                         obtain_predictions)
-    print_fen_comparison("test4.jpg", fen, fens[3], 30)
+    print_fen_comparison("test4.jpg", fen, fens[3])
 
     fen = predict_board(os.path.join("predictions", "test5.jpg"), "TR",
                         obtain_predictions)
-    print_fen_comparison("test5.jpg", fen, fens[4], 24)
+    print_fen_comparison("test5.jpg", fen, fens[4])
 
 
 def main_keras():
