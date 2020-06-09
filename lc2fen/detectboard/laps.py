@@ -9,11 +9,13 @@ import onnxruntime
 from scipy.cluster.hierarchy import single, fcluster
 from scipy.spatial.distance import pdist
 
-from lc2fen.detectboard import debug
+from lc2fen.detectboard import debug, image_object
 from lc2fen.detectboard import poly_point_isect
 
-LAPS_SESS = onnxruntime.InferenceSession(
+__LAPS_SESS = onnxruntime.InferenceSession(
     "lc2fen/detectboard/models/laps_model.onnx")
+
+__ANALYSIS_RADIUS = 10
 
 
 def __find_intersections(lines):
@@ -72,18 +74,17 @@ def __is_lattice_point(img):
     X = [np.where(img > int(255 / 2), 1, 0).ravel()]
     X = X[0].reshape([-1, 21, 21, 1]).astype('float32')
 
-    pred = LAPS_SESS.run(None, {LAPS_SESS.get_inputs()[0].name: X})[0][0]
+    pred = __LAPS_SESS.run(None, {__LAPS_SESS.get_inputs()[0].name: X})[0][0]
 
     return pred[0] > pred[1] and pred[1] < 0.03 and pred[0] > 0.975
 
 
-def laps(img, lines, size=10):
+def laps(img, lines):
     """
     Lattice points search in the given image.
 
     :param img: Image to search.
     :param lines: Lines detected by slid.
-    :param size: Analysis radius ever each point.
     :return: Points detected to be part of the chessboard grid.
     """
     intersection_points = __find_intersections(lines)
@@ -102,10 +103,10 @@ def laps(img, lines, size=10):
             continue
 
         # Size of our analysis area
-        lx1 = max(0, int(pt[0] - size - 1))
-        lx2 = max(0, int(pt[0] + size))
-        ly1 = max(0, int(pt[1] - size))
-        ly2 = max(0, int(pt[1] + size + 1))
+        lx1 = max(0, int(pt[0] - __ANALYSIS_RADIUS - 1))
+        lx2 = max(0, int(pt[0] + __ANALYSIS_RADIUS))
+        ly1 = max(0, int(pt[1] - __ANALYSIS_RADIUS))
+        ly2 = max(0, int(pt[1] + __ANALYSIS_RADIUS + 1))
 
         # Cropping for detector
         dimg = img[ly1:ly2, lx1:lx2]
@@ -130,3 +131,42 @@ def laps(img, lines, size=10):
         .save("laps_good_points")
 
     return points
+
+
+def check_board_position(img, board_corners, tolerance=20):
+    """
+    Check if a chessboard is in the position given by the board corners.
+
+    :param img: Image to check.
+    :param board_corners: A list of the coordinates of the four board
+        corners.
+    :param tolerance: Number of lattice points that must be correct.
+    :return: True if the chessboard is in the position given by the
+        board corners.
+    """
+    # We will check the interior 6x6 square grid lattice points of the
+    # cropped 500x500 image, as done by LAPS
+    cropped_img = image_object.image_transform(img, board_corners)
+
+    correct_points = 0
+    for row_corner in range(150, 1200, 150):
+        for col_corner in range(150, 1200, 150):
+            # Size of our analysis area
+            lx1 = max(0, int(row_corner - __ANALYSIS_RADIUS - 1))
+            lx2 = max(0, int(row_corner + __ANALYSIS_RADIUS))
+            ly1 = max(0, int(col_corner - __ANALYSIS_RADIUS))
+            ly2 = max(0, int(col_corner + __ANALYSIS_RADIUS + 1))
+
+            # Cropping for detector
+            dimg = cropped_img[ly1:ly2, lx1:lx2]
+            dimg_shape = np.shape(dimg)
+
+            # Not valid
+            if dimg_shape[0] <= 0 or dimg_shape[1] <= 0:
+                continue
+
+            # Detect if it is a lattice point
+            if __is_lattice_point(dimg):
+                correct_points += 1
+
+    return correct_points >= tolerance
