@@ -1,4 +1,5 @@
 import argparse
+import os
 
 from keras.applications.imagenet_utils import preprocess_input as \
     prein_squeezenet
@@ -25,14 +26,15 @@ PRE_INPUT_TRT = prein_mobilenet
 
 def parse_arguments():
     """Parses the script arguments and sets the corresponding flags.
-    Returns the image path and the location of the a1 square."""
+    Returns the path of the image or folder and the location of the a1
+    square."""
     global ACTIVATE_KERAS, ACTIVATE_ONNX, ACTIVATE_TRT
 
     parser = argparse.ArgumentParser(
         description="Predicts board configurations from images.")
 
-    parser.add_argument("image_path",
-                        help="Path to the image you wish to predict")
+    parser.add_argument("path",
+                        help="Path to the image or folder you wish to predict")
     parser.add_argument("a1_pos",
                         help="Location of the a1 square in the chessboard "
                              "(B = bottom, T = top, R = right, L = left)",
@@ -60,21 +62,22 @@ def parse_arguments():
     else:
         ValueError("No inference engine selected. This should be unreachable.")
 
-    return args.image_path, args.a1_pos
+    return args.path, args.a1_pos
 
 
 def main():
     """Parses the arguments and prints the predicted FEN."""
-    image_path, a1_pos = parse_arguments()
+    path, a1_pos = parse_arguments()
+    is_dir = os.path.isdir(path)
     if ACTIVATE_KERAS:
         fen = predict_board_keras(MODEL_PATH_KERAS, IMG_SIZE_KERAS,
-                                  PRE_INPUT_KERAS, image_path, a1_pos)
+                                  PRE_INPUT_KERAS, path, a1_pos, is_dir)
     elif ACTIVATE_ONNX:
         fen = predict_board_onnx(MODEL_PATH_ONNX, IMG_SIZE_ONNX,
-                                 PRE_INPUT_ONNX, image_path, a1_pos)
+                                 PRE_INPUT_ONNX, path, a1_pos, is_dir)
     elif ACTIVATE_TRT:
         fen = predict_board_trt(MODEL_PATH_TRT, IMG_SIZE_TRT,
-                                PRE_INPUT_TRT, image_path, a1_pos)
+                                PRE_INPUT_TRT, path, a1_pos, is_dir)
     else:
         fen = None
         ValueError("No inference engine selected. This should be unreachable.")

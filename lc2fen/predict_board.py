@@ -3,7 +3,9 @@ Predicts board configurations from images.
 """
 import glob
 import os
+import re
 import shutil
+import time
 
 import cv2
 import numpy as np
@@ -80,17 +82,20 @@ def obtain_individual_pieces(board_path):
     return sorted(glob.glob(pieces_dir + "/*.jpg"))
 
 
-def predict_board_keras(model_path, img_size, pre_input, board_path, a1_pos):
+def predict_board_keras(model_path, img_size, pre_input, path, a1_pos, is_dir):
     """
     Predict the fen notation of a chessboard using Keras for inference.
 
     :param model_path: Path to the Keras model.
     :param img_size: Model image input size.
     :param pre_input: Model preprocess input function.
-    :param board_path: Path to the board to detect. Must have rw
-        permission. For example: '../predictions/board.jpg'.
+    :param path: Path to the board or directory to detect. Must have rw
+        permission.
+        For example: '../predictions/board.jpg' or '../predictions/'.
     :param a1_pos: Position of the a1 square. Must be one of the
         following: "BL", "BR", "TL", "TR".
+    :param is_dir: Whether path is a directory to monitor or a single
+        board.
     :return: Predicted FEN string representing the chessboard.
     """
     model = load_model(model_path)
@@ -102,10 +107,13 @@ def predict_board_keras(model_path, img_size, pre_input, board_path, a1_pos):
             predictions.append(model.predict(piece_img)[0])
         return predictions
 
-    return predict_board(board_path, a1_pos, obtain_pieces_probs)
+    if is_dir:
+        return continuous_predictions(path, a1_pos, obtain_pieces_probs)
+    else:
+        return predict_board(path, a1_pos, obtain_pieces_probs)
 
 
-def predict_board_onnx(model_path, img_size, pre_input, board_path, a1_pos):
+def predict_board_onnx(model_path, img_size, pre_input, path, a1_pos, is_dir):
     """
     Predict the fen notation of a chessboard using ONNXRuntime for
     inference.
@@ -113,11 +121,13 @@ def predict_board_onnx(model_path, img_size, pre_input, board_path, a1_pos):
     :param model_path: Path to the ONNX model.
     :param img_size: Model image input size.
     :param pre_input: Model preprocess input function.
-    :param board_path: Path to the board to detect. Must have rw
+    :param path: Path to the board or directory to detect. Must have rw
         permission.
-        For example: '../predictions/board.jpg'.
+        For example: '../predictions/board.jpg' or '../predictions/'.
     :param a1_pos: Position of the a1 square. Must be one of the
         following: "BL", "BR", "TL", "TR".
+    :param is_dir: Whether path is a directory to monitor or a single
+        board.
     :return: Predicted FEN string representing the chessboard.
     """
     sess = onnxruntime.InferenceSession(model_path)
@@ -130,10 +140,13 @@ def predict_board_onnx(model_path, img_size, pre_input, board_path, a1_pos):
                 sess.run(None, {sess.get_inputs()[0].name: piece_img})[0][0])
         return predictions
 
-    return predict_board(board_path, a1_pos, obtain_pieces_probs)
+    if is_dir:
+        return continuous_predictions(path, a1_pos, obtain_pieces_probs)
+    else:
+        return predict_board(path, a1_pos, obtain_pieces_probs)
 
 
-def predict_board_trt(model_path, img_size, pre_input, board_path, a1_pos):
+def predict_board_trt(model_path, img_size, pre_input, path, a1_pos, is_dir):
     """
     Predict the fen notation of a chessboard using TensorRT for
     inference.
@@ -141,11 +154,13 @@ def predict_board_trt(model_path, img_size, pre_input, board_path, a1_pos):
     :param model_path: Path to the TensorRT engine with batch size 64.
     :param img_size: Model image input size.
     :param pre_input: Model preprocess input function.
-    :param board_path: Path to the board to detect. Must have rw
+    :param path: Path to the board or directory to detect. Must have rw
         permission.
-        For example: '../predictions/board.jpg'.
+        For example: '../predictions/board.jpg' or '../predictions/'.
     :param a1_pos: Position of the a1 square. Must be one of the
         following: "BL", "BR", "TL", "TR".
+    :param is_dir: Whether path is a directory to monitor or a single
+        board.
     :return: Predicted FEN string representing the chessboard.
     """
     if cuda is None or trt is None:
@@ -227,7 +242,10 @@ def predict_board_trt(model_path, img_size, pre_input, board_path, a1_pos):
 
             return [trt_outputs[ind:ind + 13] for ind in range(0, 13 * 64, 13)]
 
-        return predict_board(board_path, a1_pos, obtain_pieces_probs)
+        if is_dir:
+            return continuous_predictions(path, a1_pos, obtain_pieces_probs)
+        else:
+            return predict_board(path, a1_pos, obtain_pieces_probs)
 
 
 def predict_board(board_path, a1_pos, obtain_pieces_probs):
@@ -258,3 +276,38 @@ def predict_board(board_path, a1_pos, obtain_pieces_probs):
     fen = board_to_fen(board)
 
     return fen
+
+
+def continuous_predictions(path, a1_pos, obtain_pieces_probs):
+    """
+    Continuously monitors path and predicts any new jpg images added to
+    this directory, printing its FEN string. This function doesn't
+    return.
+
+    :param path: Path to the board or directory to detect. Must have rw
+        permission.
+        For example: '../predictions/board.jpg' or '../predictions/'.
+    :param a1_pos: Position of the a1 square. Must be one of the
+        following: "BL", "BR", "TL", "TR".
+    :param obtain_pieces_probs: Function which receives a list with the
+        path to each piece image in FEN notation order and returns the
+        corresponding probabilities of each piece belonging to each
+        class as another list.
+    """
+    if not os.path.isdir(path):
+        raise ValueError("The path parameter must be a directory")
+
+    def natural_key(text):
+        return [int(c) if c.isdigit() else c for c in re.split(r'(\d+)', text)]
+
+    print("Done loading. Monitoring " + path)
+    processed_board = False
+    while True:
+        for board_path in sorted(glob.glob(path + '*.jpg'), key=natural_key):
+            fen = predict_board(board_path, a1_pos, obtain_pieces_probs)
+            print(fen)
+            processed_board = True
+            os.remove(board_path)
+
+        if not processed_board:
+            time.sleep(0.1)
