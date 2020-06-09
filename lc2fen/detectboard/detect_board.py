@@ -122,7 +122,7 @@ def compute_corners(image_object):
     board_corners, square_corners = __original_points_coords(
         image_object.get_points())
 
-    debug.DebugImage(image_object['orig']) \
+    debug.DebugImage(image_object.get_images()[0]['orig']) \
         .points(square_corners, size=50, color=(0, 0, 255)) \
         .points(board_corners, size=50, color=(0, 255, 0)) \
         .save("corner_points")
