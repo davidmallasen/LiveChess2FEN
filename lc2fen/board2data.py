@@ -5,6 +5,7 @@ dataset.
 """
 import glob
 import os
+import re
 import shutil
 
 import cv2
@@ -57,7 +58,11 @@ def split_detected_square_boards(data_path):
 
     :param data_path: Path to the 'data' folder. For example: '../data'.
     """
-    detected_boards = sorted(glob.glob(data_path + '/boards/output/*.jpg'))
+    def natural_key(text):
+        return [int(c) if c.isdigit() else c for c in re.split(r'(\d+)', text)]
+
+    detected_boards = sorted(glob.glob(data_path + '/boards/output/*.jpg'),
+                             key=natural_key)
     print("DETECTED: %d boards" % len(detected_boards))
 
     fen_file = glob.glob(data_path + '/boards/input/*.fen')
@@ -86,7 +91,11 @@ def process_input_boards(data_path):
 
     :param data_path: Path to the 'data' folder. For example: '../data'.
     """
-    input_boards = sorted(glob.glob(data_path + '/boards/input/*.jpg'))
+    def natural_key(text):
+        return [int(c) if c.isdigit() else c for c in re.split(r'(\d+)', text)]
+
+    input_boards = sorted(glob.glob(data_path + '/boards/input/*.jpg'),
+                          key=natural_key)
 
     print("INPUT: %d boards" % len(input_boards), flush=True)
 
