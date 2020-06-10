@@ -141,8 +141,9 @@ def check_board_position(img, board_corners, tolerance=20):
     :param board_corners: A list of the coordinates of the four board
         corners.
     :param tolerance: Number of lattice points that must be correct.
-    :return: True if the chessboard is in the position given by the
-        board corners.
+    :return: A pair formed by a boolean indicating if the chessboard is
+        in the position given by the board corners and the cropped
+        image.
     """
     # We will check the interior 6x6 square grid lattice points of the
     # cropped 500x500 image, as done by LAPS
@@ -169,4 +170,4 @@ def check_board_position(img, board_corners, tolerance=20):
             if __is_lattice_point(dimg):
                 correct_points += 1
 
-    return correct_points >= tolerance
+    return correct_points >= tolerance, cropped_img

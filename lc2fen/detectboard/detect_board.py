@@ -8,7 +8,7 @@ import numpy as np
 from lc2fen.detectboard import debug
 from lc2fen.detectboard.cps import cps
 from lc2fen.detectboard.image_object import ImageObject
-from lc2fen.detectboard.laps import laps
+from lc2fen.detectboard.laps import laps, check_board_position
 from lc2fen.detectboard.slid import slid
 
 
@@ -85,7 +85,7 @@ def __layer(img):
     img.crop(four_points)
 
 
-def detect(input_image, output_board):
+def detect(input_image, output_board, board_corners=None):
     """
     Detects the board position in input_image and stores the cropped
     detected board in output_board.
@@ -93,12 +93,27 @@ def detect(input_image, output_board):
     :param input_image: Input chessboard image.
     :param output_board: Path (including name and extension) where to
         store the image with the detected chessboard.
+    :param board_corners: A list of the coordinates of the four board
+        corners. If it is not None, first check if the board is in the
+        position given by these corners. If not, runs the full
+        detection.
     :return: Final ImageObject with which to compute the corners if
         necessary.
     """
-    n_layers = 3
+    # Check if we can skip full board detection (if board position is
+    # already known)
+    if board_corners is not None:
+        found, cropped_img = check_board_position(input_image, board_corners)
+        if found:
+            cv2.imwrite(output_board, cropped_img)
+            image = ImageObject(input_image)
+            # For corners calculation
+            image.add_points([[0, 0], [1200, 0], [1200, 1200], [0, 1200]])
+            image.add_points(board_corners)
+            return image
 
     # Read the input image and store the cropped detected board
+    n_layers = 3
     image = ImageObject(input_image)
     for i in range(n_layers):
         __layer(image)

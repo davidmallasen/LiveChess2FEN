@@ -23,7 +23,7 @@ except ImportError:
     cuda = None
     trt = None
 
-from lc2fen.detectboard.detect_board import detect
+from lc2fen.detectboard.detect_board import detect, compute_corners
 from lc2fen.fen import list_to_board, board_to_fen
 from lc2fen.infer_pieces import infer_chess_pieces
 from lc2fen.split_board import split_square_board_image
@@ -45,7 +45,7 @@ def load_image(img_path, img_size, preprocess_func):
     return preprocess_func(img_tensor)
 
 
-def detect_input_board(board_path):
+def detect_input_board(board_path, board_corners=None):
     """
     Detects the input board and stores the result as 'tmp/board_name in
     the folder containing the board. If the folder tmp exists, deletes
@@ -54,6 +54,12 @@ def detect_input_board(board_path):
     :param board_path: Path to the board to detect. Must have rw
         permission.
         For example: '../predictions/board.jpg'.
+    :param board_corners: A list of the coordinates of the four board
+        corners. If it is not None, first check if the board is in the
+        position given by these corners. If not, runs the full
+        detection.
+    :return: A list of the new coordinates of the four board corners
+        detected.
     """
     input_image = cv2.imread(board_path)
     head, tail = os.path.split(board_path)
@@ -61,7 +67,10 @@ def detect_input_board(board_path):
     if os.path.exists(tmp_dir):
         shutil.rmtree(tmp_dir)
     os.mkdir(tmp_dir)
-    detect(input_image, os.path.join(head, "tmp", tail))
+    image_object = detect(input_image, os.path.join(head, "tmp", tail),
+                          board_corners)
+    board_corners, _ = compute_corners(image_object)
+    return board_corners
 
 
 def obtain_individual_pieces(board_path):
@@ -248,7 +257,7 @@ def predict_board_trt(model_path, img_size, pre_input, path, a1_pos, is_dir):
             return predict_board(path, a1_pos, obtain_pieces_probs)
 
 
-def predict_board(board_path, a1_pos, obtain_pieces_probs):
+def predict_board(board_path, a1_pos, obtain_pieces_probs, board_corners=None):
     """
     Predict the fen notation of a chessboard.
 
@@ -265,9 +274,15 @@ def predict_board(board_path, a1_pos, obtain_pieces_probs):
         path to each piece image in FEN notation order and returns the
         corresponding probabilities of each piece belonging to each
         class as another list.
-    :return: Predicted FEN string representing the chessboard.
+    :param board_corners: A list of the coordinates of the four board
+        corners. If it is not None, first check if the board is in the
+        position given by these corners. If not, runs the full
+        detection.
+    :return: A pair formed by the predicted FEN string representing the
+        chessboard and the coordinates of the corners of the chessboard
+        in the input image.
     """
-    detect_input_board(board_path)
+    board_corners = detect_input_board(board_path, board_corners)
     pieces = obtain_individual_pieces(board_path)
     pieces_probs = obtain_pieces_probs(pieces)
     predictions = infer_chess_pieces(pieces_probs, a1_pos)
@@ -275,7 +290,7 @@ def predict_board(board_path, a1_pos, obtain_pieces_probs):
     board = list_to_board(predictions)
     fen = board_to_fen(board)
 
-    return fen
+    return fen, board_corners
 
 
 def continuous_predictions(path, a1_pos, obtain_pieces_probs):
@@ -301,10 +316,13 @@ def continuous_predictions(path, a1_pos, obtain_pieces_probs):
         return [int(c) if c.isdigit() else c for c in re.split(r'(\d+)', text)]
 
     print("Done loading. Monitoring " + path)
+    board_corners = None
     processed_board = False
     while True:
         for board_path in sorted(glob.glob(path + '*.jpg'), key=natural_key):
-            fen = predict_board(board_path, a1_pos, obtain_pieces_probs)
+            fen, board_corners = predict_board(board_path, a1_pos,
+                                               obtain_pieces_probs,
+                                               board_corners)
             print(fen)
             processed_board = True
             os.remove(board_path)

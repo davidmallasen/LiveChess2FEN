@@ -37,18 +37,22 @@ class ImageObject:
     chessboard.
     """
 
-    def __init__(self, img):
+    def __init__(self, img=None):
         """Save and prepare image array."""
-        # Downscale for speed
-        downscaled_img_, shape_, scale_ = image_resize(img)
-
         # We save the whole sequence of transformations
         # attribute[i] is the attribute of iteration i, being iteration
         # 0 the first one
-        self.images = [{'orig': img, 'main': downscaled_img_}]
-        self.shape = [shape_]  # (0, 0)
-        self.scale = [scale_]  # 1
         self.points = []  # Points of the new cropped image for next iteration
+        self.images = []
+        self.shape = []  # (0, 0)
+        self.scale = []  # 1
+        if img is not None:
+            # Downscale for speed
+            downscaled_img_, shape_, scale_ = image_resize(img)
+
+            self.images.append({'orig': img, 'main': downscaled_img_})
+            self.shape.append(shape_)  # (0, 0)
+            self.scale.append(scale_)  # 1
 
     def __getitem__(self, attr):
         """Return last image as array."""
@@ -73,6 +77,10 @@ class ImageObject:
         img_crop = image_transform(self.images[-1]['orig'], pts_orig)
         self.points.append(pts_orig)
         self.add_image(img_crop)
+
+    def add_points(self, points):
+        """Adds points to the point list."""
+        self.points.append(points)
 
     def get_images(self):
         """Return images list."""
