@@ -4,13 +4,16 @@ convolutional neural networks.
 """
 import numpy as np
 
-from lc2fen.fen import board_to_list, list_to_board, is_white_square
+from lc2fen.fen import board_to_list, list_to_board, is_white_square, \
+    fen_to_board
 
 __PREDS_DICT = {0: 'B', 1: 'K', 2: 'N', 3: 'P', 4: 'Q', 5: 'R', 6: '_',
                 7: 'b', 8: 'k', 9: 'n', 10: 'p', 11: 'q', 12: 'r'}
 
 __IDX_TO_PIECE = {0: 'B', 1: 'N', 2: 'P', 3: 'Q', 4: 'R',
                   5: 'b', 6: 'n', 7: 'p', 8: 'q', 9: 'r'}
+
+__WHITE_PIECES = ('P', 'B', 'N', 'R', 'K', 'Q')
 
 
 def __sort_pieces_list(_pieces_probs_sort):
@@ -213,3 +216,38 @@ def is_white_piece(square_probs):
         white piece.
     """
     return np.sum(square_probs[:6]) >= np.sum(square_probs[7:])
+
+
+def changed_squares(previous_fen, pieces_probs):
+    """
+    Checks the squares in which there has been a significant state
+    (white, black or empty) change between the last board and the
+    current one.
+
+    :param previous_fen: FEN string representing the previous board
+        layout.
+    :param pieces_probs: List of the probabilities of each class in each
+        position of the chessboard given in FEN notation order.
+    :return: A list of the indexes of the pieces_probs list indicating
+        the positions in which there has been a significant state
+        change.
+    """
+    previous_list = board_to_list(fen_to_board(previous_fen))
+    changed_squares_idx = []
+    for idx, square in enumerate(previous_list):
+        # Pass the squares in which the previous state (white, black or
+        # empty) is the same as the current state
+        if square == '_' and is_empty_square(pieces_probs[idx]):
+            continue
+        if (square in __WHITE_PIECES
+                and not is_empty_square(pieces_probs[idx])
+                and is_white_piece(pieces_probs[idx])):
+            continue
+        if (square != '_' and square not in __WHITE_PIECES
+                and not is_empty_square(pieces_probs[idx])
+                and not is_white_piece(pieces_probs[idx])):
+            continue
+        # If the state has changed
+        changed_squares_idx.append(idx)
+
+    return changed_squares_idx
