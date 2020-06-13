@@ -70,14 +70,14 @@ def main():
     path, a1_pos = parse_arguments()
     is_dir = os.path.isdir(path)
     if ACTIVATE_KERAS:
-        fen = predict_board_keras(MODEL_PATH_KERAS, IMG_SIZE_KERAS,
-                                  PRE_INPUT_KERAS, path, a1_pos, is_dir)
+        fen, _ = predict_board_keras(MODEL_PATH_KERAS, IMG_SIZE_KERAS,
+                                     PRE_INPUT_KERAS, path, a1_pos, is_dir)
     elif ACTIVATE_ONNX:
-        fen = predict_board_onnx(MODEL_PATH_ONNX, IMG_SIZE_ONNX,
-                                 PRE_INPUT_ONNX, path, a1_pos, is_dir)
+        fen, _ = predict_board_onnx(MODEL_PATH_ONNX, IMG_SIZE_ONNX,
+                                    PRE_INPUT_ONNX, path, a1_pos, is_dir)
     elif ACTIVATE_TRT:
-        fen = predict_board_trt(MODEL_PATH_TRT, IMG_SIZE_TRT,
-                                PRE_INPUT_TRT, path, a1_pos, is_dir)
+        fen, _ = predict_board_trt(MODEL_PATH_TRT, IMG_SIZE_TRT,
+                                   PRE_INPUT_TRT, path, a1_pos, is_dir)
     else:
         fen = None
         ValueError("No inference engine selected. This should be unreachable.")
