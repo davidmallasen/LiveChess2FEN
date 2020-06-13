@@ -188,3 +188,28 @@ def infer_chess_pieces(pieces_probs, a1_pos):
         tops[max_idx] = pieces_lists[max_idx][idx[max_idx]]
 
     return out_preds
+
+
+def is_empty_square(square_probs):
+    """
+    Infers if the square given by square_probs is empty or not.
+
+    :param square_probs: List of the probabilities of each class in a
+        square of the chessboard.
+    :return: True if the square_probs infer that the square is empty.
+    """
+    return __PREDS_DICT[np.argmax(square_probs)] == '_'
+
+
+def is_white_piece(square_probs):
+    """
+    Infers if the square given by square_probs contains a white piece.
+    This function doesn't check if the square is empty or not, only non-
+    empty squares should be tested.
+
+    :param square_probs: List of the probabilities of each class in a
+        square of the chessboard.
+    :return: True if the square_probs infer that the square contains a
+        white piece.
+    """
+    return np.sum(square_probs[:6]) >= np.sum(square_probs[7:])
