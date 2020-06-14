@@ -14,6 +14,7 @@ __IDX_TO_PIECE = {0: 'B', 1: 'N', 2: 'P', 3: 'Q', 4: 'R',
                   5: 'b', 6: 'n', 7: 'p', 8: 'q', 9: 'r'}
 
 __WHITE_PIECES = ('P', 'B', 'N', 'R', 'K', 'Q')
+__BLACK_PIECES = ('p', 'b', 'n', 'r', 'k', 'q')
 
 
 def __sort_pieces_list(_pieces_probs_sort):
@@ -218,7 +219,7 @@ def is_white_piece(square_probs):
     return np.sum(square_probs[:6]) >= np.sum(square_probs[7:])
 
 
-def changed_squares(previous_fen, pieces_probs):
+def changed_squares(previous_fen, current_probs):
     """
     Checks the squares in which there has been a significant state
     (white, black or empty) change between the last board and the
@@ -226,8 +227,9 @@ def changed_squares(previous_fen, pieces_probs):
 
     :param previous_fen: FEN string representing the previous board
         layout.
-    :param pieces_probs: List of the probabilities of each class in each
-        position of the chessboard given in FEN notation order.
+    :param current_probs: List of the probabilities of each class in
+        each position of the current chessboard given in FEN notation
+        order.
     :return: A list of the indexes of the pieces_probs list indicating
         the positions in which there has been a significant state
         change.
@@ -237,17 +239,88 @@ def changed_squares(previous_fen, pieces_probs):
     for idx, square in enumerate(previous_list):
         # Pass the squares in which the previous state (white, black or
         # empty) is the same as the current state
-        if square == '_' and is_empty_square(pieces_probs[idx]):
+        if square == '_' and is_empty_square(current_probs[idx]):
             continue
         if (square in __WHITE_PIECES
-                and not is_empty_square(pieces_probs[idx])
-                and is_white_piece(pieces_probs[idx])):
+                and not is_empty_square(current_probs[idx])
+                and is_white_piece(current_probs[idx])):
             continue
-        if (square != '_' and square not in __WHITE_PIECES
-                and not is_empty_square(pieces_probs[idx])
-                and not is_white_piece(pieces_probs[idx])):
+        if (square in __BLACK_PIECES
+                and not is_empty_square(current_probs[idx])
+                and not is_white_piece(current_probs[idx])):
             continue
         # If the state has changed
         changed_squares_idx.append(idx)
 
     return changed_squares_idx
+
+
+def inferred_move(previous_fen, current_probs, changed_squares_idx):
+    """
+    Infers the move made. If it can't recognize the move, returns None.
+
+    The current inferred actions are: 'white_moves', 'white_captures',
+    'black_moves' or 'black_captures'.
+
+    :param previous_fen: FEN string representing the previous board
+        layout.
+    :param current_probs: List of the probabilities of each class in
+        each position of the current chessboard given in FEN notation
+        order.
+    :param changed_squares_idx: A list of the indexes of the
+        pieces_probs list indicating the positions in which there has
+        been a significant state change.
+    :return: If it can infer the move, returns a triplet containing the
+        index of the initial square, the index of the final square and
+        the inferred action. If not, returns None.
+    """
+    if len(changed_squares_idx) != 2:  # TODO: En passant 3, castling 4?
+        return None
+
+    previous_list = board_to_list(fen_to_board(previous_fen))
+
+    # Determine which square is the initial and which is the final
+    if is_empty_square(current_probs[changed_squares_idx[0]]):
+        initial_sq = changed_squares_idx[0]
+        if not is_empty_square(current_probs[changed_squares_idx[1]]):
+            final_sq = changed_squares_idx[1]
+        else:
+            return None
+    elif is_empty_square(current_probs[changed_squares_idx[1]]):
+        initial_sq = changed_squares_idx[1]
+        if not is_empty_square(current_probs[changed_squares_idx[0]]):
+            final_sq = changed_squares_idx[0]
+        else:
+            return None
+    else:
+        return None
+
+    # We know that in the previous board, the initial square was
+    # occupied (now it is empty) and in the current board the final
+    # square is occupied
+    if previous_list[initial_sq] in __WHITE_PIECES:
+        if previous_list[final_sq] == '_':
+            if is_white_piece(current_probs[final_sq]):
+                return initial_sq, final_sq, "white_moves"
+            else:
+                return None  # White piece converts into a black piece?
+        elif previous_list[final_sq] in __BLACK_PIECES:
+            if is_white_piece(current_probs[final_sq]):
+                return initial_sq, final_sq, "white_captures"
+            else:
+                return None  # White piece converts into a black piece?
+        else:
+            return None  # White piece captures white piece?
+    else:  # The initial square is a black piece
+        if previous_list[final_sq] == '_':
+            if not is_white_piece(current_probs[final_sq]):
+                return initial_sq, final_sq, "black_moves"
+            else:
+                return None  # Black piece converts into a white piece?
+        elif previous_list[final_sq] in __WHITE_PIECES:
+            if not is_white_piece(current_probs[final_sq]):
+                return initial_sq, final_sq, "black_captures"
+            else:
+                return None  # Black piece converts into a white piece?
+        else:
+            return None  # Black piece captures black piece?
