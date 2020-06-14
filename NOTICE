@@ -22,11 +22,12 @@ HOMEPAGE: https://github.com/rcmalli/keras-squeezenet
 LICENSE (full text below): MIT License
 COPYRIGHT: Copyright (c) 2016 Refikcanmalli
 ---
-bentley_ottmann
+isect_segments-bentley_ottmann
 
-HOMEPAGE: https://github.com/lycantropos/bentley_ottmann
+HOMEPAGE: https://github.com/ideasman42/isect_segments-bentley_ottmann
 LICENSE (full text below): MIT License
-COPYRIGHT: Copyright (c) 2020 Azat Ibrakov
+COPYRIGHT: Copyright (c) 2010 by Bart Kiers
+           Copyright (c) 2015 by Campbell Barton
 ---
 bintrees 2.0.2
 
