@@ -324,3 +324,112 @@ def inferred_move(previous_fen, current_probs, changed_squares_idx):
                 return None  # Black piece converts into a white piece?
         else:
             return None  # Black piece captures black piece?
+
+
+def __is_king_move(initial_sq, final_sq):
+    """At most distance one in any direction."""
+    return (abs(initial_sq[0] - final_sq[0]) <= 1
+            and abs(initial_sq[1] - final_sq[1]) <= 1)
+
+
+def __is_rook_move(initial_sq, final_sq):
+    """Same row or column."""
+    return initial_sq[0] == final_sq[0] or initial_sq[1] == final_sq[1]
+
+
+def __is_bishop_move(initial_sq, final_sq):
+    """Same diagonal."""
+    # Parallel to main diagonal
+    return (initial_sq[0] - initial_sq[1] == final_sq[0] - final_sq[1]
+            # Parallel to secondary diagonal
+            or initial_sq[0] + initial_sq[1] == final_sq[0] + final_sq[1])
+
+
+def __is_knight_move(initial_sq, final_sq):
+    """L shape."""
+    # Row and column distances
+    row_d = abs(initial_sq[0] - final_sq[0])
+    col_d = abs(initial_sq[1] - final_sq[1])
+    return (row_d == 1 and col_d == 2) or (row_d == 2 and col_d == 1)
+
+
+def __is_pawn_move(initial_sq, final_sq, capturing, white):
+    """
+    Moves forward in the same column at distance one (or two if it
+    hasn't moved yet) and captures forward diagonally at distance one.
+    """
+    if white:
+        if capturing:
+            return (initial_sq[0] - final_sq[0] == 1
+                    and abs(initial_sq[1] - final_sq[1]) == 1)
+        else:
+            return (initial_sq[1] == final_sq[1]
+                    and (initial_sq[0] - final_sq[0] == 1
+                         or (initial_sq[0] - final_sq[0] == 2
+                             and initial_sq[0] == 6)))
+    else:  # black
+        if capturing:
+            return (initial_sq[0] - final_sq[0] == -1
+                    and abs(initial_sq[1] - final_sq[1]) == 1)
+        else:
+            return (initial_sq[1] == final_sq[1]
+                    and (initial_sq[0] - final_sq[0] == -1
+                         or (initial_sq[0] - final_sq[0] == -2
+                             and initial_sq[0] == 1)))
+
+
+def inferred_pieces_from_move(initial_sq, final_sq, action):
+    """
+    Infers the possible piece types that will occupy the final square
+    from the move made.
+
+    :param initial_sq: Initial square (0-63). As given by inferred_move.
+    :param final_sq: Final square (0-63). As given by inferred_move.
+    :param action: Action done. As given by inferred_move.
+    :return: A list of the unique possible piece types.
+    """
+    initial_sq = (initial_sq // 8, initial_sq % 8)  # (row, column)
+    final_sq = (final_sq // 8, final_sq % 8)
+
+    capturing = action.endswith('captures')
+    white = action.startswith('white')
+
+    possible_pieces = []  # There can't be duplicates
+    if white:
+        if __is_pawn_move(initial_sq, final_sq, capturing, white):
+            if final_sq[0] == 0:
+                # If the move ends in the last row, promotions apply,
+                # so the result no longer is a pawn. This move also
+                # corresponds with a king, so the result can be all
+                # pieces except for the pawn. In this case we don't need
+                # to check the rest of the pieces.
+                return ['K', 'R', 'B', 'Q', 'N']
+            possible_pieces.append('P')
+        if __is_king_move(initial_sq, final_sq):
+            possible_pieces.append('K')
+        if __is_rook_move(initial_sq, final_sq):
+            possible_pieces.append('R')
+            possible_pieces.append('Q')
+        if __is_bishop_move(initial_sq, final_sq):
+            possible_pieces.append('B')
+            # Bishop and rook moves are exclusive, so Q is not in
+            # possible pieces
+            possible_pieces.append('Q')
+        if __is_knight_move(initial_sq, final_sq):
+            possible_pieces.append('N')
+    else:  # black
+        if __is_pawn_move(initial_sq, final_sq, capturing, white):
+            if final_sq[0] == 7:
+                return ['k', 'r', 'b', 'q', 'n']
+            possible_pieces.append('p')
+        if __is_king_move(initial_sq, final_sq):
+            possible_pieces.append('k')
+        if __is_rook_move(initial_sq, final_sq):
+            possible_pieces.append('r')
+            possible_pieces.append('q')
+        if __is_bishop_move(initial_sq, final_sq):
+            possible_pieces.append('b')
+            possible_pieces.append('q')
+        if __is_knight_move(initial_sq, final_sq):
+            possible_pieces.append('n')
+    return possible_pieces
