@@ -117,7 +117,7 @@ def __check_bishop(max_idx, tops, w_bishop_sq, b_bishop_sq):
     return True  # If it's not a bishop, nothing to check
 
 
-def infer_chess_pieces(pieces_probs, a1_pos):
+def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
     """
     Infers the chess pieces in all of the board based on the given
     probabilities.
@@ -126,12 +126,25 @@ def infer_chess_pieces(pieces_probs, a1_pos):
         position of the chessboard given in FEN notation order.
     :param a1_pos: Position of the a1 square. Must be one of the
         following: "BL", "BR", "TL", "TR".
+    :param previous_fen: The FEN string representing the previous move
+        of the same board. If it is not None, improves piece inference.
     :return: A list of the inferred chess pieces in FEN notation order.
     """
     pieces_probs = board_to_list(list_to_board(pieces_probs, a1_pos))
 
     # None represents that no piece is set in that position yet
     out_preds = [None] * 64
+
+    final_move_sq = -1
+    possible_pieces = []
+    if previous_fen is not None:
+        changed_squares_idx = changed_squares(previous_fen, pieces_probs)
+        move = inferred_move(previous_fen, pieces_probs, changed_squares_idx)
+        if move is not None:
+            initial_sq, final_move_sq, action = move
+            possible_pieces = inferred_pieces_from_move(initial_sq,
+                                                        final_move_sq,
+                                                        action)
 
     # We need to store the original order
     pieces_probs_sort = [(probs, i) for i, probs in enumerate(pieces_probs)]
@@ -154,8 +167,7 @@ def infer_chess_pieces(pieces_probs, a1_pos):
     # detecting these cases
     for idx, piece in enumerate(pieces_probs):
         if out_preds[idx] is None:
-            pred_idx = np.argmax(piece)
-            if __PREDS_DICT[pred_idx] == '_':
+            if is_empty_square(piece):
                 out_preds[idx] = '_'
                 out_preds_empty -= 1
 
@@ -178,14 +190,23 @@ def infer_chess_pieces(pieces_probs, a1_pos):
         # Fill in the square in out_preds that has the piece with the
         # maximum probability of all the board
         max_idx = __max_piece(tops)
+        square = tops[max_idx][1]
         # If we haven't maxed that piece type and the square is empty
         if (max_pieces_left[max_idx] > 0
-                and out_preds[tops[max_idx][1]] is None
+                and out_preds[square] is None
                 and __check_bishop(max_idx, tops, w_bishop_sq, b_bishop_sq)):
             # Fill the square and update counters
-            out_preds[tops[max_idx][1]] = __IDX_TO_PIECE[max_idx]
-            out_preds_empty -= 1
-            max_pieces_left[max_idx] -= 1
+            # If we have detected the move previously
+            if square == final_move_sq and possible_pieces:
+                # Only fill the square if one of the possible pieces
+                if __IDX_TO_PIECE[max_idx] in possible_pieces:
+                    out_preds[square] = __IDX_TO_PIECE[max_idx]
+                    out_preds_empty -= 1
+                    max_pieces_left[max_idx] -= 1
+            else:
+                out_preds[square] = __IDX_TO_PIECE[max_idx]
+                out_preds_empty -= 1
+                max_pieces_left[max_idx] -= 1
         # In any case we must update the entry in tops with the next
         # highest probability for the piece type we have tried
         idx[max_idx] += 1

@@ -257,7 +257,8 @@ def predict_board_trt(model_path, img_size, pre_input, path, a1_pos, is_dir):
             return predict_board(path, a1_pos, obtain_pieces_probs)
 
 
-def predict_board(board_path, a1_pos, obtain_pieces_probs, board_corners=None):
+def predict_board(board_path, a1_pos, obtain_pieces_probs, board_corners=None,
+                  previous_fen=None):
     """
     Predict the fen notation of a chessboard.
 
@@ -278,6 +279,8 @@ def predict_board(board_path, a1_pos, obtain_pieces_probs, board_corners=None):
         corners. If it is not None, first check if the board is in the
         position given by these corners. If not, runs the full
         detection.
+    :param previous_fen: The FEN string representing the previous move
+        of the same board. If it is not None, improves piece inference.
     :return: A pair formed by the predicted FEN string representing the
         chessboard and the coordinates of the corners of the chessboard
         in the input image.
@@ -285,7 +288,7 @@ def predict_board(board_path, a1_pos, obtain_pieces_probs, board_corners=None):
     board_corners = detect_input_board(board_path, board_corners)
     pieces = obtain_individual_pieces(board_path)
     pieces_probs = obtain_pieces_probs(pieces)
-    predictions = infer_chess_pieces(pieces_probs, a1_pos)
+    predictions = infer_chess_pieces(pieces_probs, a1_pos, previous_fen)
 
     board = list_to_board(predictions)
     fen = board_to_fen(board)
@@ -317,12 +320,14 @@ def continuous_predictions(path, a1_pos, obtain_pieces_probs):
 
     print("Done loading. Monitoring " + path)
     board_corners = None
+    fen = None
     processed_board = False
     while True:
         for board_path in sorted(glob.glob(path + '*.jpg'), key=natural_key):
             fen, board_corners = predict_board(board_path, a1_pos,
                                                obtain_pieces_probs,
-                                               board_corners)
+                                               board_corners,
+                                               fen)
             print(fen)
             processed_board = True
             os.remove(board_path)
