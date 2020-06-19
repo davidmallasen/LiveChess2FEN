@@ -6,6 +6,22 @@ Nvidia Jetson Nano.
 
 ![](docs/complete_method.png)
 
+## Benchmarks
+
+The following times are measured on the Nvidia Jetson Nano. Each time value
+is given per chessboard.
+
+#### Piece classification times
+![](docs/piece_classification_times.png)
+
+#### Full digitization times
+![](docs/full_digitization_times_summary.png)
+
+#### Static digitization times
+_See `lc2fen/detectboard/laps.py -> check_board_position()`_
+
+![](docs/static_digitization_times_summary.png)
+
 ## Setup
 
 1. Install Python 3.5 or later and the following dependencies:
