@@ -12,6 +12,8 @@ The following times are measured on the Nvidia Jetson Nano. Each time value
 is given per chessboard.
 
 #### Piece classification times
+![](docs/runtime_vs_accuracy_wfront.png)
+
 ![](docs/piece_classification_times.png)
 
 #### Full digitization times
