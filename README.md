@@ -62,6 +62,8 @@ Contributions are very welcome! Please check the
 
 ## License
 
+You can find a non-legal quick summary here: [tldrlegal AGPL](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0))
+
 Copyright (c) 2020 David Mallasén Quintana
 
 This program is free software: you can redistribute it and/or modify it
