@@ -42,14 +42,15 @@ Instructions for the JetPack 4.6. If you run into any problems see the Troublesh
         sudo pip3 install -U numpy==1.19.4 future==0.18.2 mock==3.0.5 h5py==2.10.0 keras_preprocessing==1.1.1 keras_applications==1.0.8 gast==0.2.2 futures protobuf pybind11
         sudo pip3 install --pre --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v46 tensorflow
         ~~~
+        
     2. Keras
         ~~~
         sudo apt-get install -y build-essential libatlas-base-dev gfortran
         sudo pip install keras
         ~~~
+        
     3. ONNX Runtime
-
-    Download the .whl file from [here](https://nvidia.box.com/s/bfs688apyvor4eo8sf3y1oqtnarwafww) and run:
+        Download the .whl file from [here](https://nvidia.box.com/s/bfs688apyvor4eo8sf3y1oqtnarwafww) and run:
         ~~~
         pip3 install onnxruntime_gpu-1.8.0-cp36-cp36m-linux_aarch64.whl
         ~~~
@@ -101,13 +102,13 @@ Instructions for the JetPack 4.6. If you run into any problems see the Troublesh
     ~~~
     export LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libgomp.so.1
     ~~~
-In order to solve permanently the error, add that line to the end of your `~/.bashrc` file.
+    In order to solve permanently the error, add that line to the end of your `~/.bashrc` file.
 
 - If you get the error `Illegal instruction (core dumped)` run:
     ~~~
     export OPENBLAS_CORETYPE=ARMV8
     ~~~
-In order to solve permanently the error, add that line to the end of your `~/.bashrc` file.
+    In order to solve permanently the error, add that line to the end of your `~/.bashrc` file.
 
 ## Setup
 
