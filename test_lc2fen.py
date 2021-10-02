@@ -5,11 +5,14 @@ import os
 
 import numpy as np
 import onnxruntime
-from keras.applications.imagenet_utils import preprocess_input as \
-    prein_squeezenet
-from keras.applications.mobilenet_v2 import preprocess_input as prein_mobilenet
-from keras.applications.xception import preprocess_input as prein_xception
-from keras.engine.saving import load_model
+import sklearn
+from tensorflow.keras.applications.imagenet_utils import preprocess_input as \
+        prein_squeezenet
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input as \
+        prein_mobilenet
+from tensorflow.keras.applications.xception import preprocess_input as \
+        prein_xception
+from tensorflow.keras.models import load_model
 
 try:
     import pycuda.driver as cuda
@@ -26,7 +29,7 @@ from lc2fen.test_predict_board import predict_board, print_fen_comparison
 
 
 # PRE_INPUT example:
-#   from keras.applications.mobilenet_v2 import preprocess_input as
+#   from tensorflow.keras.applications.mobilenet_v2 import preprocess_input as
 #       prein_mobilenet
 ACTIVATE_KERAS = False
 MODEL_PATH_KERAS = "selected_models/Xception_last.h5"

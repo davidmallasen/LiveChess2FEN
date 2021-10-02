@@ -10,8 +10,8 @@ import time
 import cv2
 import numpy as np
 import onnxruntime
-from keras.engine.saving import load_model
-from keras.preprocessing import image
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
 
 try:
     import pycuda.driver as cuda
@@ -39,8 +39,8 @@ def load_image(img_path, img_size, preprocess_func):
         image.
     :return: The loaded image.
     """
-    img = image.load_img(img_path, target_size=(img_size, img_size))
-    img_tensor = image.img_to_array(img)
+    img = load_img(img_path, target_size=(img_size, img_size))
+    img_tensor = img_to_array(img)
     img_tensor = np.expand_dims(img_tensor, axis=0)
     return preprocess_func(img_tensor)
 
