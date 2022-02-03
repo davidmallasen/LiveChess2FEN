@@ -4,7 +4,20 @@ LiveChess2FEN is a fully functional framework that automatically digitizes
 the configuration of a chessboard. It is optimized for execution on a
 Nvidia Jetson Nano.
 
-This repository contains the code used in our [paper](https://arxiv.org/abs/2012.06858). If you find this useful, please consider citing us. 
+This repository contains the code used in our [paper](https://arxiv.org/abs/2012.06858). If you find this useful, please consider citing us.
+~~~
+@article{mallasen2020LiveChess2FEN,
+  title = {LiveChess2FEN: A Framework for Classifying Chess Pieces Based on CNNs},
+  author = {Mallas{\'e}n Quintana, David and Del Barrio Garc{\'i}a, Alberto Antonio and Prieto Mat{\'i}as, Manuel},
+  year = {2020},
+  month = dec,
+  journal = {arXiv:2012.06858 [cs]},
+  eprint = {2012.06858},
+  eprinttype = {arxiv},
+  url = {http://arxiv.org/abs/2012.06858},
+  archiveprefix = {arXiv}
+}
+~~~
 
 ![](docs/complete_method.png)
 
