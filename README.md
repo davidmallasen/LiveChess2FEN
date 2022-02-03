@@ -51,18 +51,12 @@ Instructions for the JetPack 4.6. If you run into any problems see the Troublesh
         ~~~
         sudo apt-get install libhdf5-serial-dev hdf5-tools libhdf5-dev zlib1g-dev zip libjpeg8-dev liblapack-dev libblas-dev gfortran
         sudo apt-get install python3-pip
-        sudo pip3 install -U pip testresources setuptools=49.6.0
+        sudo pip3 install -U pip testresources setuptools==49.6.0
         sudo pip3 install -U numpy==1.19.4 future==0.18.2 mock==3.0.5 h5py==2.10.0 keras_preprocessing==1.1.1 keras_applications==1.0.8 gast==0.2.2 futures protobuf pybind11
         sudo pip3 install --pre --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v46 tensorflow
         ~~~
         
-    2. Keras
-        ~~~
-        sudo apt-get install -y build-essential libatlas-base-dev gfortran
-        sudo pip install keras
-        ~~~
-        
-    3. ONNX Runtime
+    2. ONNX Runtime
         Download the .whl file from [here](https://nvidia.box.com/s/bfs688apyvor4eo8sf3y1oqtnarwafww) and run:
         ~~~
         pip3 install onnxruntime_gpu-1.8.0-cp36-cp36m-linux_aarch64.whl
@@ -74,6 +68,7 @@ Instructions for the JetPack 4.6. If you run into any problems see the Troublesh
     ~~~
     git clone --recursive https://github.com/onnx/onnx-tensorrt.git
     cd onnx-tensorrt
+    git checkout 8.0-GA
     mkdir build && cd build
     cmake .. -DCUDA_INCLUDE_DIRS=/usr/local/cuda/include -DTENSORRT_ROOT=/usr/src/tensorrt -DGPU_ARCHS="53"
     make
@@ -91,10 +86,11 @@ Instructions for the JetPack 4.6. If you run into any problems see the Troublesh
 
 ### Troubleshooting
 
-- To upgrade CMake download [CMake 3.14.7](https://cmake.org/files/v3.14/cmake-3.14.5.tar.gz) and run:
+- To upgrade CMake download [CMake 3.14.7](https://cmake.org/files/v3.14/cmake-3.14.7.tar.gz) and run:
     ~~~
     tar -zxvf cmake-3.14.7.tar.gz
     cd cmake-3.14.7
+    sudo apt-get install libcurl4-openssl-dev
     sudo ./bootstrap
     sudo make
     sudo make install
@@ -123,6 +119,11 @@ Instructions for the JetPack 4.6. If you run into any problems see the Troublesh
     ~~~
     In order to solve permanently the error, add that line to the end of your `~/.bashrc` file.
 
+- If you get the error `error: command 'aarch64-linux-gnu-gcc' failed with exit status 1` run:
+    ~~~
+    sudo apt-get install python3-dev
+    ~~~
+
 ## Setup
 
 Note: You can find a list of version numbers for the python packages that have been tested to work in the `requirements.txt` file.
@@ -139,7 +140,7 @@ Note: You can find a list of version numbers for the python packages that have b
 2. Depending on the inference engine install the following dependencies:
     - Keras with tensorflow backend. Slower than ONNX.
     - ONNX Runtime.
-    - (Optional) TensorRT. Fastest available, although more tricky to set up.
+    - (Optional) TensorRT and PyCUDA. Fastest available, although more tricky to set up.
 
 3. Create a `selected_models` and a `predictions` folder in the project root.
 
