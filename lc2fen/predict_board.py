@@ -91,7 +91,7 @@ def obtain_individual_pieces(board_path):
     return sorted(glob.glob(pieces_dir + "/*.jpg"))
 
 
-def predict_board_keras(model_path, img_size, pre_input, path, a1_pos, is_dir):
+def predict_board_keras(model_path, img_size, pre_input, path, a1_pos):
     """
     Predict the fen notation of a chessboard using Keras for inference.
 
@@ -103,8 +103,6 @@ def predict_board_keras(model_path, img_size, pre_input, path, a1_pos, is_dir):
         For example: '../predictions/board.jpg' or '../predictions/'.
     :param a1_pos: Position of the a1 square. Must be one of the
         following: "BL", "BR", "TL", "TR".
-    :param is_dir: Whether path is a directory to monitor or a single
-        board.
     :return: Predicted FEN string representing the chessboard.
     """
     model = load_model(model_path)
@@ -116,13 +114,13 @@ def predict_board_keras(model_path, img_size, pre_input, path, a1_pos, is_dir):
             predictions.append(model.predict(piece_img)[0])
         return predictions
 
-    if is_dir:
+    if os.path.isdir(path):
         return continuous_predictions(path, a1_pos, obtain_pieces_probs)
     else:
         return predict_board(path, a1_pos, obtain_pieces_probs)
 
 
-def predict_board_onnx(model_path, img_size, pre_input, path, a1_pos, is_dir):
+def predict_board_onnx(model_path, img_size, pre_input, path, a1_pos):
     """
     Predict the fen notation of a chessboard using ONNXRuntime for
     inference.
@@ -135,8 +133,6 @@ def predict_board_onnx(model_path, img_size, pre_input, path, a1_pos, is_dir):
         For example: '../predictions/board.jpg' or '../predictions/'.
     :param a1_pos: Position of the a1 square. Must be one of the
         following: "BL", "BR", "TL", "TR".
-    :param is_dir: Whether path is a directory to monitor or a single
-        board.
     :return: Predicted FEN string representing the chessboard.
     """
     sess = onnxruntime.InferenceSession(model_path)
@@ -149,13 +145,13 @@ def predict_board_onnx(model_path, img_size, pre_input, path, a1_pos, is_dir):
                 sess.run(None, {sess.get_inputs()[0].name: piece_img})[0][0])
         return predictions
 
-    if is_dir:
+    if os.path.isdir(path):
         return continuous_predictions(path, a1_pos, obtain_pieces_probs)
     else:
         return predict_board(path, a1_pos, obtain_pieces_probs)
 
 
-def predict_board_trt(model_path, img_size, pre_input, path, a1_pos, is_dir):
+def predict_board_trt(model_path, img_size, pre_input, path, a1_pos):
     """
     Predict the fen notation of a chessboard using TensorRT for
     inference.
@@ -168,8 +164,6 @@ def predict_board_trt(model_path, img_size, pre_input, path, a1_pos, is_dir):
         For example: '../predictions/board.jpg' or '../predictions/'.
     :param a1_pos: Position of the a1 square. Must be one of the
         following: "BL", "BR", "TL", "TR".
-    :param is_dir: Whether path is a directory to monitor or a single
-        board.
     :return: Predicted FEN string representing the chessboard.
     """
     if cuda is None or trt is None:
@@ -251,7 +245,7 @@ def predict_board_trt(model_path, img_size, pre_input, path, a1_pos, is_dir):
 
             return [trt_outputs[ind:ind + 13] for ind in range(0, 13 * 64, 13)]
 
-        if is_dir:
+        if os.path.isdir(path):
             return continuous_predictions(path, a1_pos, obtain_pieces_probs)
         else:
             return predict_board(path, a1_pos, obtain_pieces_probs)

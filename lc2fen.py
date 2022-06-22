@@ -1,5 +1,4 @@
 import argparse
-import os
 
 from keras.applications.imagenet_utils import preprocess_input as \
     prein_squeezenet
@@ -68,16 +67,15 @@ def parse_arguments():
 def main():
     """Parses the arguments and prints the predicted FEN."""
     path, a1_pos = parse_arguments()
-    is_dir = os.path.isdir(path)
     if ACTIVATE_KERAS:
         fen, _ = predict_board_keras(MODEL_PATH_KERAS, IMG_SIZE_KERAS,
-                                     PRE_INPUT_KERAS, path, a1_pos, is_dir)
+                                     PRE_INPUT_KERAS, path, a1_pos)
     elif ACTIVATE_ONNX:
         fen, _ = predict_board_onnx(MODEL_PATH_ONNX, IMG_SIZE_ONNX,
-                                    PRE_INPUT_ONNX, path, a1_pos, is_dir)
+                                    PRE_INPUT_ONNX, path, a1_pos)
     elif ACTIVATE_TRT:
         fen, _ = predict_board_trt(MODEL_PATH_TRT, IMG_SIZE_TRT,
-                                   PRE_INPUT_TRT, path, a1_pos, is_dir)
+                                   PRE_INPUT_TRT, path, a1_pos)
     else:
         fen = None
         ValueError("No inference engine selected. This should be unreachable.")
