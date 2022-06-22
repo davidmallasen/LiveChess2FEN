@@ -24,7 +24,7 @@ except ImportError:
     trt = None
 
 from lc2fen.detectboard.detect_board import detect, compute_corners
-from lc2fen.fen import list_to_board, board_to_fen
+from lc2fen.fen import list_to_board, board_to_fen, compare_fen
 from lc2fen.infer_pieces import infer_chess_pieces
 from lc2fen.split_board import split_square_board_image
 
@@ -45,53 +45,8 @@ def load_image(img_path, img_size, preprocess_func):
     return preprocess_func(img_tensor)
 
 
-def detect_input_board(board_path, board_corners=None):
-    """
-    Detects the input board and stores the result as 'tmp/board_name in
-    the folder containing the board. If the folder tmp exists, deletes
-    its contents. If not, creates the tmp folder.
-
-    :param board_path: Path to the board to detect. Must have rw
-        permission.
-        For example: '../predictions/board.jpg'.
-    :param board_corners: A list of the coordinates of the four board
-        corners. If it is not None, first check if the board is in the
-        position given by these corners. If not, runs the full
-        detection.
-    :return: A list of the new coordinates of the four board corners
-        detected.
-    """
-    input_image = cv2.imread(board_path)
-    head, tail = os.path.split(board_path)
-    tmp_dir = os.path.join(head, "tmp/")
-    if os.path.exists(tmp_dir):
-        shutil.rmtree(tmp_dir)
-    os.mkdir(tmp_dir)
-    image_object = detect(input_image, os.path.join(head, "tmp", tail),
-                          board_corners)
-    board_corners, _ = compute_corners(image_object)
-    return board_corners
-
-
-def obtain_individual_pieces(board_path):
-    """
-    Obtain the individual pieces of a board.
-
-    :param board_path: Path to the board to detect. Must have rw
-        permission. The detected board should be in a tmp folder as done
-        by detect_input_board.
-        For example: '../predictions/board.jpg'.
-    :return: List with the path to each piece image.
-    """
-    head, tail = os.path.split(board_path)
-    tmp_dir = os.path.join(head, "tmp/")
-    pieces_dir = os.path.join(tmp_dir, "pieces/")
-    os.mkdir(pieces_dir)
-    split_square_board_image(os.path.join(tmp_dir, tail), "", pieces_dir)
-    return sorted(glob.glob(pieces_dir + "/*.jpg"))
-
-
-def predict_board_keras(model_path, img_size, pre_input, path, a1_pos):
+def predict_board_keras(model_path, img_size, pre_input, path='', a1_pos='', 
+                        test=False):
     """
     Predict the fen notation of a chessboard using Keras for inference.
 
@@ -103,6 +58,7 @@ def predict_board_keras(model_path, img_size, pre_input, path, a1_pos):
         For example: '../predictions/board.jpg' or '../predictions/'.
     :param a1_pos: Position of the a1 square. Must be one of the
         following: "BL", "BR", "TL", "TR".
+    :param test: Activates the testing function.
     :return: Predicted FEN string representing the chessboard.
     """
     model = load_model(model_path)
@@ -114,13 +70,17 @@ def predict_board_keras(model_path, img_size, pre_input, path, a1_pos):
             predictions.append(model.predict(piece_img)[0])
         return predictions
 
-    if os.path.isdir(path):
-        return continuous_predictions(path, a1_pos, obtain_pieces_probs)
+    if test:
+        test_predict_board(obtain_pieces_probs)
     else:
-        return predict_board(path, a1_pos, obtain_pieces_probs)
+        if os.path.isdir(path):
+            return continuous_predictions(path, a1_pos, obtain_pieces_probs)
+        else:
+            return predict_board(path, a1_pos, obtain_pieces_probs)
 
 
-def predict_board_onnx(model_path, img_size, pre_input, path, a1_pos):
+def predict_board_onnx(model_path, img_size, pre_input, path='', a1_pos='', 
+                       test=False):
     """
     Predict the fen notation of a chessboard using ONNXRuntime for
     inference.
@@ -133,6 +93,7 @@ def predict_board_onnx(model_path, img_size, pre_input, path, a1_pos):
         For example: '../predictions/board.jpg' or '../predictions/'.
     :param a1_pos: Position of the a1 square. Must be one of the
         following: "BL", "BR", "TL", "TR".
+    :param test: Activates the testing function.
     :return: Predicted FEN string representing the chessboard.
     """
     sess = onnxruntime.InferenceSession(model_path)
@@ -145,13 +106,17 @@ def predict_board_onnx(model_path, img_size, pre_input, path, a1_pos):
                 sess.run(None, {sess.get_inputs()[0].name: piece_img})[0][0])
         return predictions
 
-    if os.path.isdir(path):
-        return continuous_predictions(path, a1_pos, obtain_pieces_probs)
+    if test:
+        test_predict_board(obtain_pieces_probs)
     else:
-        return predict_board(path, a1_pos, obtain_pieces_probs)
+        if os.path.isdir(path):
+            return continuous_predictions(path, a1_pos, obtain_pieces_probs)
+        else:
+            return predict_board(path, a1_pos, obtain_pieces_probs)
 
 
-def predict_board_trt(model_path, img_size, pre_input, path, a1_pos):
+def predict_board_trt(model_path, img_size, pre_input, path='', a1_pos='', 
+                      test=False):
     """
     Predict the fen notation of a chessboard using TensorRT for
     inference.
@@ -164,6 +129,7 @@ def predict_board_trt(model_path, img_size, pre_input, path, a1_pos):
         For example: '../predictions/board.jpg' or '../predictions/'.
     :param a1_pos: Position of the a1 square. Must be one of the
         following: "BL", "BR", "TL", "TR".
+    :param test: Activates the testing function.
     :return: Predicted FEN string representing the chessboard.
     """
     if cuda is None or trt is None:
@@ -245,10 +211,13 @@ def predict_board_trt(model_path, img_size, pre_input, path, a1_pos):
 
             return [trt_outputs[ind:ind + 13] for ind in range(0, 13 * 64, 13)]
 
-        if os.path.isdir(path):
-            return continuous_predictions(path, a1_pos, obtain_pieces_probs)
+        if test:
+            test_predict_board(obtain_pieces_probs)
         else:
-            return predict_board(path, a1_pos, obtain_pieces_probs)
+            if os.path.isdir(path):
+                return continuous_predictions(path, a1_pos, obtain_pieces_probs)
+            else:
+                return predict_board(path, a1_pos, obtain_pieces_probs)
 
 
 def predict_board(board_path, a1_pos, obtain_pieces_probs, board_corners=None,
@@ -328,3 +297,159 @@ def continuous_predictions(path, a1_pos, obtain_pieces_probs):
 
         if not processed_board:
             time.sleep(0.1)
+
+
+def test_predict_board(obtain_predictions):
+    """Tests board prediction."""
+    fens = read_correct_fen()
+
+    fen = time_predict_board(os.path.join("predictions", "test1.jpg"), "BL",
+                        obtain_predictions)
+    print_fen_comparison("test1.jpg", fen, fens[0])
+
+    fen = time_predict_board(os.path.join("predictions", "test2.jpg"), "BL",
+                        obtain_predictions)
+    print_fen_comparison("test2.jpg", fen, fens[1])
+
+    fen = time_predict_board(os.path.join("predictions", "test3.jpg"), "BL",
+                        obtain_predictions)
+    print_fen_comparison("test3.jpg", fen, fens[2])
+
+    fen = time_predict_board(os.path.join("predictions", "test4.jpg"), "TL",
+                        obtain_predictions)
+    print_fen_comparison("test4.jpg", fen, fens[3])
+
+    fen = time_predict_board(os.path.join("predictions", "test5.jpg"), "TR",
+                        obtain_predictions)
+    print_fen_comparison("test5.jpg", fen, fens[4])
+
+
+def detect_input_board(board_path, board_corners=None):
+    """
+    Detects the input board and stores the result as 'tmp/board_name in
+    the folder containing the board. If the folder tmp exists, deletes
+    its contents. If not, creates the tmp folder.
+
+    :param board_path: Path to the board to detect. Must have rw
+        permission.
+        For example: '../predictions/board.jpg'.
+    :param board_corners: A list of the coordinates of the four board
+        corners. If it is not None, first check if the board is in the
+        position given by these corners. If not, runs the full
+        detection.
+    :return: A list of the new coordinates of the four board corners
+        detected.
+    """
+    input_image = cv2.imread(board_path)
+    head, tail = os.path.split(board_path)
+    tmp_dir = os.path.join(head, "tmp/")
+    if os.path.exists(tmp_dir):
+        shutil.rmtree(tmp_dir)
+    os.mkdir(tmp_dir)
+    image_object = detect(input_image, os.path.join(head, "tmp", tail),
+                          board_corners)
+    board_corners, _ = compute_corners(image_object)
+    return board_corners
+
+
+def obtain_individual_pieces(board_path):
+    """
+    Obtain the individual pieces of a board.
+
+    :param board_path: Path to the board to detect. Must have rw
+        permission. The detected board should be in a tmp folder as done
+        by detect_input_board.
+        For example: '../predictions/board.jpg'.
+    :return: List with the path to each piece image.
+    """
+    head, tail = os.path.split(board_path)
+    tmp_dir = os.path.join(head, "tmp/")
+    pieces_dir = os.path.join(tmp_dir, "pieces/")
+    os.mkdir(pieces_dir)
+    split_square_board_image(os.path.join(tmp_dir, tail), "", pieces_dir)
+    return sorted(glob.glob(pieces_dir + "/*.jpg"))
+
+
+def time_predict_board(board_path, a1_pos, obtain_pieces_probs):
+    """
+    Predict the fen notation of a chessboard. Prints the elapsed times.
+
+    The obtain_predictions argument allows us to predict using different
+    methods (such as Keras, ONNX or TensorRT models) that may need
+    additional context.
+
+    :param board_path: Path to the board to detect. Must have rw permission.
+        For example: '../predictions/board.jpg'.
+    :param a1_pos: Position of the a1 square. Must be one of the
+        following: "BL", "BR", "TL", "TR".
+    :param obtain_pieces_probs: Function which receives a list with the
+        path to each piece image in FEN notation order and returns the
+        corresponding probabilities of each piece belonging to each
+        class as another list.
+    :return: Predicted fen string representing the chessboard.
+    """
+    total_time = 0
+
+    start = time.perf_counter()
+    detect_input_board(board_path)
+    elapsed_time = time.perf_counter() - start
+    total_time += elapsed_time
+    print(f"Elapsed time detecting the input board: {elapsed_time}")
+
+    start = time.perf_counter()
+    pieces = obtain_individual_pieces(board_path)
+    elapsed_time = time.perf_counter() - start
+    total_time += elapsed_time
+    print(f"Elapsed time obtaining the individual pieces: {elapsed_time}")
+
+    start = time.perf_counter()
+    pieces_probs = obtain_pieces_probs(pieces)
+    elapsed_time = time.perf_counter() - start
+    total_time += elapsed_time
+    print(f"Elapsed time predicting probabilities: {elapsed_time}")
+
+    start = time.perf_counter()
+    predictions = infer_chess_pieces(pieces_probs, a1_pos)
+    elapsed_time = time.perf_counter() - start
+    total_time += elapsed_time
+    print(f"Elapsed time inferring chess pieces: {elapsed_time}")
+
+    start = time.perf_counter()
+    board = list_to_board(predictions)
+    fen = board_to_fen(board)
+    elapsed_time = time.perf_counter() - start
+    total_time += elapsed_time
+    print(f"Elapsed time converting to fen notation: {elapsed_time}")
+
+    print(f"Elapsed total time: {total_time}")
+
+    return fen
+
+
+def print_fen_comparison(board_name, fen, correct_fen):
+    """
+    Compares the predicted fen with the correct fen and pretty prints
+    the result.
+
+    :param board_name: Name of the board. For example: 'test1.jpg'
+    :param fen: Predicted fen string.
+    :param correct_fen: Correct fen string.
+    """
+    n_dif = compare_fen(fen, correct_fen)
+    print(board_name[:-4] + ' - Err:' + str(n_dif)
+          + " Acc:{:.2f}% FEN:".format(1 - (n_dif / 64)) + fen + '\n')
+
+
+def read_correct_fen():
+    """Reads the correct fen for testing from boards.fen file."""
+    fens = []
+
+    with open(os.path.join("predictions", "boards.fen"), 'r') as fen_fd:
+        lines = fen_fd.read().splitlines()
+        for line in lines:
+            line = line.split()
+            if len(line) != 2:
+                raise ValueError("All lines in fen file must have the format "
+                                 "'fen orientation'")
+            fens.append(line[0])
+    return fens
