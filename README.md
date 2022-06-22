@@ -158,6 +158,8 @@ Note: You can find a list of version numbers for the python packages that have b
 
 7. Run the `test_lc2fen.py` script.
 
+8. You can then use LiveChess2FEN by repeating steps 6 and 7 in `lc2fen.py` instead of `test_lc2fen.py`. Run `python3 lc2fen.py -h` to display the help message.
+
 ## Contributing
 
 Contributions are very welcome! Please check the 
