@@ -1,5 +1,7 @@
 import argparse
 
+import sklearn  # Required in Jetson to avoid cannot allocate memory in 
+                # static TLS block error
 from keras.applications.imagenet_utils import preprocess_input as \
     prein_squeezenet
 from keras.applications.mobilenet_v2 import preprocess_input as prein_mobilenet
