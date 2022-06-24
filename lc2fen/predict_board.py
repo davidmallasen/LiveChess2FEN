@@ -301,27 +301,15 @@ def continuous_predictions(path, a1_pos, obtain_pieces_probs):
 
 def test_predict_board(obtain_predictions):
     """Tests board prediction."""
-    fens = read_correct_fen()
+    fens, a1_squares = read_correct_fen(os.path.join("predictions", 
+                                                     "boards.fen"))
 
-    fen = time_predict_board(os.path.join("predictions", "test1.jpg"), "BL",
-                        obtain_predictions)
-    print_fen_comparison("test1.jpg", fen, fens[0])
-
-    fen = time_predict_board(os.path.join("predictions", "test2.jpg"), "BL",
-                        obtain_predictions)
-    print_fen_comparison("test2.jpg", fen, fens[1])
-
-    fen = time_predict_board(os.path.join("predictions", "test3.jpg"), "BL",
-                        obtain_predictions)
-    print_fen_comparison("test3.jpg", fen, fens[2])
-
-    fen = time_predict_board(os.path.join("predictions", "test4.jpg"), "TL",
-                        obtain_predictions)
-    print_fen_comparison("test4.jpg", fen, fens[3])
-
-    fen = time_predict_board(os.path.join("predictions", "test5.jpg"), "TR",
-                        obtain_predictions)
-    print_fen_comparison("test5.jpg", fen, fens[4])
+    for i in range(5):
+        fen = time_predict_board(os.path.join("predictions", 
+                                              "test" + str(i+1) + ".jpg"),
+                                 a1_squares[i],
+                                 obtain_predictions)
+        print_fen_comparison("test" + str(i+1) + ".jpg", fen, fens[i])
 
 
 def detect_input_board(board_path, board_corners=None):
@@ -440,11 +428,19 @@ def print_fen_comparison(board_name, fen, correct_fen):
           + " Acc:{:.2f}% FEN:".format(1 - (n_dif / 64)) + fen + '\n')
 
 
-def read_correct_fen():
-    """Reads the correct fen for testing from boards.fen file."""
-    fens = []
+def read_correct_fen(fen_file):
+    """
+    Reads the correct fen for testing from fen_file.
 
-    with open(os.path.join("predictions", "boards.fen"), 'r') as fen_fd:
+    :param board_path: Path to the file containing the correct fens and
+        a1 squares.
+    :return: List with the correct fens and list with the correct
+        a1 squares.
+    """
+    fens = []
+    a1_squares = []
+
+    with open(fen_file, 'r') as fen_fd:
         lines = fen_fd.read().splitlines()
         for line in lines:
             line = line.split()
@@ -452,4 +448,5 @@ def read_correct_fen():
                 raise ValueError("All lines in fen file must have the format "
                                  "'fen orientation'")
             fens.append(line[0])
-    return fens
+            a1_squares.append(line[1])
+    return fens, a1_squares
