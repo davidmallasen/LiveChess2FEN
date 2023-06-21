@@ -3,7 +3,7 @@ Train MobileNetV2 model.
 """
 from keras.applications import MobileNetV2
 from keras.applications.mobilenet_v2 import preprocess_input
-from keras.engine.saving import load_model
+from keras.models import load_model
 
 from chess_piece_models_common import build_model, data_generators, \
     train_model, plot_model_history, evaluate_model, model_callbacks

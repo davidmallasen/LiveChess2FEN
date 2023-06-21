@@ -10,8 +10,8 @@ import time
 import cv2
 import numpy as np
 import onnxruntime
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing.image import load_img, img_to_array
+from keras.models import load_model
+from keras.utils.image_utils import load_img, img_to_array
 
 try:
     import pycuda.driver as cuda
