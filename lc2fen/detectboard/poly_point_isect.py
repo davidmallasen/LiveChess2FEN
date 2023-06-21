@@ -8,9 +8,11 @@ from operator import attrgetter
 __all__ = (
     "isect_segments",
     "isect_polygon",
+
     # Same as above but includes segments with each intersections
     "isect_segments_include_segments",
     "isect_polygon_include_segments",
+
     # For testing only (correct but slow)
     "isect_segments__naive",
     "isect_polygon__naive",
@@ -42,21 +44,9 @@ INF = float("inf")
 
 class Event:
     # slope is just cache, we may remove or calculate slope on the fly
-    __slots__ = (
-        "type",
-        "point",
-        "segment",
-        "slope",
-        "span",
-    ) + (
+    __slots__ = ("type", "point", "segment", "slope", "span",) + (
         # debugging only
-        ()
-        if not USE_DEBUG
-        else (
-            "other",
-            "in_sweep",
-        )
-    )
+        () if not USE_DEBUG else ("other", "in_sweep",))
 
     class Type:
         END = 0
@@ -153,14 +143,13 @@ class Event:
         return 0
 
     def __repr__(self):
-        return "Event(0x%x, s0=%r, s1=%r, p=%r, type=%d, slope=%r)" % (
+        return ("Event(0x%x, s0=%r, s1=%r, p=%r, type=%d, slope=%r)" % (
             id(self),
-            self.segment[0],
-            self.segment[1],
+            self.segment[0], self.segment[1],
             self.point,
             self.type,
             self.slope,
-        )
+        ))
 
 
 class SweepLine:
@@ -170,6 +159,7 @@ class SweepLine:
         # {Point: set(Event, ...), ...}
         "intersections",
         "queue",
+
         # Events (sorted set of ordered events, no values)
         #
         # note: START & END events are considered the same so checking
@@ -205,20 +195,16 @@ class SweepLine:
         Return a list of unordered intersection '(point, segment)'
         pairs, where segments may contain 2 or more values.
         """
-        return [
-            (p, [event.segment for event in event_set])
-            for p, event_set in self.intersections.items()
-        ]
+        return [(p, [event.segment for event in event_set])
+                for p, event_set in self.intersections.items()]
 
     # Checks if an intersection exists between two Events 'a' and 'b'.
     def _check_intersection(self, a: Event, b: Event):
         # Return immediately in case either of the events is null, or
         # if one of them is an INTERSECTION event.
-        if (
-            (a is None or b is None)
-            or (a.type == Event.Type.INTERSECTION)
-            or (b.type == Event.Type.INTERSECTION)
-        ):
+        if ((a is None or b is None) or
+                (a.type == Event.Type.INTERSECTION) or
+                (b.type == Event.Type.INTERSECTION)):
             return
 
         if a is b:
@@ -226,8 +212,8 @@ class SweepLine:
 
         # Get the intersection point between 'a' and 'b'.
         p = isect_seg_seg_v2_point(
-            a.segment[0], a.segment[1], b.segment[0], b.segment[1]
-        )
+            a.segment[0], a.segment[1],
+            b.segment[0], b.segment[1])
 
         # No intersection exists.
         if p is None:
@@ -237,13 +223,10 @@ class SweepLine:
         # USE_IGNORE_SEGMENT_ENDINGS is true,
         # return from this method.
         if USE_IGNORE_SEGMENT_ENDINGS:
-            if (
-                len_squared_v2v2(p, a.segment[0]) < EPS_SQ
-                or len_squared_v2v2(p, a.segment[1]) < EPS_SQ
-            ) and (
-                len_squared_v2v2(p, b.segment[0]) < EPS_SQ
-                or len_squared_v2v2(p, b.segment[1]) < EPS_SQ
-            ):
+            if ((len_squared_v2v2(p, a.segment[0]) < EPS_SQ or
+                 len_squared_v2v2(p, a.segment[1]) < EPS_SQ) and
+                    (len_squared_v2v2(p, b.segment[0]) < EPS_SQ or
+                     len_squared_v2v2(p, b.segment[1]) < EPS_SQ)):
                 return
 
         # Add the intersection.
@@ -302,14 +285,14 @@ class SweepLine:
     def below(self, event):
         return self._events_current_sweep.prev_key(event, None)
 
-    """
+    '''
     def above_all(self, event):
         while True:
             event = self.above(event)
             if event is None:
                 break
             yield event
-    """
+    '''
 
     def above_all(self, event):
         # assert(event not in self._events_current_sweep)
@@ -326,7 +309,8 @@ class SweepLine:
             if len(events_current) > 1:
                 for i in range(0, len(events_current) - 1):
                     for j in range(i + 1, len(events_current)):
-                        self._check_intersection(events_current[i], events_current[j])
+                        self._check_intersection(
+                            events_current[i], events_current[j])
 
         for e in events_current:
             self.handle_event(e)
@@ -386,7 +370,9 @@ class SweepLine:
                 self._check_intersection(e, e_below)
                 if USE_PARANOID:
                     self._check_intersection(e_above, e_below)
-        elif USE_VERTICAL and (t == Event.Type.START_VERTICAL):
+        elif (USE_VERTICAL and
+              (t == Event.Type.START_VERTICAL)):
+
             # just check sanity
             assert event.segment[0][X] == event.segment[1][X]
             assert event.segment[0][Y] <= event.segment[1][Y]
@@ -399,7 +385,8 @@ class SweepLine:
             for e_above in self.above_all(event):
                 if e_above.type == Event.Type.START_VERTICAL:
                     continue
-                y_above = e_above.y_intercept_x(self._current_event_point_x)
+                y_above = e_above.y_intercept_x(
+                    self._current_event_point_x)
                 if USE_IGNORE_SEGMENT_ENDINGS:
                     if y_above >= y_above_max - EPS:
                         break
@@ -463,15 +450,15 @@ class EventQueue:
         Offer a new event ``s`` at point ``p`` in this queue.
         """
         existing = self.events_scan.setdefault(
-            p, ([], [], [], []) if USE_VERTICAL else ([], [], [])
-        )
+            p, ([], [], [], []) if USE_VERTICAL else
+            ([], [], []))
         # Can use double linked-list for easy insertion at beginning/end
-        """
+        '''
         if e.type == Event.Type.END:
             existing.insert(0, e)
         else:
             existing.append(e)
-        """
+        '''
 
         existing[e.type].append(e)
 
@@ -493,9 +480,9 @@ def isect_segments_impl(segments, include_segments=False) -> list:
     segments = [
         # in nearly all cases, comparing X is enough,
         # but compare Y too for vertical lines
-        (s[0], s[1]) if (s[0] <= s[1]) else (s[1], s[0])
-        for s in segments
-    ]
+        (s[0], s[1]) if (s[0] <= s[1]) else
+        (s[1], s[0])
+        for s in segments]
 
     sweep_line = SweepLine()
     queue = EventQueue(segments, sweep_line)
@@ -516,7 +503,9 @@ def isect_segments_impl(segments, include_segments=False) -> list:
 
 def isect_polygon_impl(points, include_segments=False) -> list:
     n = len(points)
-    segments = [(tuple(points[i]), tuple(points[(i + 1) % n])) for i in range(n)]
+    segments = [
+        (tuple(points[i]), tuple(points[(i + 1) % n]))
+        for i in range(n)]
     return isect_segments_impl(segments, include_segments=include_segments)
 
 
@@ -546,7 +535,9 @@ def slope_v2v2(p1, p2):
 
 
 def sub_v2v2(a, b):
-    return (a[0] - b[0], a[1] - b[1])
+    return (
+        a[0] - b[0],
+        a[1] - b[1])
 
 
 def dot_v2v2(a, b):
@@ -580,18 +571,13 @@ def isect_seg_seg_v2_point(v1, v2, v3, v4, bias=0.0):
     if div == 0.0:
         return None
 
-    vi = (
-        (
-            (v3[0] - v4[0]) * (v1[0] * v2[1] - v1[1] * v2[0])
-            - (v1[0] - v2[0]) * (v3[0] * v4[1] - v3[1] * v4[0])
-        )
-        / div,
-        (
-            (v3[1] - v4[1]) * (v1[0] * v2[1] - v1[1] * v2[0])
-            - (v1[1] - v2[1]) * (v3[0] * v4[1] - v3[1] * v4[0])
-        )
-        / div,
-    )
+    vi = (((v3[0] - v4[0]) *
+           (v1[0] * v2[1] - v1[1] * v2[0]) - (v1[0] - v2[0]) *
+           (v3[0] * v4[1] - v3[1] * v4[0])) / div,
+          ((v3[1] - v4[1]) *
+           (v1[0] * v2[1] - v1[1] * v2[0]) - (v1[1] - v2[1]) *
+           (v3[0] * v4[1] - v3[1] * v4[0])) / div,
+          )
 
     fac = line_point_factor_v2(vi, v1, v2, default=-1.0)
     if fac < 0.0 - bias or fac > 1.0 + bias:
@@ -612,7 +598,10 @@ def isect_segments__naive(segments) -> list:
     isect = []
 
     # order points left -> right
-    segments = [(s[0], s[1]) if s[0][X] <= s[1][X] else (s[1], s[0]) for s in segments]
+    segments = [
+        (s[0], s[1]) if s[0][X] <= s[1][X] else
+        (s[1], s[0])
+        for s in segments]
 
     n = len(segments)
 
@@ -644,14 +633,12 @@ def isect_polygon__naive(points) -> list:
             if a0 not in (b0, b1) and a1 not in (b0, b1):
                 ix = isect_seg_seg_v2_point(a0, a1, b0, b1)
                 if ix is not None:
+
                     if USE_IGNORE_SEGMENT_ENDINGS:
-                        if (
-                            len_squared_v2v2(ix, a0) < EPS_SQ
-                            or len_squared_v2v2(ix, a1) < EPS_SQ
-                        ) and (
-                            len_squared_v2v2(ix, b0) < EPS_SQ
-                            or len_squared_v2v2(ix, b1) < EPS_SQ
-                        ):
+                        if ((len_squared_v2v2(ix, a0) < EPS_SQ or
+                             len_squared_v2v2(ix, a1) < EPS_SQ) and
+                                (len_squared_v2v2(ix, b0) < EPS_SQ or
+                                 len_squared_v2v2(ix, b1) < EPS_SQ)):
                             continue
 
                     isect.append(ix)
@@ -685,14 +672,12 @@ class _ABCTree:
         self._root = None
         self._count = 0
         if cmp is None:
-
             def cmp(cmp_data, a, b):
                 if a < b:
                     return -1
                 if a > b:
                     return 1
                 return 0
-
         self._cmp = cmp
         self._cmp_data = cmp_data
         if items is not None:
@@ -700,7 +685,6 @@ class _ABCTree:
 
     def clear(self):
         """T.clear() -> None.  Remove all items from T."""
-
         def _clear(node):
             if node is not None:
                 _clear(node.left)
@@ -785,9 +769,8 @@ class _ABCTree:
             if cmp == 0:
                 break
             if cmp < 0:
-                if (succ_node is None) or self._cmp(
-                    self._cmp_data, node.key, succ_node.key
-                ) < 0:
+                if (succ_node is None) or self._cmp(self._cmp_data, node.key,
+                                                    succ_node.key) < 0:
                     succ_node = node
                 node = node.left
             else:
@@ -832,9 +815,9 @@ class _ABCTree:
             if cmp < 0:
                 node = node.left
             else:
-                if (prev_node is None) or self._cmp(
-                    self._cmp_data, prev_node.key, node.key
-                ) < 0:
+                if (prev_node is None) or self._cmp(self._cmp_data,
+                                                    prev_node.key,
+                                                    node.key) < 0:
                     prev_node = node
                 node = node.right
 
@@ -860,7 +843,7 @@ class _ABCTree:
 
     def __repr__(self):
         """T.__repr__(...) <==> repr(x)"""
-        tpl = "%s({%s})" % (self.__class__.__name__, "%s")
+        tpl = "%s({%s})" % (self.__class__.__name__, '%s')
         return tpl % ", ".join(("%r: %r" % item for item in self.items()))
 
     def __contains__(self, key):
@@ -905,8 +888,7 @@ class _ABCTree:
         is raised"""
         if len(args) > 1:
             raise TypeError(
-                "pop expected at most 2 arguments, got %d" % (1 + len(args))
-            )
+                "pop expected at most 2 arguments, got %d" % (1 + len(args)))
         try:
             value = self.get_value(key)
             self.remove(key)
@@ -947,11 +929,11 @@ class _ABCTree:
         return item
 
     def min_key(self):
-        """Get min key of tree, raises ValueError if tree is empty."""
+        """Get min key of tree, raises ValueError if tree is empty. """
         return self.min_item()[0]
 
     def max_key(self):
-        """Get max key of tree, raises ValueError if tree is empty."""
+        """Get max key of tree, raises ValueError if tree is empty. """
         return self.max_item()[0]
 
     def key_slice(self, start_key, end_key, reverse=False):
@@ -961,7 +943,8 @@ class _ABCTree:
         Yields keys in ascending order if reverse is False else in
         descending order.
         """
-        return (k for k, v in self.iter_items(start_key, end_key, reverse=reverse))
+        return (k for k, v in
+                self.iter_items(start_key, end_key, reverse=reverse))
 
     def iter_items(self, start_key=None, end_key=None, reverse=False):
         """Iterates over the (key, value) items of the associated tree,
@@ -977,30 +960,19 @@ class _ABCTree:
         return self._iter_items_forward(start_key, end_key)
 
     def _iter_items_forward(self, start_key=None, end_key=None):
-        for item in self._iter_items(
-            left=attrgetter("left"),
-            right=attrgetter("right"),
-            start_key=start_key,
-            end_key=end_key,
-        ):
+        for item in self._iter_items(left=attrgetter("left"),
+                                     right=attrgetter("right"),
+                                     start_key=start_key, end_key=end_key):
             yield item
 
     def _iter_items_backward(self, start_key=None, end_key=None):
-        for item in self._iter_items(
-            left=attrgetter("right"),
-            right=attrgetter("left"),
-            start_key=start_key,
-            end_key=end_key,
-        ):
+        for item in self._iter_items(left=attrgetter("right"),
+                                     right=attrgetter("left"),
+                                     start_key=start_key, end_key=end_key):
             yield item
 
-    def _iter_items(
-        self,
-        left=attrgetter("left"),
-        right=attrgetter("right"),
-        start_key=None,
-        end_key=None,
-    ):
+    def _iter_items(self, left=attrgetter("left"), right=attrgetter("right"),
+                    start_key=None, end_key=None):
         node = self._root
         stack = []
         go_left = True
@@ -1030,16 +1002,14 @@ class _ABCTree:
                 start_key = self.min_key()
             if end_key is None:
                 return lambda x: self._cmp(self._cmp_data, start_key, x) <= 0
-            return (
-                lambda x: self._cmp(self._cmp_data, start_key, x) <= 0
-                and self._cmp(self._cmp_data, x, end_key) < 0
-            )
+            return (lambda x:
+                    self._cmp(self._cmp_data, start_key, x) <= 0
+                    and self._cmp(self._cmp_data, x, end_key) < 0)
 
 
 class Node:
     """Internal object, represents a tree node."""
-
-    __slots__ = ["key", "value", "red", "left", "right"]
+    __slots__ = ['key', 'value', 'red', 'left', 'right']
 
     def __init__(self, key=None, value=None):
         self.key = key
@@ -1123,22 +1093,22 @@ class RBTree(_ABCTree):
             if node is None:  # Insert new node at the bottom
                 node = self._new_node(key, value)
                 parent[direction] = node
-            elif RBTree.is_red(node.left) and RBTree.is_red(node.right):  # Color flip
+            elif RBTree.is_red(node.left) and RBTree.is_red(
+                    node.right):  # Color flip
                 node.red = True
                 node.left.red = False
                 node.right.red = False
 
             # Fix red violation
             if RBTree.is_red(node) and RBTree.is_red(parent):
-                direction2 = 1 if grand_grand_parent.right is grand_parent else 0
+                direction2 = 1 if grand_grand_parent.right is grand_parent \
+                    else 0
                 if node is parent[last]:
                     grand_grand_parent[direction2] = RBTree.jsw_single(
-                        grand_parent, 1 - last
-                    )
+                        grand_parent, 1 - last)
                 else:
                     grand_grand_parent[direction2] = RBTree.jsw_double(
-                        grand_parent, 1 - last
-                    )
+                        grand_parent, 1 - last)
 
             # Stop if found
             if self._cmp(self._cmp_data, key, node.key) == 0:
@@ -1146,7 +1116,8 @@ class RBTree(_ABCTree):
                 break
 
             last = direction
-            direction = 0 if (self._cmp(self._cmp_data, key, node.key) < 0) else 1
+            direction = 0 if (
+                    self._cmp(self._cmp_data, key, node.key) < 0) else 1
             # Update helpers
             if grand_parent is not None:
                 grand_grand_parent = grand_parent
@@ -1179,7 +1150,8 @@ class RBTree(_ABCTree):
             parent = node
             node = node[direction]
 
-            direction = 1 if (self._cmp(self._cmp_data, node.key, key) < 0) else 0
+            direction = 1 if (
+                    self._cmp(self._cmp_data, node.key, key) < 0) else 0
 
             # Save found node
             if self._cmp(self._cmp_data, key, node.key) == 0:
@@ -1194,22 +1166,20 @@ class RBTree(_ABCTree):
                     sibling = parent[1 - last]
                     if sibling is not None:
                         if (not RBTree.is_red(sibling[1 - last])) and (
-                            not RBTree.is_red(sibling[last])
-                        ):
+                                not RBTree.is_red(sibling[last])):
                             # Color flip
                             parent.red = False
                             sibling.red = True
                             node.red = True
                         else:
-                            direction2 = 1 if grand_parent.right is parent else 0
+                            direction2 = 1 if grand_parent.right is parent \
+                                else 0
                             if RBTree.is_red(sibling[last]):
                                 grand_parent[direction2] = RBTree.jsw_double(
-                                    parent, last
-                                )
+                                    parent, last)
                             elif RBTree.is_red(sibling[1 - last]):
                                 grand_parent[direction2] = RBTree.jsw_single(
-                                    parent, last
-                                )
+                                    parent, last)
                             # Ensure correct coloring
                             grand_parent[direction2].red = True
                             node.red = True

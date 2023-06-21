@@ -29,40 +29,18 @@ def split_square_board_image(board_image, output_name, out_dir, board=None):
         for col_start in range(0, img.shape[1], square_size):
             j = col_start // square_size
             if board:
-                out_loc = (
-                    str(out_dir)
-                    + "/"
-                    + str(board[i][j])
-                    + "/"
-                    + str(output_name)
-                    + "_"
-                    + str(i)
-                    + "_"
-                    + str(j)
-                    + ".jpg"
-                )
+                out_loc = str(out_dir) + "/" + str(board[i][j]) + "/" + str(
+                    output_name) + "_" + str(i) + "_" + str(j) + ".jpg"
             else:
-                out_loc = (
-                    str(out_dir)
-                    + "/"
-                    + str(output_name)
-                    + "_"
-                    + str(i)
-                    + "_"
-                    + str(j)
-                    + ".jpg"
-                )
+                out_loc = str(out_dir) + "/" + str(output_name) + "_" + str(
+                    i) + "_" + str(j) + ".jpg"
 
-            cv2.imwrite(
-                out_loc,
-                img[
-                    row_start : row_start + square_size,
-                    col_start : col_start + square_size,
-                ],
-            )
+            cv2.imwrite(out_loc, img[row_start:row_start + square_size,
+                                     col_start:col_start + square_size])
 
 
-def split_board_image(board_image, square_corners, output_name, out_dir, board=None):
+def split_board_image(board_image, square_corners, output_name, out_dir,
+                      board=None):
     """
     Splits a board into the individual squares using their corners.
 
@@ -87,29 +65,13 @@ def split_board_image(board_image, square_corners, output_name, out_dir, board=N
 
             # Output dir and name
             if board:
-                out_loc = (
-                    str(out_dir)
-                    + "/"
-                    + str(board[row_ind - 1][col_ind])
-                    + "/"
-                    + str(output_name)
-                    + "_"
-                    + str(row_ind - 1)
-                    + "_"
-                    + str(col_ind)
-                    + ".jpg"
-                )
+                out_loc = str(out_dir) + "/" + str(
+                    board[row_ind - 1][col_ind]) + "/" + str(
+                    output_name) + "_" + str(row_ind - 1) + "_" + str(
+                    col_ind) + ".jpg"
             else:
-                out_loc = (
-                    str(out_dir)
-                    + "/"
-                    + str(output_name)
-                    + "_"
-                    + str(row_ind - 1)
-                    + "_"
-                    + str(col_ind)
-                    + ".jpg"
-                )
+                out_loc = str(out_dir) + "/" + str(output_name) + "_" + str(
+                    row_ind - 1) + "_" + str(col_ind) + ".jpg"
 
             # Height of the image
             height = int((bl_corner[1] - tl_corner[1]) * 1.75)
@@ -119,8 +81,7 @@ def split_board_image(board_image, square_corners, output_name, out_dir, board=N
                 height = min(bl_corner[1], br_corner[1])
 
             # Remember, image is [y1:y2, x1:x2, :], y1 < y2, x1 < x2
-            rect = board_image[
-                bl_corner[1] - height : bl_corner[1], bl_corner[0] : br_corner[0], :
-            ]
+            rect = board_image[bl_corner[1] - height:bl_corner[1],
+                               bl_corner[0]:br_corner[0], :]
 
             cv2.imwrite(out_loc, rect)

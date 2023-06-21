@@ -4,71 +4,45 @@ convolutional neural networks.
 """
 import numpy as np
 
-from lc2fen.fen import board_to_list, list_to_board, is_white_square, fen_to_board
+from lc2fen.fen import board_to_list, list_to_board, is_white_square, \
+    fen_to_board
 
-__PREDS_DICT = {
-    0: "B",
-    1: "K",
-    2: "N",
-    3: "P",
-    4: "Q",
-    5: "R",
-    6: "_",
-    7: "b",
-    8: "k",
-    9: "n",
-    10: "p",
-    11: "q",
-    12: "r",
-}
+__PREDS_DICT = {0: 'B', 1: 'K', 2: 'N', 3: 'P', 4: 'Q', 5: 'R', 6: '_',
+                7: 'b', 8: 'k', 9: 'n', 10: 'p', 11: 'q', 12: 'r'}
 
-__IDX_TO_PIECE = {
-    0: "B",
-    1: "N",
-    2: "P",
-    3: "Q",
-    4: "R",
-    5: "b",
-    6: "n",
-    7: "p",
-    8: "q",
-    9: "r",
-}
+__IDX_TO_PIECE = {0: 'B', 1: 'N', 2: 'P', 3: 'Q', 4: 'R',
+                  5: 'b', 6: 'n', 7: 'p', 8: 'q', 9: 'r'}
 
-__WHITE_PIECES = ("P", "B", "N", "R", "K", "Q")
-__BLACK_PIECES = ("p", "b", "n", "r", "k", "q")
+__WHITE_PIECES = ('P', 'B', 'N', 'R', 'K', 'Q')
+__BLACK_PIECES = ('p', 'b', 'n', 'r', 'k', 'q')
 
 
 def __sort_pieces_list(_pieces_probs_sort):
     """Returns a list of each piece sorted in descending order."""
-    w_bishops = sorted(_pieces_probs_sort, key=lambda prob: prob[0][0], reverse=True)
-    w_knights = sorted(_pieces_probs_sort, key=lambda prob: prob[0][2], reverse=True)
+    w_bishops = sorted(_pieces_probs_sort, key=lambda prob: prob[0][0],
+                       reverse=True)
+    w_knights = sorted(_pieces_probs_sort, key=lambda prob: prob[0][2],
+                       reverse=True)
     # Pawns can't be in the first or last row
-    w_pawns = sorted(
-        _pieces_probs_sort[8:-8], key=lambda prob: prob[0][3], reverse=True
-    )
-    w_queens = sorted(_pieces_probs_sort, key=lambda prob: prob[0][4], reverse=True)
-    w_rooks = sorted(_pieces_probs_sort, key=lambda prob: prob[0][5], reverse=True)
-    b_bishops = sorted(_pieces_probs_sort, key=lambda prob: prob[0][7], reverse=True)
-    b_knights = sorted(_pieces_probs_sort, key=lambda prob: prob[0][9], reverse=True)
+    w_pawns = sorted(_pieces_probs_sort[8:-8], key=lambda prob: prob[0][3],
+                     reverse=True)
+    w_queens = sorted(_pieces_probs_sort, key=lambda prob: prob[0][4],
+                      reverse=True)
+    w_rooks = sorted(_pieces_probs_sort, key=lambda prob: prob[0][5],
+                     reverse=True)
+    b_bishops = sorted(_pieces_probs_sort, key=lambda prob: prob[0][7],
+                       reverse=True)
+    b_knights = sorted(_pieces_probs_sort, key=lambda prob: prob[0][9],
+                       reverse=True)
     # Pawns can't be in the first or last row
-    b_pawns = sorted(
-        _pieces_probs_sort[8:-8], key=lambda prob: prob[0][10], reverse=True
-    )
-    b_queens = sorted(_pieces_probs_sort, key=lambda prob: prob[0][11], reverse=True)
-    b_rooks = sorted(_pieces_probs_sort, key=lambda prob: prob[0][12], reverse=True)
-    return [
-        w_bishops,
-        w_knights,
-        w_pawns,
-        w_queens,
-        w_rooks,
-        b_bishops,
-        b_knights,
-        b_pawns,
-        b_queens,
-        b_rooks,
-    ]
+    b_pawns = sorted(_pieces_probs_sort[8:-8],
+                     key=lambda prob: prob[0][10], reverse=True)
+    b_queens = sorted(_pieces_probs_sort, key=lambda prob: prob[0][11],
+                      reverse=True)
+    b_rooks = sorted(_pieces_probs_sort, key=lambda prob: prob[0][12],
+                     reverse=True)
+    return [w_bishops, w_knights, w_pawns, w_queens, w_rooks, b_bishops,
+            b_knights, b_pawns, b_queens, b_rooks]
 
 
 def __max_piece(tops):
@@ -168,25 +142,24 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
         move = inferred_move(previous_fen, pieces_probs, changed_squares_idx)
         if move is not None:
             initial_sq, final_move_sq, action = move
-            possible_pieces = inferred_pieces_from_move(
-                initial_sq, final_move_sq, action
-            )
+            possible_pieces = inferred_pieces_from_move(initial_sq,
+                                                        final_move_sq,
+                                                        action)
 
     # We need to store the original order
     pieces_probs_sort = [(probs, i) for i, probs in enumerate(pieces_probs)]
 
     # First choose the kings, there must be one of each color
     white_king = max(pieces_probs_sort, key=lambda prob: prob[0][1])
-    black_kings = sorted(
-        pieces_probs_sort, key=lambda prob: prob[0][8], reverse=True
-    )  # Descending order
+    black_kings = sorted(pieces_probs_sort, key=lambda prob: prob[0][8],
+                         reverse=True)  # Descending order
 
     black_king = black_kings[0]
     if black_king[1] == white_king[1]:
         black_king = black_kings[1]
 
-    out_preds[white_king[1]] = "K"
-    out_preds[black_king[1]] = "k"
+    out_preds[white_king[1]] = 'K'
+    out_preds[black_king[1]] = 'k'
 
     out_preds_empty = 62  # We have already set the kings
 
@@ -195,7 +168,7 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
     for idx, piece in enumerate(pieces_probs):
         if out_preds[idx] is None:
             if is_empty_square(piece):
-                out_preds[idx] = "_"
+                out_preds[idx] = '_'
                 out_preds_empty -= 1
 
     # Save if there is already a bishop in a [white, black] square
@@ -219,11 +192,9 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
         max_idx = __max_piece(tops)
         square = tops[max_idx][1]
         # If we haven't maxed that piece type and the square is empty
-        if (
-            max_pieces_left[max_idx] > 0
-            and out_preds[square] is None
-            and __check_bishop(max_idx, tops, w_bishop_sq, b_bishop_sq)
-        ):
+        if (max_pieces_left[max_idx] > 0
+                and out_preds[square] is None
+                and __check_bishop(max_idx, tops, w_bishop_sq, b_bishop_sq)):
             # Fill the square and update counters
             # If we have detected the move previously
             if square == final_move_sq and possible_pieces:
@@ -252,7 +223,7 @@ def is_empty_square(square_probs):
         square of the chessboard.
     :return: True if the square_probs infer that the square is empty.
     """
-    return __PREDS_DICT[np.argmax(square_probs)] == "_"
+    return __PREDS_DICT[np.argmax(square_probs)] == '_'
 
 
 def is_white_piece(square_probs):
@@ -289,19 +260,15 @@ def changed_squares(previous_fen, current_probs):
     for idx, square in enumerate(previous_list):
         # Pass the squares in which the previous state (white, black or
         # empty) is the same as the current state
-        if square == "_" and is_empty_square(current_probs[idx]):
+        if square == '_' and is_empty_square(current_probs[idx]):
             continue
-        if (
-            square in __WHITE_PIECES
-            and not is_empty_square(current_probs[idx])
-            and is_white_piece(current_probs[idx])
-        ):
+        if (square in __WHITE_PIECES
+                and not is_empty_square(current_probs[idx])
+                and is_white_piece(current_probs[idx])):
             continue
-        if (
-            square in __BLACK_PIECES
-            and not is_empty_square(current_probs[idx])
-            and not is_white_piece(current_probs[idx])
-        ):
+        if (square in __BLACK_PIECES
+                and not is_empty_square(current_probs[idx])
+                and not is_white_piece(current_probs[idx])):
             continue
         # If the state has changed
         changed_squares_idx.append(idx)
@@ -353,7 +320,7 @@ def inferred_move(previous_fen, current_probs, changed_squares_idx):
     # occupied (now it is empty) and in the current board the final
     # square is occupied
     if previous_list[initial_sq] in __WHITE_PIECES:
-        if previous_list[final_sq] == "_":
+        if previous_list[final_sq] == '_':
             if is_white_piece(current_probs[final_sq]):
                 return initial_sq, final_sq, "white_moves"
             else:
@@ -366,7 +333,7 @@ def inferred_move(previous_fen, current_probs, changed_squares_idx):
         else:
             return None  # White piece captures white piece?
     else:  # The initial square is a black piece
-        if previous_list[final_sq] == "_":
+        if previous_list[final_sq] == '_':
             if not is_white_piece(current_probs[final_sq]):
                 return initial_sq, final_sq, "black_moves"
             else:
@@ -382,9 +349,8 @@ def inferred_move(previous_fen, current_probs, changed_squares_idx):
 
 def __is_king_move(initial_sq, final_sq):
     """At most distance one in any direction."""
-    return (
-        abs(initial_sq[0] - final_sq[0]) <= 1 and abs(initial_sq[1] - final_sq[1]) <= 1
-    )
+    return (abs(initial_sq[0] - final_sq[0]) <= 1
+            and abs(initial_sq[1] - final_sq[1]) <= 1)
 
 
 def __is_rook_move(initial_sq, final_sq):
@@ -395,11 +361,9 @@ def __is_rook_move(initial_sq, final_sq):
 def __is_bishop_move(initial_sq, final_sq):
     """Same diagonal."""
     # Parallel to main diagonal
-    return (
-        initial_sq[0] - initial_sq[1] == final_sq[0] - final_sq[1]
-        # Parallel to secondary diagonal
-        or initial_sq[0] + initial_sq[1] == final_sq[0] + final_sq[1]
-    )
+    return (initial_sq[0] - initial_sq[1] == final_sq[0] - final_sq[1]
+            # Parallel to secondary diagonal
+            or initial_sq[0] + initial_sq[1] == final_sq[0] + final_sq[1])
 
 
 def __is_knight_move(initial_sq, final_sq):
@@ -417,26 +381,22 @@ def __is_pawn_move(initial_sq, final_sq, capturing, white):
     """
     if white:
         if capturing:
-            return (
-                initial_sq[0] - final_sq[0] == 1
-                and abs(initial_sq[1] - final_sq[1]) == 1
-            )
+            return (initial_sq[0] - final_sq[0] == 1
+                    and abs(initial_sq[1] - final_sq[1]) == 1)
         else:
-            return initial_sq[1] == final_sq[1] and (
-                initial_sq[0] - final_sq[0] == 1
-                or (initial_sq[0] - final_sq[0] == 2 and initial_sq[0] == 6)
-            )
+            return (initial_sq[1] == final_sq[1]
+                    and (initial_sq[0] - final_sq[0] == 1
+                         or (initial_sq[0] - final_sq[0] == 2
+                             and initial_sq[0] == 6)))
     else:  # black
         if capturing:
-            return (
-                initial_sq[0] - final_sq[0] == -1
-                and abs(initial_sq[1] - final_sq[1]) == 1
-            )
+            return (initial_sq[0] - final_sq[0] == -1
+                    and abs(initial_sq[1] - final_sq[1]) == 1)
         else:
-            return initial_sq[1] == final_sq[1] and (
-                initial_sq[0] - final_sq[0] == -1
-                or (initial_sq[0] - final_sq[0] == -2 and initial_sq[0] == 1)
-            )
+            return (initial_sq[1] == final_sq[1]
+                    and (initial_sq[0] - final_sq[0] == -1
+                         or (initial_sq[0] - final_sq[0] == -2
+                             and initial_sq[0] == 1)))
 
 
 def inferred_pieces_from_move(initial_sq, final_sq, action):
@@ -452,8 +412,8 @@ def inferred_pieces_from_move(initial_sq, final_sq, action):
     initial_sq = (initial_sq // 8, initial_sq % 8)  # (row, column)
     final_sq = (final_sq // 8, final_sq % 8)
 
-    capturing = action.endswith("captures")
-    white = action.startswith("white")
+    capturing = action.endswith('captures')
+    white = action.startswith('white')
 
     possible_pieces = []  # There can't be duplicates
     if white:
@@ -464,33 +424,33 @@ def inferred_pieces_from_move(initial_sq, final_sq, action):
                 # corresponds with a king, so the result can be all
                 # pieces except for the pawn. In this case we don't need
                 # to check the rest of the pieces.
-                return ["K", "R", "B", "Q", "N"]
-            possible_pieces.append("P")
+                return ['K', 'R', 'B', 'Q', 'N']
+            possible_pieces.append('P')
         if __is_king_move(initial_sq, final_sq):
-            possible_pieces.append("K")
+            possible_pieces.append('K')
         if __is_rook_move(initial_sq, final_sq):
-            possible_pieces.append("R")
-            possible_pieces.append("Q")
+            possible_pieces.append('R')
+            possible_pieces.append('Q')
         if __is_bishop_move(initial_sq, final_sq):
-            possible_pieces.append("B")
+            possible_pieces.append('B')
             # Bishop and rook moves are exclusive, so Q is not in
             # possible pieces
-            possible_pieces.append("Q")
+            possible_pieces.append('Q')
         if __is_knight_move(initial_sq, final_sq):
-            possible_pieces.append("N")
+            possible_pieces.append('N')
     else:  # black
         if __is_pawn_move(initial_sq, final_sq, capturing, white):
             if final_sq[0] == 7:
-                return ["k", "r", "b", "q", "n"]
-            possible_pieces.append("p")
+                return ['k', 'r', 'b', 'q', 'n']
+            possible_pieces.append('p')
         if __is_king_move(initial_sq, final_sq):
-            possible_pieces.append("k")
+            possible_pieces.append('k')
         if __is_rook_move(initial_sq, final_sq):
-            possible_pieces.append("r")
-            possible_pieces.append("q")
+            possible_pieces.append('r')
+            possible_pieces.append('q')
         if __is_bishop_move(initial_sq, final_sq):
-            possible_pieces.append("b")
-            possible_pieces.append("q")
+            possible_pieces.append('b')
+            possible_pieces.append('q')
         if __is_knight_move(initial_sq, final_sq):
-            possible_pieces.append("n")
+            possible_pieces.append('n')
     return possible_pieces

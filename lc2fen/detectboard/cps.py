@@ -60,9 +60,8 @@ def __remove_duplicates(input_list):
     elements while preserving order.
     """
     indices = sorted(range(len(input_list)), key=input_list.__getitem__)
-    indices = set(
-        next(it) for k, it in itertools.groupby(indices, key=input_list.__getitem__)
-    )
+    indices = set(next(it) for k, it in
+                  itertools.groupby(indices, key=input_list.__getitem__))
     return [x for i, x in enumerate(input_list) if i in indices]
 
 
@@ -72,7 +71,8 @@ def __sort_points(pts):
     mlng = sum(x[1] for x in pts) / len(pts)
 
     def __sort(x):
-        return (math.atan2(x[0] - mlat, x[1] - mlng) + 2 * math.pi) % (2 * math.pi)
+        return (math.atan2(x[0] - mlat, x[1] - mlng) + 2 * math.pi) % (
+                2 * math.pi)
 
     pts.sort(key=__sort)
     return pts
@@ -87,13 +87,8 @@ def __ptl_distance(line, point, dx):
     :param dx: Distance between the points that define the line.
     :return: The distance from point to line.
     """
-    return (
-        abs(
-            (line[1][0] - line[0][0]) * (line[0][1] - point[1])
-            - (line[1][1] - line[0][1]) * (line[0][0] - point[0])
-        )
-        / dx
-    )
+    return abs((line[1][0] - line[0][0]) * (line[0][1] - point[1]) - (
+            line[1][1] - line[0][1]) * (line[0][0] - point[0])) / dx
 
 
 def __intersection(line1, line2):
@@ -149,7 +144,8 @@ def __polyscore(cnt, pts, cen, alfa, beta):
     # Distance between the group centroid and the frame centroid
     cen_dist = math.sqrt((cen[0] - cen2[0]) ** 2 + (cen[1] - cen2[1]) ** 2)
 
-    lns = [[cnt[0], cnt[1]], [cnt[1], cnt[2]], [cnt[2], cnt[3]], [cnt[3], cnt[0]]]
+    lns = [[cnt[0], cnt[1]], [cnt[1], cnt[2]], [cnt[2], cnt[3]],
+           [cnt[3], cnt[0]]]
     i = 0
     j = 0
     for l in lns:
@@ -169,7 +165,7 @@ def __polyscore(cnt, pts, cen, alfa, beta):
 
     w_points = 1 + (average_dist / pts_in_frame) ** (1 / 3)
     w_centroid = 1 + (cen_dist / pts_in_frame) ** (1 / 5)
-    return (pts_in_frame**4) / ((frame_area**2) * w_points * w_centroid)
+    return (pts_in_frame ** 4) / ((frame_area ** 2) * w_points * w_centroid)
 
 
 def __padcrop(img, four_points):
@@ -182,27 +178,17 @@ def __padcrop(img, four_points):
 
     padded = pco.Execute(60)[0]
 
-    debug.DebugImage(img).points(four_points, color=(0, 0, 255)).points(
-        padded, color=(0, 255, 0)
-    ).lines(
-        [
-            [four_points[0], four_points[1]],
-            [four_points[1], four_points[2]],
-            [four_points[2], four_points[3]],
-            [four_points[3], four_points[0]],
-        ],
-        color=(255, 255, 255),
-    ).lines(
-        [
-            [padded[0], padded[1]],
-            [padded[1], padded[2]],
-            [padded[2], padded[3]],
-            [padded[3], padded[0]],
-        ],
-        color=(255, 255, 255),
-    ).save(
-        "cps_final_pad"
-    )
+    debug.DebugImage(img) \
+        .points(four_points, color=(0, 0, 255)) \
+        .points(padded, color=(0, 255, 0)) \
+        .lines(
+        [[four_points[0], four_points[1]], [four_points[1], four_points[2]],
+         [four_points[2], four_points[3]], [four_points[3], four_points[0]]],
+        color=(255, 255, 255)) \
+        .lines([[padded[0], padded[1]], [padded[1], padded[2]],
+                [padded[2], padded[3]], [padded[3], padded[0]]],
+               color=(255, 255, 255)) \
+        .save("cps_final_pad")
 
     return __order_points(padded)
 
@@ -274,7 +260,8 @@ def cps(img, points, lines):
 
         poly1 = __sort_points([[0, 0], [0, img.shape[0]], a, b])
         s1 = __polyscore(np.array(poly1), points, centroid, alfa / 2, beta)
-        poly2 = __sort_points([a, b, [img.shape[1], 0], [img.shape[1], img.shape[0]]])
+        poly2 = __sort_points(
+            [a, b, [img.shape[1], 0], [img.shape[1], img.shape[0]]])
         s2 = __polyscore(np.array(poly2), points, centroid, alfa / 2, beta)
 
         return [a, b], s1, s2
@@ -293,7 +280,8 @@ def cps(img, points, lines):
 
         poly1 = __sort_points([[0, 0], [img.shape[1], 0], a, b])
         s1 = __polyscore(np.array(poly1), points, centroid, alfa / 2, beta)
-        poly2 = __sort_points([a, b, [0, img.shape[0]], [img.shape[1], img.shape[0]]])
+        poly2 = __sort_points(
+            [a, b, [0, img.shape[0]], [img.shape[1], img.shape[0]]])
         s2 = __polyscore(np.array(poly2), points, centroid, alfa / 2, beta)
 
         return [a, b], s1, s2
@@ -326,32 +314,33 @@ def cps(img, points, lines):
             points = np.array(points)
             hull = ConvexHull(points).vertices
             cnt = points[hull]
-            approx = cv2.approxPolyDP(cnt, alfa * cv2.arcLength(cnt, True), True)
+            approx = cv2.approxPolyDP(cnt, alfa * cv2.arcLength(cnt, True),
+                                      True)
             return __normalize(itertools.chain(*approx))
 
         ring = convex_approx(__sort_points(points))
 
-        debug.DebugImage(img).lines(lines, color=(0, 0, 255)).points(
-            points, color=(0, 0, 255)
-        ).points(ring, color=(0, 255, 0)).points([centroid], color=(255, 0, 0)).save(
-            "cps_debug"
-        )
+        debug.DebugImage(img) \
+            .lines(lines, color=(0, 0, 255)) \
+            .points(points, color=(0, 0, 255)) \
+            .points(ring, color=(0, 255, 0)) \
+            .points([centroid], color=(255, 0, 0)) \
+            .save("cps_debug")
 
-        debug.DebugImage(img).lines(pregroup[0], color=(0, 0, 255)).lines(
-            pregroup[1], color=(255, 0, 0)
-        ).save("cps_pregroups")
+        debug.DebugImage(img) \
+            .lines(pregroup[0], color=(0, 0, 255)) \
+            .lines(pregroup[1], color=(255, 0, 0)) \
+            .save("cps_pregroups")
 
     score = {}  # Frame ranking with the result
     for v in itertools.combinations(pregroup[0], 2):  # Horizontal
         for h in itertools.combinations(pregroup[1], 2):  # Vertical
-            poly = [
-                __intersection(v[0], v[1]),
-                __intersection(v[0], h[0]),
-                __intersection(v[0], h[1]),
-                __intersection(v[1], h[0]),
-                __intersection(v[1], h[1]),
-                __intersection(h[0], h[1]),
-            ]
+            poly = [__intersection(v[0], v[1]),
+                    __intersection(v[0], h[0]),
+                    __intersection(v[0], h[1]),
+                    __intersection(v[1], h[0]),
+                    __intersection(v[1], h[1]),
+                    __intersection(h[0], h[1])]
             poly = __check_correctness(poly, img.shape)
             if len(poly) != 4:
                 continue
@@ -366,18 +355,15 @@ def cps(img, points, lines):
     inner_points = __normalize(score[K])
     inner_points = __order_points(inner_points)
 
-    debug.DebugImage(img).points(points, color=(0, 255, 0)).points(
-        inner_points, color=(0, 0, 255)
-    ).points([centroid], color=(255, 0, 0)).lines(
-        [
-            [inner_points[0], inner_points[1]],
-            [inner_points[1], inner_points[2]],
-            [inner_points[2], inner_points[3]],
-            [inner_points[3], inner_points[0]],
-        ],
-        color=(255, 255, 255),
-    ).save(
-        "cps_debug_2"
-    )
+    debug.DebugImage(img) \
+        .points(points, color=(0, 255, 0)) \
+        .points(inner_points, color=(0, 0, 255)) \
+        .points([centroid], color=(255, 0, 0)) \
+        .lines([[inner_points[0], inner_points[1]],
+                [inner_points[1], inner_points[2]],
+                [inner_points[2], inner_points[3]],
+                [inner_points[3], inner_points[0]]],
+               color=(255, 255, 255)) \
+        .save("cps_debug_2")
 
     return __padcrop(img, inner_points)

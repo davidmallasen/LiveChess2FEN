@@ -10,12 +10,11 @@ import time
 import cv2
 import numpy as np
 import onnxruntime
-from keras.models import load_model
-from keras.utils.image_utils import load_img, img_to_array
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
 
 try:
     import pycuda.driver as cuda
-
     # pycuda.autoinit causes pycuda to automatically manage CUDA context
     # creation and cleanup.
     import pycuda.autoinit
@@ -46,9 +45,8 @@ def load_image(img_path, img_size, preprocess_func):
     return preprocess_func(img_tensor)
 
 
-def predict_board_keras(
-    model_path, img_size, pre_input, path="", a1_pos="", test=False
-):
+def predict_board_keras(model_path, img_size, pre_input, path='', a1_pos='', 
+                        test=False):
     """
     Predict the fen notation of a chessboard using Keras for inference.
 
@@ -81,7 +79,8 @@ def predict_board_keras(
             return predict_board(path, a1_pos, obtain_pieces_probs)
 
 
-def predict_board_onnx(model_path, img_size, pre_input, path="", a1_pos="", test=False):
+def predict_board_onnx(model_path, img_size, pre_input, path='', a1_pos='', 
+                       test=False):
     """
     Predict the fen notation of a chessboard using ONNXRuntime for
     inference.
@@ -104,8 +103,7 @@ def predict_board_onnx(model_path, img_size, pre_input, path="", a1_pos="", test
         for piece in pieces:
             piece_img = load_image(piece, img_size, pre_input)
             predictions.append(
-                sess.run(None, {sess.get_inputs()[0].name: piece_img})[0][0]
-            )
+                sess.run(None, {sess.get_inputs()[0].name: piece_img})[0][0])
         return predictions
 
     if test:
@@ -117,7 +115,8 @@ def predict_board_onnx(model_path, img_size, pre_input, path="", a1_pos="", test
             return predict_board(path, a1_pos, obtain_pieces_probs)
 
 
-def predict_board_trt(model_path, img_size, pre_input, path="", a1_pos="", test=False):
+def predict_board_trt(model_path, img_size, pre_input, path='', a1_pos='', 
+                      test=False):
     """
     Predict the fen notation of a chessboard using TensorRT for
     inference.
@@ -151,7 +150,8 @@ def predict_board_trt(model_path, img_size, pre_input, path="", a1_pos="", test=
 
         for binding in engine:
             # Get binding (tensor/buffer) size
-            size = trt.volume(engine.get_binding_shape(binding)) * engine.max_batch_size
+            size = trt.volume(
+                engine.get_binding_shape(binding)) * engine.max_batch_size
             # Get binding (tensor/buffer) data type (numpy-equivalent)
             dtype = trt.nptype(engine.get_binding_dtype(binding))
             # Allocate page-locked memory (i.e., pinned memory) buffers
@@ -177,9 +177,8 @@ def predict_board_trt(model_path, img_size, pre_input, path="", a1_pos="", test=
         for inp in inputs:
             cuda.memcpy_htod_async(inp.device, inp.host, stream)
         # Run inference
-        context.execute_async(
-            batch_size=batch_size, bindings=bindings, stream_handle=stream.handle
-        )
+        context.execute_async(batch_size=batch_size, bindings=bindings,
+                              stream_handle=stream.handle)
         # Transfer predictions back from the GPU
         for out in outputs:
             cuda.memcpy_dtoh_async(out.host, out.device, stream)
@@ -190,12 +189,13 @@ def predict_board_trt(model_path, img_size, pre_input, path="", a1_pos="", test=
 
     trt_logger = trt.Logger(trt.Logger.VERBOSE)
     # Read and deserialize the serialized ICudaEngine
-    with open(model_path, "rb") as f, trt.Runtime(trt_logger) as runtime:
+    with open(model_path, 'rb') as f, trt.Runtime(trt_logger) as runtime:
         engine = runtime.deserialize_cuda_engine(f.read())
 
     inputs, outputs, bindings, stream = __allocate_buffers(engine)
 
-    img_array = np.zeros((engine.max_batch_size, trt.volume((img_size, img_size, 3))))
+    img_array = np.zeros(
+        (engine.max_batch_size, trt.volume((img_size, img_size, 3))))
 
     # Create an IExecutionContext (context for executing inference)
     with engine.create_execution_context() as context:
@@ -203,11 +203,13 @@ def predict_board_trt(model_path, img_size, pre_input, path="", a1_pos="", test=
         def obtain_pieces_probs(pieces):
             # Assuming batch size == 64
             for i, piece in enumerate(pieces):
-                img_array[i] = load_image(piece, img_size, pre_input).ravel()
+                img_array[i] = load_image(piece, img_size,
+                                          pre_input).ravel()
             np.copyto(inputs[0].host, img_array.ravel())
-            trt_outputs = __infer(context, bindings, inputs, outputs, stream)[-1]
+            trt_outputs = __infer(
+                context, bindings, inputs, outputs, stream)[-1]
 
-            return [trt_outputs[ind : ind + 13] for ind in range(0, 13 * 64, 13)]
+            return [trt_outputs[ind:ind + 13] for ind in range(0, 13 * 64, 13)]
 
         if test:
             test_predict_board(obtain_pieces_probs)
@@ -218,9 +220,8 @@ def predict_board_trt(model_path, img_size, pre_input, path="", a1_pos="", test=
                 return predict_board(path, a1_pos, obtain_pieces_probs)
 
 
-def predict_board(
-    board_path, a1_pos, obtain_pieces_probs, board_corners=None, previous_fen=None
-):
+def predict_board(board_path, a1_pos, obtain_pieces_probs, board_corners=None,
+                  previous_fen=None):
     """
     Predict the fen notation of a chessboard.
 
@@ -278,17 +279,18 @@ def continuous_predictions(path, a1_pos, obtain_pieces_probs):
         raise ValueError("The path parameter must be a directory")
 
     def natural_key(text):
-        return [int(c) if c.isdigit() else c for c in re.split(r"(\d+)", text)]
+        return [int(c) if c.isdigit() else c for c in re.split(r'(\d+)', text)]
 
     print("Done loading. Monitoring " + path)
     board_corners = None
     fen = None
     processed_board = False
     while True:
-        for board_path in sorted(glob.glob(path + "*.jpg"), key=natural_key):
-            fen, board_corners = predict_board(
-                board_path, a1_pos, obtain_pieces_probs, board_corners, fen
-            )
+        for board_path in sorted(glob.glob(path + '*.jpg'), key=natural_key):
+            fen, board_corners = predict_board(board_path, a1_pos,
+                                               obtain_pieces_probs,
+                                               board_corners,
+                                               fen)
             print(fen)
             processed_board = True
             os.remove(board_path)
@@ -299,15 +301,15 @@ def continuous_predictions(path, a1_pos, obtain_pieces_probs):
 
 def test_predict_board(obtain_predictions):
     """Tests board prediction."""
-    fens, a1_squares = read_correct_fen(os.path.join("predictions", "boards.fen"))
+    fens, a1_squares = read_correct_fen(os.path.join("predictions", 
+                                                     "boards.fen"))
 
     for i in range(5):
-        fen = time_predict_board(
-            os.path.join("predictions", "test" + str(i + 1) + ".jpg"),
-            a1_squares[i],
-            obtain_predictions,
-        )
-        print_fen_comparison("test" + str(i + 1) + ".jpg", fen, fens[i])
+        fen = time_predict_board(os.path.join("predictions", 
+                                              "test" + str(i+1) + ".jpg"),
+                                 a1_squares[i],
+                                 obtain_predictions)
+        print_fen_comparison("test" + str(i+1) + ".jpg", fen, fens[i])
 
 
 def detect_input_board(board_path, board_corners=None):
@@ -332,7 +334,8 @@ def detect_input_board(board_path, board_corners=None):
     if os.path.exists(tmp_dir):
         shutil.rmtree(tmp_dir)
     os.mkdir(tmp_dir)
-    image_object = detect(input_image, os.path.join(head, "tmp", tail), board_corners)
+    image_object = detect(input_image, os.path.join(head, "tmp", tail),
+                          board_corners)
     board_corners, _ = compute_corners(image_object)
     return board_corners
 
@@ -421,14 +424,8 @@ def print_fen_comparison(board_name, fen, correct_fen):
     :param correct_fen: Correct fen string.
     """
     n_dif = compare_fen(fen, correct_fen)
-    print(
-        board_name[:-4]
-        + " - Err:"
-        + str(n_dif)
-        + " Acc:{:.2f}% FEN:".format(1 - (n_dif / 64))
-        + fen
-        + "\n"
-    )
+    print(board_name[:-4] + ' - Err:' + str(n_dif)
+          + " Acc:{:.2f}% FEN:".format(1 - (n_dif / 64)) + fen + '\n')
 
 
 def read_correct_fen(fen_file):
@@ -443,14 +440,13 @@ def read_correct_fen(fen_file):
     fens = []
     a1_squares = []
 
-    with open(fen_file, "r") as fen_fd:
+    with open(fen_file, 'r') as fen_fd:
         lines = fen_fd.read().splitlines()
         for line in lines:
             line = line.split()
             if len(line) != 2:
-                raise ValueError(
-                    "All lines in fen file must have the format " "'fen orientation'"
-                )
+                raise ValueError("All lines in fen file must have the format "
+                                 "'fen orientation'")
             fens.append(line[0])
             a1_squares.append(line[1])
     return fens, a1_squares

@@ -2,7 +2,7 @@
 FEN notation transformations.
 """
 
-PIECE_TYPES = ["r", "n", "b", "q", "k", "p", "P", "R", "N", "B", "Q", "K", "_"]
+PIECE_TYPES = ['r', 'n', 'b', 'q', 'k', 'p', 'P', 'R', 'N', 'B', 'Q', 'K', '_']
 
 
 def fen_to_board(fen):
@@ -13,7 +13,7 @@ def fen_to_board(fen):
     :param fen: Fen string to translate.
     :return: The board corresponding to the fen string.
     """
-    rows = fen.split(sep="/")
+    rows = fen.split(sep='/')
 
     if len(rows) != 8:
         raise ValueError(f"fen must have 8 rows: {fen}")
@@ -23,7 +23,7 @@ def fen_to_board(fen):
         board_row = []
         for char in row:
             if char.isdigit():
-                board_row.extend(["_"] * int(char))
+                board_row.extend(['_'] * int(char))
             else:
                 board_row.append(char)
         if len(board_row) != 8:
@@ -46,7 +46,7 @@ def board_to_fen(board):
         prev_empty = False
         empty = 0
         for square in row:
-            if square == "_":
+            if square == '_':
                 empty += 1
                 prev_empty = True
             else:
@@ -59,9 +59,9 @@ def board_to_fen(board):
         if prev_empty:
             fen.append(str(empty))
 
-        fen.append("/")
+        fen.append('/')
 
-    return "".join(fen[:-1])  # Remove final /
+    return ''.join(fen[:-1])  # Remove final /
 
 
 def list_to_board(pieces_list, a1_pos="BL"):
@@ -77,7 +77,7 @@ def list_to_board(pieces_list, a1_pos="BL"):
     if len(pieces_list) != 64:
         raise ValueError("Input pieces list must be of length 64")
 
-    board = [pieces_list[ind : ind + 8] for ind in range(0, 64, 8)]
+    board = [pieces_list[ind:ind + 8] for ind in range(0, 64, 8)]
     board = rotate_board_image2fen(board, a1_pos)
     return board
 

@@ -3,14 +3,13 @@ Work with the LAPS models.
 """
 from keras.models import model_from_json
 
-__laps_model = "laps.model.json"
-__laps_weights = "laps.weights.h5"
-LAPS_MODEL = model_from_json(open(__laps_model, "r").read())
+__laps_model = 'laps.model.json'
+__laps_weights = 'laps.weights.h5'
+LAPS_MODEL = model_from_json(open(__laps_model, 'r').read())
 LAPS_MODEL.load_weights(__laps_weights)
-LAPS_MODEL.compile(
-    optimizer="Adam", loss="categorical_crossentropy", metrics=["accuracy"]
-)
-LAPS_MODEL.save("laps_model.h5")
+LAPS_MODEL.compile(optimizer='Adam', loss='categorical_crossentropy',
+                   metrics=['accuracy'])
+LAPS_MODEL.save('laps_model.h5')
 
 """
 from keras.optimizers import RMSprop
