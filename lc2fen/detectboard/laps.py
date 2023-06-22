@@ -12,8 +12,7 @@ from scipy.spatial.distance import pdist
 from lc2fen.detectboard import debug, image_object
 from lc2fen.detectboard import poly_point_isect
 
-__LAPS_SESS = onnxruntime.InferenceSession(
-    "lc2fen/detectboard/models/laps_model.onnx")
+__LAPS_SESS = onnxruntime.InferenceSession("lc2fen/detectboard/models/laps_model.onnx")
 
 __ANALYSIS_RADIUS = 10
 
@@ -27,15 +26,17 @@ def __find_intersections(lines):
 def __cluster_points(points, max_dist=10):
     """Cluster very similar points."""
     link_matrix = single(pdist(points))
-    cluster_ids = fcluster(link_matrix, max_dist, 'distance')
+    cluster_ids = fcluster(link_matrix, max_dist, "distance")
 
     clusters = collections.defaultdict(list)
     for i, cluster_id in enumerate(cluster_ids):
         clusters[cluster_id].append(points[i])
     clusters = clusters.values()
     # If two points are close, they become one mean point
-    clusters = map(lambda arr: (
-        np.mean(np.array(arr)[:, 0]), np.mean(np.array(arr)[:, 1])), clusters)
+    clusters = map(
+        lambda arr: (np.mean(np.array(arr)[:, 0]), np.mean(np.array(arr)[:, 1])),
+        clusters,
+    )
     return list(clusters)
 
 
@@ -48,13 +49,18 @@ def __is_lattice_point(img):
 
     # Geometric detector to filter easy points
     img_geo = cv2.dilate(img, None)
-    mask = cv2.copyMakeBorder(img_geo, top=1, bottom=1, left=1, right=1,
-                              borderType=cv2.BORDER_CONSTANT,
-                              value=[255, 255, 255])
+    mask = cv2.copyMakeBorder(
+        img_geo,
+        top=1,
+        bottom=1,
+        left=1,
+        right=1,
+        borderType=cv2.BORDER_CONSTANT,
+        value=[255, 255, 255],
+    )
     mask = cv2.bitwise_not(mask)
 
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL,
-                                   cv2.CHAIN_APPROX_NONE)
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
     _c = np.zeros((23, 23, 3), np.uint8)
     num_rhomboid = 0
@@ -72,7 +78,7 @@ def __is_lattice_point(img):
 
     # Neural detector if unable to decide using the geometric detector
     X = [np.where(img > int(255 / 2), 1, 0).ravel()]
-    X = X[0].reshape([-1, 21, 21, 1]).astype('float32')
+    X = X[0].reshape([-1, 21, 21, 1]).astype("float32")
 
     pred = __LAPS_SESS.run(None, {__LAPS_SESS.get_inputs()[0].name: X})[0][0]
 
@@ -89,10 +95,9 @@ def laps(img, lines):
     """
     intersection_points = __find_intersections(lines)
 
-    debug.DebugImage(img) \
-        .lines(lines, color=(0, 0, 255)) \
-        .points(intersection_points, color=(255, 0, 0), size=2) \
-        .save("laps_in_queue")
+    debug.DebugImage(img).lines(lines, color=(0, 0, 255)).points(
+        intersection_points, color=(255, 0, 0), size=2
+    ).save("laps_in_queue")
 
     points = []
     for pt in intersection_points:
@@ -125,10 +130,9 @@ def laps(img, lines):
     if points:
         points = __cluster_points(points)
 
-    debug.DebugImage(img) \
-        .points(intersection_points, color=(0, 0, 255), size=3) \
-        .points(points, color=(0, 255, 0)) \
-        .save("laps_good_points")
+    debug.DebugImage(img).points(intersection_points, color=(0, 0, 255), size=3).points(
+        points, color=(0, 255, 0)
+    ).save("laps_good_points")
 
     return points
 

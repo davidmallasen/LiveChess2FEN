@@ -25,8 +25,9 @@ def image_transform(img, points):
     board_length = 1200
 
     pts1 = np.float32(points)
-    pts2 = np.float32([[0, 0], [board_length, 0], [board_length, board_length],
-                       [0, board_length]])
+    pts2 = np.float32(
+        [[0, 0], [board_length, 0], [board_length, board_length], [0, board_length]]
+    )
     mat = cv2.getPerspectiveTransform(pts1, pts2)
     return cv2.warpPerspective(img, mat, (board_length, board_length))
 
@@ -50,7 +51,7 @@ class ImageObject:
             # Downscale for speed
             downscaled_img_, shape_, scale_ = image_resize(img)
 
-            self.images.append({'orig': img, 'main': downscaled_img_})
+            self.images.append({"orig": img, "main": downscaled_img_})
             self.shape.append(shape_)  # (0, 0)
             self.scale.append(scale_)  # 1
 
@@ -67,14 +68,14 @@ class ImageObject:
         # Downscale for speed
         downscaled_img_, shape_, scale_ = image_resize(img)
 
-        self.images.append({'orig': img, 'main': downscaled_img_})
+        self.images.append({"orig": img, "main": downscaled_img_})
         self.shape.append(shape_)
         self.scale.append(scale_)
 
     def crop(self, pts):
         """Crop using 4 points transform."""
         pts_orig = image_scale(pts, self.scale[-1])
-        img_crop = image_transform(self.images[-1]['orig'], pts_orig)
+        img_crop = image_transform(self.images[-1]["orig"], pts_orig)
         self.points.append(pts_orig)
         self.add_image(img_crop)
 
