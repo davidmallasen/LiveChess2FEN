@@ -2,7 +2,7 @@
 Train AlexNet model.
 """
 from keras import Sequential
-from keras.engine.saving import load_model
+from keras.models import load_model
 from keras.layers import Conv2D, MaxPool2D, Flatten, Dense, Dropout
 from keras.optimizers import Adam
 

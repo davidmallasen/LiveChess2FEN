@@ -4,14 +4,14 @@ SqueezeNet-v1.1 implementation.
 import warnings
 
 from keras import backend as K
-from keras.engine.topology import get_source_inputs
+from keras.utils.layer_utils import get_source_inputs
 from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from keras.layers import Input, Convolution2D, MaxPooling2D, Activation, \
     concatenate, Dropout
 from keras.models import Model
 from keras.utils import get_file
 from keras.utils import layer_utils
-from keras_applications.imagenet_utils import _obtain_input_shape
+from keras.applications.imagenet_utils import obtain_input_shape
 
 SQ1X1 = "squeeze1x1"
 EXP1X1 = "expand1x1"
@@ -58,7 +58,7 @@ def SqueezeNet(include_top=True, weights='imagenet', input_tensor=None,
         raise ValueError('If using `weights` as imagenet with `include_top`'
                          ' as true, `classes` should be 1000')
 
-    input_shape = _obtain_input_shape(input_shape,
+    input_shape = obtain_input_shape(input_shape,
                                       default_size=227,
                                       min_size=48,
                                       data_format=K.image_data_format(),

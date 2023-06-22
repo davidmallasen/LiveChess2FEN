@@ -2,7 +2,7 @@
 Train SqueezeNet-v1.1 model.
 """
 from keras.applications.imagenet_utils import preprocess_input
-from keras.engine.saving import load_model
+from keras.models import load_model
 
 from squeezenet import SqueezeNet
 from chess_piece_models_common import build_model, data_generators, \
