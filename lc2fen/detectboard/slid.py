@@ -23,8 +23,8 @@ def __slid_segments(img):
         v = np.median(img)
         img = cv2.medianBlur(img, 5)
         img = cv2.GaussianBlur(img, (7, 7), 2)
-        lower = int(max(0, (1. - sigma) * v))
-        upper = int(min(255, (1. + sigma) * v))
+        lower = int(max(0, (1.0 - sigma) * v))
+        upper = int(min(255, (1.0 + sigma) * v))
         return cv2.Canny(img, lower, upper)
 
     def simplify_image(img, limit, grid, iters):
@@ -32,8 +32,7 @@ def __slid_segments(img):
         equalization)."""
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         for _ in range(iters):
-            img = cv2.createCLAHE(clipLimit=limit, tileGridSize=grid).apply(
-                img)
+            img = cv2.createCLAHE(clipLimit=limit, tileGridSize=grid).apply(img)
         debug.DebugImage(img).save("slid_clahe_@1")
         if limit != 0:
             kernel = np.ones((10, 10), np.uint8)
@@ -44,22 +43,28 @@ def __slid_segments(img):
     def detect_lines(img):
         """Detect lines using the probabilistic Hough transform."""
         beta = 2
-        lines = cv2.HoughLinesP(img, rho=1, theta=np.pi / 360 * beta,
-                                threshold=40, minLineLength=50,
-                                maxLineGap=15)  # [40, 40, 10]
+        lines = cv2.HoughLinesP(
+            img,
+            rho=1,
+            theta=np.pi / 360 * beta,
+            threshold=40,
+            minLineLength=50,
+            maxLineGap=15,
+        )  # [40, 40, 10]
         if lines is None:
             return []
 
         __lines = []
         for line in np.reshape(lines, (-1, 4)):
-            __lines.append(
-                [[int(line[0]), int(line[1])], [int(line[2]), int(line[3])]])
+            __lines.append([[int(line[0]), int(line[1])], [int(line[2]), int(line[3])]])
         return __lines
 
-    clahe_settings = [[3, (2, 6), 5],  # @1
-                      [3, (6, 2), 5],  # @2
-                      [5, (3, 3), 5],  # @3
-                      [0, (0, 0), 0]]  # EE
+    clahe_settings = [
+        [3, (2, 6), 5],  # @1
+        [3, (6, 2), 5],  # @2
+        [5, (3, 3), 5],  # @3
+        [0, (0, 0), 0],
+    ]  # EE
 
     segments = []
     i = 0
@@ -68,8 +73,7 @@ def __slid_segments(img):
         __segments = detect_lines(detect_edges(tmp))
         segments += __segments
         i += 1
-        debug.DebugImage(detect_edges(tmp)).lines(__segments).save(
-            "pslid_F%d" % i)
+        debug.DebugImage(detect_edges(tmp)).lines(__segments).save("pslid_F%d" % i)
     return segments
 
 
@@ -129,8 +133,13 @@ def slid(img):
         :param dx: Distance between the points that define the line.
         :return: The distance from point to line.
         """
-        return abs((line[1][0] - line[0][0]) * (line[0][1] - point[1]) - (
-                line[1][1] - line[0][1]) * (line[0][0] - point[0])) / dx
+        return (
+            abs(
+                (line[1][0] - line[0][0]) * (line[0][1] - point[1])
+                - (line[1][1] - line[0][1]) * (line[0][0] - point[0])
+            )
+            / dx
+        )
 
     def similar_lines(line1, line2):
         """Returns if line1 is similar to line2."""
@@ -192,8 +201,10 @@ def slid(img):
         w = radius * (math.pi / 2)
         vx, vy, cx, cy = cv2.fitLine(na_points, cv2.DIST_L2, 0, 0.01, 0.01)
 
-        return ((int(cx - vx * w), int(cy - vy * w)),
-                (int(cx + vx * w), int(cy + vy * w)))
+        return (
+            (int(cx - vx * w), int(cy - vy * w)),
+            (int(cx + vx * w), int(cy + vy * w)),
+        )
 
     # Find all segments in image
     segments = __slid_segments(img)
@@ -213,10 +224,9 @@ def slid(img):
         else:
             vh_segments[1].append(l)
 
-    debug.DebugImage(img.shape) \
-        .lines(vh_segments[0], color=debug.rand_color()) \
-        .lines(vh_segments[1], color=debug.rand_color()) \
-        .save("slid_pre_groups")
+    debug.DebugImage(img.shape).lines(vh_segments[0], color=debug.rand_color()).lines(
+        vh_segments[1], color=debug.rand_color()
+    ).save("slid_pre_groups")
 
     for lines in vh_segments:
         for i in range(len(lines)):
@@ -251,9 +261,9 @@ def slid(img):
 
     lines = __scale_lines(raw_lines)
 
-    debug.DebugImage(img.shape) \
-        .points(all_points, color=(0, 255, 0), size=2) \
-        .lines(raw_lines).save("slid_raw_lines")
+    debug.DebugImage(img.shape).points(all_points, color=(0, 255, 0), size=2).lines(
+        raw_lines
+    ).save("slid_raw_lines")
 
     debug.DebugImage(img).lines(lines).save("slid_final")
 

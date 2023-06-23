@@ -20,11 +20,17 @@ def main():
     keras_model.save(MODELS_PATH + "saved_model")
 
     # Convert to ONNX
-    spec = (tf.TensorSpec((batch_size, image_size, image_size, channels), tf.float32, name="input"),)
-    model_proto, _ = tf2onnx.convert.from_keras(keras_model, 
-                                                input_signature=spec, 
-                                                opset=target_opset, 
-                                                output_path=MODELS_PATH + ONNX_MODEL_NAME)
+    spec = (
+        tf.TensorSpec(
+            (batch_size, image_size, image_size, channels), tf.float32, name="input"
+        ),
+    )
+    model_proto, _ = tf2onnx.convert.from_keras(
+        keras_model,
+        input_signature=spec,
+        opset=target_opset,
+        output_path=MODELS_PATH + ONNX_MODEL_NAME,
+    )
 
 
 if __name__ == "__main__":

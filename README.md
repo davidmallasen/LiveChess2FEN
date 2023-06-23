@@ -1,4 +1,8 @@
-# LiveChess2FEN
+<h1 align="center">LiveChess2FEN</h1>
+
+<p align="center">
+<a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+</p>
 
 LiveChess2FEN is a fully functional framework that automatically digitizes
 the configuration of a chessboard. It is optimized for execution on a

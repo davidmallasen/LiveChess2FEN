@@ -29,7 +29,7 @@ information as possible.
 - Ensure the pull request description clearly describes the thought behind
  the contribution. Include the relevant issue number if there is one open.
 
-## Style guides
+## Style Guides
 
 ### Git Commit Messages
 
@@ -38,7 +38,17 @@ information as possible.
 - Limit the first line to 72 characters or less.
 - Reference issues and pull requests when needed ("Fix #123").
 
-### Python style guide
+### Python Style Guide
 
 - Please follow the [PEP 8](https://www.python.org/dev/peps/pep-0008/) guide
  in order to keep the code consistent. When in doubt, check nearby code.
+  
+    - We recommend taking the following steps to make sure your code is always written in the [Black](https://github.com/psf/black/tree/main) code style:
+    
+      - Install and open [VS Code](https://code.visualstudio.com/).
+      
+      - Install the [Black Formatter](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter) extension.
+
+      - Go to Settings, type "Python > Formatting: Provider" in the search box, and select "black" in the dropdown menu.
+
+      - Go to Settings, type "Editor: Format On Save" in the search box, and check the appropriate box.
