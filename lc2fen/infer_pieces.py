@@ -211,7 +211,7 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
     # Top of each sorted piece list (highest probability of each piece)
     tops = [piece_list[0] for piece_list in pieces_lists]
     # Maximum number of pieces of each type in the same order than tops
-    max_pieces_left = [2, 2, 8, 9, 2, 2, 2, 8, 9, 2]
+    max_pieces_left = [2, 2, 8, 2, 2, 2, 2, 8, 2, 2]
 
     while out_preds_empty > 0:
         # Fill in the square in out_preds that has the piece with the
