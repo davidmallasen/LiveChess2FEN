@@ -222,7 +222,11 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
         if (
             max_pieces_left[max_idx] > 0
             and out_preds[square] is None
-            and __check_bishop(max_idx, tops, w_bishop_sq, b_bishop_sq)
+            # and __check_bishop(max_idx, tops, w_bishop_sq, b_bishop_sq)
+            # (Theoretically, for either side, there can be 2 bishops of
+            # the same color, so since we already make sure that there are
+            # at most 2 bishops for each side, there's no need to do this
+            # additional check for bishops)
         ):
             # Fill the square and update counters
             # If we have detected the move previously
