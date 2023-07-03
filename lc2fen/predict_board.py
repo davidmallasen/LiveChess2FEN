@@ -47,7 +47,7 @@ def load_image(img_path, img_size, preprocess_func):
 
 
 def predict_board_keras(
-    model_path, img_size, pre_input, path="", a1_pos="", test=False
+    model_path, img_size, pre_input, path="", a1_pos="", test=False, previous_fen=None
 ):
     """
     Predict the fen notation of a chessboard using Keras for inference.
@@ -61,6 +61,7 @@ def predict_board_keras(
     :param a1_pos: Position of the a1 square. Must be one of the
         following: "BL", "BR", "TL", "TR".
     :param test: Activates the testing function.
+    :param previous_fen: FEN string of the previous board position.
     :return: Predicted FEN string representing the chessboard.
     """
     model = load_model(model_path)
@@ -73,15 +74,19 @@ def predict_board_keras(
         return predictions
 
     if test:
-        test_predict_board(obtain_pieces_probs)
+        test_predict_board(obtain_pieces_probs, previous_fen)
     else:
         if os.path.isdir(path):
             return continuous_predictions(path, a1_pos, obtain_pieces_probs)
         else:
-            return predict_board(path, a1_pos, obtain_pieces_probs)
+            return predict_board(
+                path, a1_pos, obtain_pieces_probs, previous_fen=previous_fen
+            )
 
 
-def predict_board_onnx(model_path, img_size, pre_input, path="", a1_pos="", test=False):
+def predict_board_onnx(
+    model_path, img_size, pre_input, path="", a1_pos="", test=False, previous_fen=None
+):
     """
     Predict the fen notation of a chessboard using ONNXRuntime for
     inference.
@@ -95,6 +100,7 @@ def predict_board_onnx(model_path, img_size, pre_input, path="", a1_pos="", test
     :param a1_pos: Position of the a1 square. Must be one of the
         following: "BL", "BR", "TL", "TR".
     :param test: Activates the testing function.
+    :param previous_fen: FEN string of the previous board position.
     :return: Predicted FEN string representing the chessboard.
     """
     sess = onnxruntime.InferenceSession(model_path)
@@ -109,15 +115,19 @@ def predict_board_onnx(model_path, img_size, pre_input, path="", a1_pos="", test
         return predictions
 
     if test:
-        test_predict_board(obtain_pieces_probs)
+        test_predict_board(obtain_pieces_probs, previous_fen)
     else:
         if os.path.isdir(path):
             return continuous_predictions(path, a1_pos, obtain_pieces_probs)
         else:
-            return predict_board(path, a1_pos, obtain_pieces_probs)
+            return predict_board(
+                path, a1_pos, obtain_pieces_probs, previous_fen=previous_fen
+            )
 
 
-def predict_board_trt(model_path, img_size, pre_input, path="", a1_pos="", test=False):
+def predict_board_trt(
+    model_path, img_size, pre_input, path="", a1_pos="", test=False, previous_fen=None
+):
     """
     Predict the fen notation of a chessboard using TensorRT for
     inference.
@@ -131,6 +141,7 @@ def predict_board_trt(model_path, img_size, pre_input, path="", a1_pos="", test=
     :param a1_pos: Position of the a1 square. Must be one of the
         following: "BL", "BR", "TL", "TR".
     :param test: Activates the testing function.
+    :param previous_fen: FEN string of the previous board position.
     :return: Predicted FEN string representing the chessboard.
     """
     if cuda is None or trt is None:
@@ -210,12 +221,14 @@ def predict_board_trt(model_path, img_size, pre_input, path="", a1_pos="", test=
             return [trt_outputs[ind : ind + 13] for ind in range(0, 13 * 64, 13)]
 
         if test:
-            test_predict_board(obtain_pieces_probs)
+            test_predict_board(obtain_pieces_probs, previous_fen)
         else:
             if os.path.isdir(path):
                 return continuous_predictions(path, a1_pos, obtain_pieces_probs)
             else:
-                return predict_board(path, a1_pos, obtain_pieces_probs)
+                return predict_board(
+                    path, a1_pos, obtain_pieces_probs, previous_fen=previous_fen
+                )
 
 
 def predict_board(
@@ -241,8 +254,8 @@ def predict_board(
         corners. If it is not None, first check if the board is in the
         position given by these corners. If not, runs the full
         detection.
-    :param previous_fen: The FEN string representing the previous move
-        of the same board. If it is not None, improves piece inference.
+    :param previous_fen: FEN string of the previous board position.
+        If it is not None, improves piece inference.
     :return: A pair formed by the predicted FEN string representing the
         chessboard and the coordinates of the corners of the chessboard
         in the input image.
@@ -297,7 +310,7 @@ def continuous_predictions(path, a1_pos, obtain_pieces_probs):
             time.sleep(0.1)
 
 
-def test_predict_board(obtain_predictions):
+def test_predict_board(obtain_predictions, previous_fen=None):
     """Tests board prediction."""
     fens, a1_squares = read_correct_fen(os.path.join("predictions", "boards.fen"))
 
@@ -306,6 +319,7 @@ def test_predict_board(obtain_predictions):
             os.path.join("predictions", "test" + str(i + 1) + ".jpg"),
             a1_squares[i],
             obtain_predictions,
+            previous_fen,
         )
         print_fen_comparison("test" + str(i + 1) + ".jpg", fen, fens[i])
 
@@ -355,7 +369,7 @@ def obtain_individual_pieces(board_path):
     return sorted(glob.glob(pieces_dir + "/*.jpg"))
 
 
-def time_predict_board(board_path, a1_pos, obtain_pieces_probs):
+def time_predict_board(board_path, a1_pos, obtain_pieces_probs, previous_fen=None):
     """
     Predict the fen notation of a chessboard. Prints the elapsed times.
 
@@ -371,6 +385,7 @@ def time_predict_board(board_path, a1_pos, obtain_pieces_probs):
         path to each piece image in FEN notation order and returns the
         corresponding probabilities of each piece belonging to each
         class as another list.
+    :param previous_fen: FEN string of the previous board position.
     :return: Predicted fen string representing the chessboard.
     """
     total_time = 0
@@ -394,7 +409,7 @@ def time_predict_board(board_path, a1_pos, obtain_pieces_probs):
     print(f"Elapsed time predicting probabilities: {elapsed_time}")
 
     start = time.perf_counter()
-    predictions = infer_chess_pieces(pieces_probs, a1_pos)
+    predictions = infer_chess_pieces(pieces_probs, a1_pos, previous_fen)
     elapsed_time = time.perf_counter() - start
     total_time += elapsed_time
     print(f"Elapsed time inferring chess pieces: {elapsed_time}")

@@ -152,8 +152,8 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
         position of the chessboard given in FEN notation order.
     :param a1_pos: Position of the a1 square. Must be one of the
         following: "BL", "BR", "TL", "TR".
-    :param previous_fen: The FEN string representing the previous move
-        of the same board. If it is not None, improves piece inference.
+    :param previous_fen: FEN string of the previous board position.
+        If it is not None, improves piece inference.
     :return: A list of the inferred chess pieces in FEN notation order.
     """
     pieces_probs = board_to_list(list_to_board(pieces_probs, a1_pos))
@@ -175,7 +175,7 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
     # We need to store the original order
     pieces_probs_sort = [(probs, i) for i, probs in enumerate(pieces_probs)]
 
-    # First choose the kings, there must be one of each color
+    # First choose the kings (there must be one of each color)
     white_king = max(pieces_probs_sort, key=lambda prob: prob[0][1])
     black_kings = sorted(
         pieces_probs_sort, key=lambda prob: prob[0][8], reverse=True
@@ -190,8 +190,8 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
 
     out_preds_empty = 62  # We have already set the kings
 
-    # Then set the blank spaces, the CNN has a very high accuracy
-    # detecting these cases
+    # Then set the blank spaces (the CNN has a very high accuracy of
+    # detecting these cases)
     for idx, piece in enumerate(pieces_probs):
         if out_preds[idx] is None:
             if is_empty_square(piece):
@@ -206,7 +206,7 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
     # probability of any piece for all the board
     pieces_lists = __sort_pieces_list(pieces_probs_sort)
     # Index to the highest probability, from each list in pieces_lists,
-    # that we have not set yet (in the same order than above).
+    # that we have not set yet (in the same order as above).
     idx = [0] * 10
     # Top of each sorted piece list (highest probability of each piece)
     tops = [piece_list[0] for piece_list in pieces_lists]

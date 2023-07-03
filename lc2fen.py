@@ -33,26 +33,35 @@ def parse_arguments():
     global ACTIVATE_KERAS, ACTIVATE_ONNX, ACTIVATE_TRT
 
     parser = argparse.ArgumentParser(
-        description="Predicts board configurations from images."
+        description="Predicts board configuration(s) (FEN string(s)) from image(s)."
     )
 
-    parser.add_argument("path", help="Path to the image or folder you wish to predict")
+    parser.add_argument(
+        "path", help="Path to the image or folder you wish to predict the FEN(s) for"
+    )
     parser.add_argument(
         "a1_pos",
-        help="Location of the a1 square in the chessboard "
+        help="Location of the a1 square in the chessboard image(s) "
         "(B = bottom, T = top, R = right, L = left)",
         choices=["BL", "BR", "TL", "TR"],
+    )
+    parser.add_argument(
+        "previous_fen",
+        nargs="?",
+        help="FEN string of the previous board position (if "
+        "you are predicting the FEN for a single image and if "
+        "the previous board position is known)",
     )
 
     inf_engine = parser.add_mutually_exclusive_group(required=True)
     inf_engine.add_argument(
-        "-k", "--keras", help="Run inference using Keras", action="store_true"
+        "-k", "--keras", help="run inference using Keras", action="store_true"
     )
     inf_engine.add_argument(
-        "-o", "--onnx", help="Run inference using ONNXRuntime", action="store_true"
+        "-o", "--onnx", help="run inference using ONNXRuntime", action="store_true"
     )
     inf_engine.add_argument(
-        "-t", "--trt", help="Run inference using TensorRT", action="store_true"
+        "-t", "--trt", help="run inference using TensorRT", action="store_true"
     )
 
     args = parser.parse_args()
@@ -66,23 +75,38 @@ def parse_arguments():
     else:
         ValueError("No inference engine selected. This should be unreachable.")
 
-    return args.path, args.a1_pos
+    return args.path, args.a1_pos, args.previous_fen
 
 
 def main():
     """Parses the arguments and prints the predicted FEN."""
-    path, a1_pos = parse_arguments()
+    path, a1_pos, previous_fen = parse_arguments()
     if ACTIVATE_KERAS:
         fen, _ = predict_board_keras(
-            MODEL_PATH_KERAS, IMG_SIZE_KERAS, PRE_INPUT_KERAS, path, a1_pos
+            MODEL_PATH_KERAS,
+            IMG_SIZE_KERAS,
+            PRE_INPUT_KERAS,
+            path,
+            a1_pos,
+            previous_fen=previous_fen,
         )
     elif ACTIVATE_ONNX:
         fen, _ = predict_board_onnx(
-            MODEL_PATH_ONNX, IMG_SIZE_ONNX, PRE_INPUT_ONNX, path, a1_pos
+            MODEL_PATH_ONNX,
+            IMG_SIZE_ONNX,
+            PRE_INPUT_ONNX,
+            path,
+            a1_pos,
+            previous_fen=previous_fen,
         )
     elif ACTIVATE_TRT:
         fen, _ = predict_board_trt(
-            MODEL_PATH_TRT, IMG_SIZE_TRT, PRE_INPUT_TRT, path, a1_pos
+            MODEL_PATH_TRT,
+            IMG_SIZE_TRT,
+            PRE_INPUT_TRT,
+            path,
+            a1_pos,
+            previous_fen=previous_fen,
         )
     else:
         fen = None
