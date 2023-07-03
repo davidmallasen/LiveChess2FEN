@@ -110,6 +110,14 @@ def __check_bishop(max_idx, tops, w_bishop_sq, b_bishop_sq):
     Checks the position of a bishop. There can be at most one in each
     square color. Returns True if max_idx doesn't represent a bishop. If
     it does, returns if the bishop can be placed in that position.
+
+    Note: this function is no longer used in the code because theoretically,
+    for either side, there can be two bishops of the same color (via pawn
+    promotion). Since the `max_pieces_left` variable makes sure there are at
+    most two bishops for either side, there is no more additional check that
+    we need to do for bishops; we can safely remove the requirement that if
+    any side (white or black) has two bishops, those two bishops must be
+    opposite-colored.
     """
     # If it is a bishop, check that there is at most one in each
     # square color
@@ -219,15 +227,7 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
         max_idx = __max_piece(tops)
         square = tops[max_idx][1]
         # If we haven't maxed that piece type and the square is empty
-        if (
-            max_pieces_left[max_idx] > 0
-            and out_preds[square] is None
-            # and __check_bishop(max_idx, tops, w_bishop_sq, b_bishop_sq)
-            # (Theoretically, for either side, there can be 2 bishops of
-            # the same color, so since we already make sure that there are
-            # at most 2 bishops for each side, there's no need to do this
-            # additional check for bishops)
-        ):
+        if max_pieces_left[max_idx] > 0 and out_preds[square] is None:
             # Fill the square and update counters
             # If we have detected the move previously
             if square == final_move_sq and possible_pieces:
