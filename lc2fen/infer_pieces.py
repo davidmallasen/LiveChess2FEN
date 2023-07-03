@@ -218,7 +218,7 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
     idx = [0] * 10
     # Top of each sorted piece list (highest probability of each piece)
     tops = [piece_list[0] for piece_list in pieces_lists]
-    # Maximum number of pieces of each type in the same order than tops
+    # Maximum number of pieces of each type in the same order as tops
     max_pieces_left = [2, 2, 8, 2, 2, 2, 2, 8, 2, 2]
 
     while out_preds_empty > 0:
@@ -317,8 +317,10 @@ def inferred_move(previous_fen, current_probs, changed_squares_idx):
     """
     Infers the move made. If it can't recognize the move, returns None.
 
-    The current inferred actions are: 'white_moves', 'white_captures',
-    'black_moves' or 'black_captures'.
+    The inferred action is one of the following: 'white_moves',
+    'white_captures', 'black_moves', 'black_captures', 'white_en_passants',
+    'black_en_passants', 'white_castles_kingside', 'white_castles_queenside',
+    'black_castles_kingside', and 'black_castles_queenside'.
 
     :param previous_fen: FEN string representing the previous board
         layout.
@@ -332,56 +334,248 @@ def inferred_move(previous_fen, current_probs, changed_squares_idx):
         index of the initial square, the index of the final square and
         the inferred action. If not, returns None.
     """
-    if len(changed_squares_idx) != 2:  # TODO: En passant 3, castling 4?
-        return None
-
     previous_list = board_to_list(fen_to_board(previous_fen))
 
-    # Determine which square is the initial and which is the final
-    if is_empty_square(current_probs[changed_squares_idx[0]]):
-        initial_sq = changed_squares_idx[0]
-        if not is_empty_square(current_probs[changed_squares_idx[1]]):
-            final_sq = changed_squares_idx[1]
+    if len(changed_squares_idx) == 2:
+        # Determine which square is the initial and which is the final
+        if is_empty_square(current_probs[changed_squares_idx[0]]):
+            initial_sq = changed_squares_idx[0]
+            if not is_empty_square(current_probs[changed_squares_idx[1]]):
+                final_sq = changed_squares_idx[1]
+            else:
+                return None
+        elif is_empty_square(current_probs[changed_squares_idx[1]]):
+            initial_sq = changed_squares_idx[1]
+            if not is_empty_square(current_probs[changed_squares_idx[0]]):
+                final_sq = changed_squares_idx[0]
+            else:
+                return None
         else:
             return None
-    elif is_empty_square(current_probs[changed_squares_idx[1]]):
-        initial_sq = changed_squares_idx[1]
+
+        # We know that in the previous board, the initial square was
+        # occupied (now it is empty) and in the current board the final
+        # square is occupied
+        if previous_list[initial_sq] in __WHITE_PIECES:
+            if previous_list[final_sq] == "_":
+                if is_white_piece(current_probs[final_sq]):
+                    action = "white_moves"
+                    return initial_sq, final_sq, action
+                else:
+                    return None  # White piece converts into a black piece?
+            elif previous_list[final_sq] in __BLACK_PIECES:
+                if is_white_piece(current_probs[final_sq]):
+                    action = "white_captures"
+                    return initial_sq, final_sq, action
+                else:
+                    return None  # White piece converts into a black piece?
+            else:
+                return None  # White piece captures white piece?
+        else:  # The initial square is a black piece
+            if previous_list[final_sq] == "_":
+                if not is_white_piece(current_probs[final_sq]):
+                    action = "black_moves"
+                    return initial_sq, final_sq, action
+                else:
+                    return None  # Black piece converts into a white piece?
+            elif previous_list[final_sq] in __WHITE_PIECES:
+                if not is_white_piece(current_probs[final_sq]):
+                    action = "black_captures"
+                    return initial_sq, final_sq, action
+                else:
+                    return None  # Black piece converts into a white piece?
+            else:
+                return None  # Black piece captures black piece?
+
+    elif len(changed_squares_idx) == 3:  # En passant
+        # Determine which square is the initial and which is the final
         if not is_empty_square(current_probs[changed_squares_idx[0]]):
             final_sq = changed_squares_idx[0]
+            if previous_list[changed_squares_idx[1]] == "P" and is_white_piece(
+                current_probs[final_sq]
+            ):
+                initial_sq = changed_squares_idx[1]
+            elif previous_list[changed_squares_idx[1]] == "p" and not is_white_piece(
+                current_probs[final_sq]
+            ):
+                initial_sq = changed_squares_idx[1]
+            elif previous_list[changed_squares_idx[2]] == "P" and is_white_piece(
+                current_probs[final_sq]
+            ):
+                initial_sq = changed_squares_idx[2]
+            elif previous_list[changed_squares_idx[2]] == "p" and not is_white_piece(
+                current_probs[final_sq]
+            ):
+                initial_sq = changed_squares_idx[2]
+            else:
+                return None
+        elif not is_empty_square(current_probs[changed_squares_idx[1]]):
+            final_sq = changed_squares_idx[1]
+            if previous_list[changed_squares_idx[0]] == "P" and is_white_piece(
+                current_probs[final_sq]
+            ):
+                initial_sq = changed_squares_idx[0]
+            elif previous_list[changed_squares_idx[0]] == "p" and not is_white_piece(
+                current_probs[final_sq]
+            ):
+                initial_sq = changed_squares_idx[0]
+            elif previous_list[changed_squares_idx[2]] == "P" and is_white_piece(
+                current_probs[final_sq]
+            ):
+                initial_sq = changed_squares_idx[2]
+            elif previous_list[changed_squares_idx[2]] == "p" and not is_white_piece(
+                current_probs[final_sq]
+            ):
+                initial_sq = changed_squares_idx[2]
+            else:
+                return None
+        elif not is_empty_square(current_probs[changed_squares_idx[2]]):
+            final_sq = changed_squares_idx[2]
+            if previous_list[changed_squares_idx[0]] == "P" and is_white_piece(
+                current_probs[final_sq]
+            ):
+                initial_sq = changed_squares_idx[0]
+            elif previous_list[changed_squares_idx[0]] == "p" and not is_white_piece(
+                current_probs[final_sq]
+            ):
+                initial_sq = changed_squares_idx[0]
+            elif previous_list[changed_squares_idx[1]] == "P" and is_white_piece(
+                current_probs[final_sq]
+            ):
+                initial_sq = changed_squares_idx[1]
+            elif previous_list[changed_squares_idx[1]] == "p" and not is_white_piece(
+                current_probs[final_sq]
+            ):
+                initial_sq = changed_squares_idx[1]
+            else:
+                return None
         else:
             return None
-    else:
-        return None
 
-    # We know that in the previous board, the initial square was
-    # occupied (now it is empty) and in the current board the final
-    # square is occupied
-    if previous_list[initial_sq] in __WHITE_PIECES:
-        if previous_list[final_sq] == "_":
-            if is_white_piece(current_probs[final_sq]):
-                return initial_sq, final_sq, "white_moves"
-            else:
-                return None  # White piece converts into a black piece?
-        elif previous_list[final_sq] in __BLACK_PIECES:
-            if is_white_piece(current_probs[final_sq]):
-                return initial_sq, final_sq, "white_captures"
-            else:
-                return None  # White piece converts into a black piece?
+        # Determine the third square
+        if sorted([initial_sq, final_sq]) == sorted(
+            [changed_squares_idx[0], changed_squares_idx[1]]
+        ):
+            third_sq = changed_squares_idx[2]
+        elif sorted([initial_sq, final_sq]) == sorted(
+            [changed_squares_idx[0], changed_squares_idx[2]]
+        ):
+            third_sq = changed_squares_idx[1]
         else:
-            return None  # White piece captures white piece?
-    else:  # The initial square is a black piece
-        if previous_list[final_sq] == "_":
-            if not is_white_piece(current_probs[final_sq]):
-                return initial_sq, final_sq, "black_moves"
-            else:
-                return None  # Black piece converts into a white piece?
-        elif previous_list[final_sq] in __WHITE_PIECES:
-            if not is_white_piece(current_probs[final_sq]):
-                return initial_sq, final_sq, "black_captures"
-            else:
-                return None  # Black piece converts into a white piece?
+            third_sq = changed_squares_idx[0]
+
+        # Determine the action
+        if previous_list[initial_sq] == "P" and previous_list[third_sq] == "p":
+            action = "white_en_passants"
+            return initial_sq, final_sq, action
+        elif previous_list[initial_sq] == "p" and previous_list[third_sq] == "P":
+            action = "black_en_passants"
+            return initial_sq, final_sq, action
         else:
-            return None  # Black piece captures black piece?
+            return None
+
+    elif len(changed_squares_idx) == 4:  # Castling
+        # Determine which square is the initial and which is the final
+        # (the initial and final squares of the king, not the rook,
+        #  as per the UCI notation)
+
+        if previous_list[changed_squares_idx[0]] in ["K", "k"]:
+            initial_sq = changed_squares_idx[0]
+            if (
+                previous_list[changed_squares_idx[1]] == "_"
+                and abs(changed_squares_idx[1] - changed_squares_idx[0]) == 2
+            ):
+                final_sq = changed_squares_idx[1]
+            elif (
+                previous_list[changed_squares_idx[2]] == "_"
+                and abs(changed_squares_idx[2] - changed_squares_idx[0]) == 2
+            ):
+                final_sq = changed_squares_idx[2]
+            elif (
+                previous_list[changed_squares_idx[3]] == "_"
+                and abs(changed_squares_idx[3] - changed_squares_idx[0]) == 2
+            ):
+                final_sq = changed_squares_idx[3]
+            else:
+                return None
+        elif previous_list[changed_squares_idx[1]] in ["K", "k"]:
+            initial_sq = changed_squares_idx[1]
+            if (
+                previous_list[changed_squares_idx[0]] == "_"
+                and abs(changed_squares_idx[0] - changed_squares_idx[1]) == 2
+            ):
+                final_sq = changed_squares_idx[0]
+            elif (
+                previous_list[changed_squares_idx[2]] == "_"
+                and abs(changed_squares_idx[2] - changed_squares_idx[1]) == 2
+            ):
+                final_sq = changed_squares_idx[2]
+            elif (
+                previous_list[changed_squares_idx[3]] == "_"
+                and abs(changed_squares_idx[3] - changed_squares_idx[1]) == 2
+            ):
+                final_sq = changed_squares_idx[3]
+            else:
+                return None
+        elif previous_list[changed_squares_idx[2]] in ["K", "k"]:
+            initial_sq = changed_squares_idx[2]
+            if (
+                previous_list[changed_squares_idx[0]] == "_"
+                and abs(changed_squares_idx[0] - changed_squares_idx[2]) == 2
+            ):
+                final_sq = changed_squares_idx[0]
+            elif (
+                previous_list[changed_squares_idx[1]] == "_"
+                and abs(changed_squares_idx[1] - changed_squares_idx[2]) == 2
+            ):
+                final_sq = changed_squares_idx[1]
+            elif (
+                previous_list[changed_squares_idx[3]] == "_"
+                and abs(changed_squares_idx[3] - changed_squares_idx[2]) == 2
+            ):
+                final_sq = changed_squares_idx[3]
+            else:
+                return None
+        elif previous_list[changed_squares_idx[3]] in ["K", "k"]:
+            initial_sq = changed_squares_idx[3]
+            if (
+                previous_list[changed_squares_idx[0]] == "_"
+                and abs(changed_squares_idx[0] - changed_squares_idx[3]) == 2
+            ):
+                final_sq = changed_squares_idx[0]
+            elif (
+                previous_list[changed_squares_idx[1]] == "_"
+                and abs(changed_squares_idx[1] - changed_squares_idx[3]) == 2
+            ):
+                final_sq = changed_squares_idx[1]
+            elif (
+                previous_list[changed_squares_idx[2]] == "_"
+                and abs(changed_squares_idx[2] - changed_squares_idx[3]) == 2
+            ):
+                final_sq = changed_squares_idx[2]
+            else:
+                return None
+        else:
+            return None
+
+        # Determine the action
+        if previous_list[initial_sq] == "K" and final_sq == 62:
+            action = "white_castles_kingside"
+            return initial_sq, final_sq, action
+        elif previous_list[initial_sq] == "K" and final_sq == 58:
+            action = "white_castles_queenside"
+            return initial_sq, final_sq, action
+        elif previous_list[initial_sq] == "k" and final_sq == 6:
+            action = "black_castles_kingside"
+            return initial_sq, final_sq, action
+        elif previous_list[initial_sq] == "k" and final_sq == 2:
+            action = "black_castles_queenside"
+            return initial_sq, final_sq, action
+        else:
+            return None
+
+    else:  # not len(changed_squares_idx) in [2, 3, 4]
+        return None
 
 
 def __is_king_move(initial_sq, final_sq):
@@ -456,11 +650,17 @@ def inferred_pieces_from_move(initial_sq, final_sq, action):
     initial_sq = (initial_sq // 8, initial_sq % 8)  # (row, column)
     final_sq = (final_sq // 8, final_sq % 8)
 
-    capturing = action.endswith("captures")
+    capturing = action.endswith("captures") | action.endswith("en_passants")
     white = action.startswith("white")
+    castling = "castles" in action
 
     possible_pieces = []  # There can't be duplicates
+
     if white:
+        if castling:
+            possible_pieces.append("K")
+            return possible_pieces
+
         if __is_pawn_move(initial_sq, final_sq, capturing, white):
             if final_sq[0] == 0:
                 # If the move ends in the last row, promotions apply,
@@ -483,6 +683,10 @@ def inferred_pieces_from_move(initial_sq, final_sq, action):
         if __is_knight_move(initial_sq, final_sq):
             possible_pieces.append("N")
     else:  # black
+        if castling:
+            possible_pieces.append("k")
+            return possible_pieces
+
         if __is_pawn_move(initial_sq, final_sq, capturing, white):
             if final_sq[0] == 7:
                 return ["k", "r", "b", "q", "n"]
