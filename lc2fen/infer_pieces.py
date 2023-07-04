@@ -3,6 +3,7 @@ Chess pieces inference from the probabilities given by the chess piece
 convolutional neural networks.
 """
 import numpy as np
+import chess
 
 from lc2fen.fen import board_to_list, list_to_board, is_white_square, fen_to_board
 
@@ -37,6 +38,9 @@ __IDX_TO_PIECE = {
 
 __WHITE_PIECES = ("P", "B", "N", "R", "K", "Q")
 __BLACK_PIECES = ("p", "b", "n", "r", "k", "q")
+
+FILES = "abcdefgh"
+RANKS = "87654321"
 
 
 def __sort_pieces_list(_pieces_probs_sort):
@@ -164,26 +168,124 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
         If it is not None, improves piece inference.
     :return: A list of the inferred chess pieces in FEN notation order.
     """
+    if previous_fen is not None:
+        previous_board = chess.Board(previous_fen)
+        previous_list = board_to_list(fen_to_board(previous_fen))
     pieces_probs = board_to_list(list_to_board(pieces_probs, a1_pos))
 
     # None represents that no piece is set in that position yet
     out_preds = [None] * 64
 
     final_move_sq = -1
-    possible_pieces = []
-    if previous_fen is not None:
+    if previous_fen is not None:  # Perform move detection
         changed_squares_idx = changed_squares(previous_fen, pieces_probs)
         move = inferred_move(previous_fen, pieces_probs, changed_squares_idx)
-        if move is not None:
+        if (
+            move is not None
+        ):  # A move has been successfully detected so the FEN will be concluded immediately
             initial_sq, final_move_sq, action = move
-            possible_pieces = inferred_pieces_from_move(
-                initial_sq, final_move_sq, action
-            )
+            initial_coordinates = FILES[initial_sq % 8] + RANKS[initial_sq // 8]
+            final_coordinates = FILES[final_move_sq % 8] + RANKS[final_move_sq // 8]
+            move_UCI = initial_coordinates + final_coordinates
+            if action.startswith("white"):
+                previous_board.turn = chess.WHITE
+            else:
+                previous_board.turn = chess.BLACK
+            if (
+                previous_list[initial_sq] == "P" and initial_coordinates[1] == "7"
+            ):  # White promotes (and we have to figure out the promoted piece)
+                promoted_piece_prob = 0
+                if (
+                    pieces_probs[final_move_sq][4] > promoted_piece_prob
+                    and previous_fen.count("Q") < 2
+                ):
+                    promoted_piece = "Q"
+                    promoted_piece_prob = pieces_probs[final_move_sq][4]
+                if (
+                    pieces_probs[final_move_sq][2] > promoted_piece_prob
+                    and previous_fen.count("N") < 2
+                ):
+                    promoted_piece = "N"
+                    promoted_piece_prob = pieces_probs[final_move_sq][2]
+                if (
+                    pieces_probs[final_move_sq][5] > promoted_piece_prob
+                    and previous_fen.count("R") < 2
+                ):
+                    promoted_piece = "R"
+                    promoted_piece_prob = pieces_probs[final_move_sq][5]
+                if (
+                    pieces_probs[final_move_sq][0] > promoted_piece_prob
+                    and previous_fen.count("B") < 2
+                ):
+                    promoted_piece = "B"
+                    promoted_piece_prob = pieces_probs[final_move_sq][0]
 
-    # We need to store the original order
+                # Note that if the provided previous FEN is correct, `promoted_piece`
+                # should be defined at this point
+                move_UCI = move_UCI + promoted_piece.lower()
+                previous_board.push_uci(move_UCI)
+                return board_to_list(fen_to_board(previous_board.board_fen()))
+            elif (
+                previous_list[initial_sq] == "p" and initial_coordinates[1] == "2"
+            ):  # Black promotes (and we have to figure out the promoted piece)
+                promoted_piece_prob = 0
+                if (
+                    pieces_probs[final_move_sq][11] > promoted_piece_prob
+                    and previous_fen.count("q") < 2
+                ):
+                    promoted_piece = "q"
+                    promoted_piece_prob = pieces_probs[final_move_sq][11]
+                if (
+                    pieces_probs[final_move_sq][9] > promoted_piece_prob
+                    and previous_fen.count("n") < 2
+                ):
+                    promoted_piece = "n"
+                    promoted_piece_prob = pieces_probs[final_move_sq][9]
+                if (
+                    pieces_probs[final_move_sq][12] > promoted_piece_prob
+                    and previous_fen.count("r") < 2
+                ):
+                    promoted_piece = "r"
+                    promoted_piece_prob = pieces_probs[final_move_sq][12]
+                if (
+                    pieces_probs[final_move_sq][7] > promoted_piece_prob
+                    and previous_fen.count("b") < 2
+                ):
+                    promoted_piece = "b"
+                    promoted_piece_prob = pieces_probs[final_move_sq][7]
+
+                # Note that if the provided previous FEN is correct, `promoted_piece`
+                # should be defined at this point
+                move_UCI = move_UCI + promoted_piece
+                previous_board.push_uci(move_UCI)
+                return board_to_list(fen_to_board(previous_board.board_fen()))
+            elif action.endswith("en_passants"):
+                previous_board.ep_square = chess.parse_square(final_coordinates)
+                previous_board.push_uci(move_UCI)
+                return board_to_list(fen_to_board(previous_board.board_fen()))
+            elif action.startswith("white") and action[6:13] == "castles":
+                if action.endswith("kingside"):
+                    previous_board.set_castling_fen("K")
+                else:
+                    previous_board.set_castling_fen("Q")
+                previous_board.push_uci(move_UCI)
+                return board_to_list(fen_to_board(previous_board.board_fen()))
+            elif action.startswith("black") and action[6:13] == "castles":
+                if action.endswith("kingside"):
+                    previous_board.set_castling_fen("k")
+                else:
+                    previous_board.set_castling_fen("q")
+                previous_board.push_uci(move_UCI)
+                return board_to_list(fen_to_board(previous_board.board_fen()))
+            else:
+                previous_board.push_uci(move_UCI)
+                return board_to_list(fen_to_board(previous_board.board_fen()))
+
+    # Move detection was either not invoked or not successful, so the pieces on the
+    # board will now be inferred one at a time
     pieces_probs_sort = [(probs, i) for i, probs in enumerate(pieces_probs)]
 
-    # First choose the kings (there must be one of each color)
+    # First determine the locations of the kings (one white king and one black king)
     white_king = max(pieces_probs_sort, key=lambda prob: prob[0][1])
     black_kings = sorted(
         pieces_probs_sort, key=lambda prob: prob[0][8], reverse=True
@@ -196,52 +298,43 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
     out_preds[white_king[1]] = "K"
     out_preds[black_king[1]] = "k"
 
-    out_preds_empty = 62  # We have already set the kings
+    num_of_undetermined_squares = 62  # We have already determined the king locations
 
-    # Then set the blank spaces (the CNN has a very high accuracy of
-    # detecting these cases)
+    # Then identify the empty squares (the CNN has a very high accuracy of
+    # detecting empty squares)
     for idx, piece in enumerate(pieces_probs):
         if out_preds[idx] is None:
             if is_empty_square(piece):
                 out_preds[idx] = "_"
-                out_preds_empty -= 1
+                num_of_undetermined_squares -= 1
 
-    # Save if there is already a bishop in a [white, black] square
-    w_bishop_sq = [False, False]
-    b_bishop_sq = [False, False]
-
-    # Set the rest of the pieces in the order given by the highest
-    # probability of any piece for all the board
+    # Determine the locations of the other pieces in order of probability
+    # (there is a total of (`num_of_undetermined_squares` * 10) probabilities)
     pieces_lists = __sort_pieces_list(pieces_probs_sort)
-    # Index to the highest probability, from each list in pieces_lists,
-    # that we have not set yet (in the same order as above).
+    # Keep track of the indices to the squares, whose piece types have not been
+    # determined, with the highest probabilities in `pieces_lists` (there are 10
+    # piece types left, so we need to keep track of 10 indices)
     idx = [0] * 10
-    # Top of each sorted piece list (highest probability of each piece)
+    # Keep track of the top entry of each sorted piece list (corresponding to
+    # the square with the highest probability)
     tops = [piece_list[0] for piece_list in pieces_lists]
-    # Maximum number of pieces of each type in the same order as tops
+    # Maximum number of pieces of each type in the same order as `tops`
     max_pieces_left = [2, 2, 8, 2, 2, 2, 2, 8, 2, 2]
 
-    while out_preds_empty > 0:
-        # Fill in the square in out_preds that has the piece with the
-        # maximum probability of all the board
+    while num_of_undetermined_squares > 0:
+        # Determine the piece type of the square that has the piece with the
+        # highest probability across the entire board
         max_idx = __max_piece(tops)
         square = tops[max_idx][1]
-        # If we haven't maxed that piece type and the square is empty
+        # If we haven't maxed that piece type and the piece type of that square
+        # hasn't been determined, then we conclude that that square has exactly
+        # that piece
         if max_pieces_left[max_idx] > 0 and out_preds[square] is None:
-            # Fill the square and update counters
-            # If we have detected the move previously
-            if square == final_move_sq and possible_pieces:
-                # Only fill the square if one of the possible pieces
-                if __IDX_TO_PIECE[max_idx] in possible_pieces:
-                    out_preds[square] = __IDX_TO_PIECE[max_idx]
-                    out_preds_empty -= 1
-                    max_pieces_left[max_idx] -= 1
-            else:
-                out_preds[square] = __IDX_TO_PIECE[max_idx]
-                out_preds_empty -= 1
-                max_pieces_left[max_idx] -= 1
-        # In any case we must update the entry in tops with the next
-        # highest probability for the piece type we have tried
+            out_preds[square] = __IDX_TO_PIECE[max_idx]
+            num_of_undetermined_squares -= 1
+            max_pieces_left[max_idx] -= 1
+        # In any case, for the piece type we have tried above, we must replace
+        # the entry in `tops` with the next-highest-probability entry
         idx[max_idx] += 1
         tops[max_idx] = pieces_lists[max_idx][idx[max_idx]]
 
@@ -279,8 +372,7 @@ def changed_squares(previous_fen, current_probs):
     (white, black or empty) change between the last board and the
     current one.
 
-    :param previous_fen: FEN string representing the previous board
-        layout.
+    :param previous_fen: FEN string of the previous board position.
     :param current_probs: List of the probabilities of each class in
         each position of the current chessboard given in FEN notation
         order.
@@ -290,19 +382,19 @@ def changed_squares(previous_fen, current_probs):
     """
     previous_list = board_to_list(fen_to_board(previous_fen))
     changed_squares_idx = []
-    for idx, square in enumerate(previous_list):
+    for idx, previous_piece in enumerate(previous_list):
         # Pass the squares in which the previous state (white, black or
         # empty) is the same as the current state
-        if square == "_" and is_empty_square(current_probs[idx]):
+        if previous_piece == "_" and is_empty_square(current_probs[idx]):
             continue
         if (
-            square in __WHITE_PIECES
+            previous_piece in __WHITE_PIECES
             and not is_empty_square(current_probs[idx])
             and is_white_piece(current_probs[idx])
         ):
             continue
         if (
-            square in __BLACK_PIECES
+            previous_piece in __BLACK_PIECES
             and not is_empty_square(current_probs[idx])
             and not is_white_piece(current_probs[idx])
         ):
@@ -641,6 +733,9 @@ def inferred_pieces_from_move(initial_sq, final_sq, action):
     """
     Infers the possible piece types that will occupy the final square
     from the move made.
+
+    Note: since the conclude-fen-immediately-after-move-detection feature
+    has been added, this function is no longer used in the code.
 
     :param initial_sq: Initial square (0-63). As given by inferred_move.
     :param final_sq: Final square (0-63). As given by inferred_move.
