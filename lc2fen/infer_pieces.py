@@ -388,25 +388,29 @@ def inferred_move(previous_fen, current_probs, changed_squares_idx):
                 return None  # Black piece captures black piece?
 
     elif len(changed_squares_idx) == 3:  # En passant
-        # Determine which square is the initial and which is the final
+        # Determine the initial square, the final square, and the third square
         if not is_empty_square(current_probs[changed_squares_idx[0]]):
             final_sq = changed_squares_idx[0]
             if previous_list[changed_squares_idx[1]] == "P" and is_white_piece(
                 current_probs[final_sq]
             ):
                 initial_sq = changed_squares_idx[1]
+                third_sq = changed_squares_idx[2]
             elif previous_list[changed_squares_idx[1]] == "p" and not is_white_piece(
                 current_probs[final_sq]
             ):
                 initial_sq = changed_squares_idx[1]
+                third_sq = changed_squares_idx[2]
             elif previous_list[changed_squares_idx[2]] == "P" and is_white_piece(
                 current_probs[final_sq]
             ):
                 initial_sq = changed_squares_idx[2]
+                third_sq = changed_squares_idx[1]
             elif previous_list[changed_squares_idx[2]] == "p" and not is_white_piece(
                 current_probs[final_sq]
             ):
                 initial_sq = changed_squares_idx[2]
+                third_sq = changed_squares_idx[1]
             else:
                 return None
         elif not is_empty_square(current_probs[changed_squares_idx[1]]):
@@ -415,18 +419,22 @@ def inferred_move(previous_fen, current_probs, changed_squares_idx):
                 current_probs[final_sq]
             ):
                 initial_sq = changed_squares_idx[0]
+                third_sq = changed_squares_idx[2]
             elif previous_list[changed_squares_idx[0]] == "p" and not is_white_piece(
                 current_probs[final_sq]
             ):
                 initial_sq = changed_squares_idx[0]
+                third_sq = changed_squares_idx[2]
             elif previous_list[changed_squares_idx[2]] == "P" and is_white_piece(
                 current_probs[final_sq]
             ):
                 initial_sq = changed_squares_idx[2]
+                third_sq = changed_squares_idx[0]
             elif previous_list[changed_squares_idx[2]] == "p" and not is_white_piece(
                 current_probs[final_sq]
             ):
                 initial_sq = changed_squares_idx[2]
+                third_sq = changed_squares_idx[0]
             else:
                 return None
         elif not is_empty_square(current_probs[changed_squares_idx[2]]):
@@ -435,34 +443,26 @@ def inferred_move(previous_fen, current_probs, changed_squares_idx):
                 current_probs[final_sq]
             ):
                 initial_sq = changed_squares_idx[0]
+                third_sq = changed_squares_idx[1]
             elif previous_list[changed_squares_idx[0]] == "p" and not is_white_piece(
                 current_probs[final_sq]
             ):
                 initial_sq = changed_squares_idx[0]
+                third_sq = changed_squares_idx[1]
             elif previous_list[changed_squares_idx[1]] == "P" and is_white_piece(
                 current_probs[final_sq]
             ):
                 initial_sq = changed_squares_idx[1]
+                third_sq = changed_squares_idx[0]
             elif previous_list[changed_squares_idx[1]] == "p" and not is_white_piece(
                 current_probs[final_sq]
             ):
                 initial_sq = changed_squares_idx[1]
+                third_sq = changed_squares_idx[0]
             else:
                 return None
         else:
             return None
-
-        # Determine the third square
-        if sorted([initial_sq, final_sq]) == sorted(
-            [changed_squares_idx[0], changed_squares_idx[1]]
-        ):
-            third_sq = changed_squares_idx[2]
-        elif sorted([initial_sq, final_sq]) == sorted(
-            [changed_squares_idx[0], changed_squares_idx[2]]
-        ):
-            third_sq = changed_squares_idx[1]
-        else:
-            third_sq = changed_squares_idx[0]
 
         # Determine the action
         if previous_list[initial_sq] == "P" and previous_list[third_sq] == "p":
@@ -652,7 +652,7 @@ def inferred_pieces_from_move(initial_sq, final_sq, action):
 
     capturing = action.endswith("captures") | action.endswith("en_passants")
     white = action.startswith("white")
-    castling = "castles" in action
+    castling = action[6:13] == "castles"
 
     possible_pieces = []  # There can't be duplicates
 
