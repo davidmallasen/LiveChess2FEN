@@ -313,7 +313,7 @@ def continuous_predictions(path, a1_pos, obtain_pieces_probs):
 def test_predict_board(obtain_predictions):
     """Tests board prediction."""
     fens, a1_squares, previous_fens = read_correct_fen(
-        os.path.join("predictions", "boards.fen")
+        os.path.join("predictions", "boards_with_previous.fen")
     )
 
     for i in range(5):
