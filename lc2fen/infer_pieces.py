@@ -155,6 +155,62 @@ def __check_bishop(max_idx, tops, w_bishop_sq, b_bishop_sq):
     return True  # If it's not a bishop, nothing to check
 
 
+def __determine_promoted_piece(previous_fen, pieces_probs, final_move_sq, color):
+    """Determines the promoted piece."""
+    promoted_piece_prob = 0
+    if color == "white":
+        if (
+            pieces_probs[final_move_sq][4] > promoted_piece_prob
+            and previous_fen.count("Q") < 2
+        ):
+            promoted_piece = "Q"
+            promoted_piece_prob = pieces_probs[final_move_sq][4]
+        if (
+            pieces_probs[final_move_sq][2] > promoted_piece_prob
+            and previous_fen.count("N") < 2
+        ):
+            promoted_piece = "N"
+            promoted_piece_prob = pieces_probs[final_move_sq][2]
+        if (
+            pieces_probs[final_move_sq][5] > promoted_piece_prob
+            and previous_fen.count("R") < 2
+        ):
+            promoted_piece = "R"
+            promoted_piece_prob = pieces_probs[final_move_sq][5]
+        if (
+            pieces_probs[final_move_sq][0] > promoted_piece_prob
+            and previous_fen.count("B") < 2
+        ):
+            promoted_piece = "B"
+    else:
+        if (
+            pieces_probs[final_move_sq][11] > promoted_piece_prob
+            and previous_fen.count("q") < 2
+        ):
+            promoted_piece = "q"
+            promoted_piece_prob = pieces_probs[final_move_sq][11]
+        if (
+            pieces_probs[final_move_sq][9] > promoted_piece_prob
+            and previous_fen.count("n") < 2
+        ):
+            promoted_piece = "n"
+            promoted_piece_prob = pieces_probs[final_move_sq][9]
+        if (
+            pieces_probs[final_move_sq][12] > promoted_piece_prob
+            and previous_fen.count("r") < 2
+        ):
+            promoted_piece = "r"
+            promoted_piece_prob = pieces_probs[final_move_sq][12]
+        if (
+            pieces_probs[final_move_sq][7] > promoted_piece_prob
+            and previous_fen.count("b") < 2
+        ):
+            promoted_piece = "b"
+    # Note that if the provided previous FEN is correct, `promoted_piece`
+    # should be defined at this point
+    return promoted_piece
+
+
 def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
     """
     Infers the chess pieces in all of the board based on the given
@@ -194,68 +250,18 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
             if (
                 previous_list[initial_sq] == "P" and initial_coordinates[1] == "7"
             ):  # White promotes (and we have to figure out the promoted piece)
-                promoted_piece_prob = 0
-                if (
-                    pieces_probs[final_move_sq][4] > promoted_piece_prob
-                    and previous_fen.count("Q") < 2
-                ):
-                    promoted_piece = "Q"
-                    promoted_piece_prob = pieces_probs[final_move_sq][4]
-                if (
-                    pieces_probs[final_move_sq][2] > promoted_piece_prob
-                    and previous_fen.count("N") < 2
-                ):
-                    promoted_piece = "N"
-                    promoted_piece_prob = pieces_probs[final_move_sq][2]
-                if (
-                    pieces_probs[final_move_sq][5] > promoted_piece_prob
-                    and previous_fen.count("R") < 2
-                ):
-                    promoted_piece = "R"
-                    promoted_piece_prob = pieces_probs[final_move_sq][5]
-                if (
-                    pieces_probs[final_move_sq][0] > promoted_piece_prob
-                    and previous_fen.count("B") < 2
-                ):
-                    promoted_piece = "B"
-                    promoted_piece_prob = pieces_probs[final_move_sq][0]
-
-                # Note that if the provided previous FEN is correct, `promoted_piece`
-                # should be defined at this point
+                promoted_piece = __determine_promoted_piece(
+                    previous_fen, pieces_probs, final_move_sq, "white"
+                )
                 move_UCI = move_UCI + promoted_piece.lower()
                 previous_board.push_uci(move_UCI)
                 return board_to_list(fen_to_board(previous_board.board_fen()))
             elif (
                 previous_list[initial_sq] == "p" and initial_coordinates[1] == "2"
             ):  # Black promotes (and we have to figure out the promoted piece)
-                promoted_piece_prob = 0
-                if (
-                    pieces_probs[final_move_sq][11] > promoted_piece_prob
-                    and previous_fen.count("q") < 2
-                ):
-                    promoted_piece = "q"
-                    promoted_piece_prob = pieces_probs[final_move_sq][11]
-                if (
-                    pieces_probs[final_move_sq][9] > promoted_piece_prob
-                    and previous_fen.count("n") < 2
-                ):
-                    promoted_piece = "n"
-                    promoted_piece_prob = pieces_probs[final_move_sq][9]
-                if (
-                    pieces_probs[final_move_sq][12] > promoted_piece_prob
-                    and previous_fen.count("r") < 2
-                ):
-                    promoted_piece = "r"
-                    promoted_piece_prob = pieces_probs[final_move_sq][12]
-                if (
-                    pieces_probs[final_move_sq][7] > promoted_piece_prob
-                    and previous_fen.count("b") < 2
-                ):
-                    promoted_piece = "b"
-                    promoted_piece_prob = pieces_probs[final_move_sq][7]
-
-                # Note that if the provided previous FEN is correct, `promoted_piece`
-                # should be defined at this point
+                promoted_piece = __determine_promoted_piece(
+                    previous_fen, pieces_probs, final_move_sq, "black"
+                )
                 move_UCI = move_UCI + promoted_piece
                 previous_board.push_uci(move_UCI)
                 return board_to_list(fen_to_board(previous_board.board_fen()))
