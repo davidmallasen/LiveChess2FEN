@@ -361,6 +361,20 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
         idx[max_idx] += 1
         tops[max_idx] = pieces_lists[max_idx][idx[max_idx]]
 
+    if previous_fen is not None:  # We will now give move detection another try
+        changed_squares_idx = changed_squares_after_piece_inference(
+            previous_fen, out_preds
+        )
+        move = inferred_move(previous_fen, pieces_probs, changed_squares_idx)
+        if move is not None:  # Finally a move has been successfully detected
+            return board_to_list(
+                fen_to_board(
+                    __generate_fen_based_on_previous_fen_and_detected_move(
+                        previous_fen, move, pieces_probs
+                    )
+                )
+            )
+
     return out_preds
 
 
@@ -392,21 +406,21 @@ def is_white_piece(square_probs):
 def changed_squares(previous_fen, current_probs):
     """
     Checks the squares in which there has been a significant state
-    (white, black or empty) change between the last board and the
+    (white, black, or empty) change between the last board and the
     current one.
 
     :param previous_fen: FEN string of the previous board position.
     :param current_probs: List of the probabilities of each class in
         each position of the current chessboard given in FEN notation
         order.
-    :return: A list of the indexes of the pieces_probs list indicating
+    :return: A list of the indices of the pieces_probs list indicating
         the positions in which there has been a significant state
         change.
     """
     previous_list = board_to_list(fen_to_board(previous_fen))
     changed_squares_idx = []
     for idx, previous_piece in enumerate(previous_list):
-        # Pass the squares in which the previous state (white, black or
+        # Pass the squares in which the previous state (white, black, or
         # empty) is the same as the current state
         if previous_piece == "_" and is_empty_square(current_probs[idx]):
             continue
@@ -428,6 +442,35 @@ def changed_squares(previous_fen, current_probs):
     return changed_squares_idx
 
 
+def changed_squares_after_piece_inference(previous_fen, out_preds):
+    """
+    Checks the squares in which there has been a significant state
+    (white, black, or empty) change between the last board and the
+    current one.
+
+    :param previous_fen: FEN string of the previous board position.
+    :param out_preds: List of the inferred chess pieces in FEN notation order.
+    :return: A list of the indices of the pieces_probs list indicating
+        the positions in which there has been a significant state
+        change.
+    """
+    previous_list = board_to_list(fen_to_board(previous_fen))
+    changed_squares_idx = []
+    for idx, previous_piece in enumerate(previous_list):
+        # Pass the squares in which the previous state (white, black, or
+        # empty) is the same as the current state
+        if previous_piece == "_" and out_preds[idx] == "_":
+            continue
+        if previous_piece in __WHITE_PIECES and out_preds[idx] in __WHITE_PIECES:
+            continue
+        if previous_piece in __BLACK_PIECES and out_preds[idx] in __BLACK_PIECES:
+            continue
+        # If the state has changed
+        changed_squares_idx.append(idx)
+
+    return changed_squares_idx
+
+
 def inferred_move(previous_fen, current_probs, changed_squares_idx):
     """
     Infers the move made. If it can't recognize the move, returns None.
@@ -442,7 +485,7 @@ def inferred_move(previous_fen, current_probs, changed_squares_idx):
     :param current_probs: List of the probabilities of each class in
         each position of the current chessboard given in FEN notation
         order.
-    :param changed_squares_idx: A list of the indexes of the
+    :param changed_squares_idx: A list of the indices of the
         pieces_probs list indicating the positions in which there has
         been a significant state change.
     :return: If it can infer the move, returns a triplet containing the
