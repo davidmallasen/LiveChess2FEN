@@ -211,6 +211,63 @@ def __determine_promoted_piece(previous_fen, pieces_probs, final_move_sq, color)
     return promoted_piece
 
 
+def __generate_fen_based_on_previous_fen_and_detected_move(
+    previous_fen, move, pieces_probs
+):
+    """Generates the FEN based on the previous FEN and detected move."""
+    assert previous_fen is not None
+    assert move is not None
+    previous_list = board_to_list(fen_to_board(previous_fen))
+    previous_board = chess.Board(previous_fen)
+    initial_sq, final_move_sq, action = move
+    initial_coordinates = FILES[initial_sq % 8] + RANKS[initial_sq // 8]
+    final_coordinates = FILES[final_move_sq % 8] + RANKS[final_move_sq // 8]
+    move_UCI = initial_coordinates + final_coordinates
+    if action.startswith("white"):
+        previous_board.turn = chess.WHITE
+    else:
+        previous_board.turn = chess.BLACK
+    if (
+        previous_list[initial_sq] == "P" and initial_coordinates[1] == "7"
+    ):  # White promotes (and we have to figure out the promoted piece)
+        promoted_piece = __determine_promoted_piece(
+            previous_fen, pieces_probs, final_move_sq, "white"
+        )
+        move_UCI = move_UCI + promoted_piece.lower()
+        previous_board.push_uci(move_UCI)
+        return previous_board.board_fen()
+    elif (
+        previous_list[initial_sq] == "p" and initial_coordinates[1] == "2"
+    ):  # Black promotes (and we have to figure out the promoted piece)
+        promoted_piece = __determine_promoted_piece(
+            previous_fen, pieces_probs, final_move_sq, "black"
+        )
+        move_UCI = move_UCI + promoted_piece
+        previous_board.push_uci(move_UCI)
+        return previous_board.board_fen()
+    elif action.endswith("en_passants"):
+        previous_board.ep_square = chess.parse_square(final_coordinates)
+        previous_board.push_uci(move_UCI)
+        return previous_board.board_fen()
+    elif action.startswith("white") and action[6:13] == "castles":
+        if action.endswith("kingside"):
+            previous_board.set_castling_fen("K")
+        else:
+            previous_board.set_castling_fen("Q")
+        previous_board.push_uci(move_UCI)
+        return previous_board.board_fen()
+    elif action.startswith("black") and action[6:13] == "castles":
+        if action.endswith("kingside"):
+            previous_board.set_castling_fen("k")
+        else:
+            previous_board.set_castling_fen("q")
+        previous_board.push_uci(move_UCI)
+        return previous_board.board_fen()
+    else:
+        previous_board.push_uci(move_UCI)
+        return previous_board.board_fen()
+
+
 def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
     """
     Infers the chess pieces in all of the board based on the given
@@ -224,68 +281,24 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
         If it is not None, improves piece inference.
     :return: A list of the inferred chess pieces in FEN notation order.
     """
-    if previous_fen is not None:
-        previous_board = chess.Board(previous_fen)
-        previous_list = board_to_list(fen_to_board(previous_fen))
     pieces_probs = board_to_list(list_to_board(pieces_probs, a1_pos))
 
     # None represents that no piece is set in that position yet
     out_preds = [None] * 64
 
-    final_move_sq = -1
     if previous_fen is not None:  # Perform move detection
         changed_squares_idx = changed_squares(previous_fen, pieces_probs)
         move = inferred_move(previous_fen, pieces_probs, changed_squares_idx)
         if (
             move is not None
         ):  # A move has been successfully detected so the FEN will be concluded immediately
-            initial_sq, final_move_sq, action = move
-            initial_coordinates = FILES[initial_sq % 8] + RANKS[initial_sq // 8]
-            final_coordinates = FILES[final_move_sq % 8] + RANKS[final_move_sq // 8]
-            move_UCI = initial_coordinates + final_coordinates
-            if action.startswith("white"):
-                previous_board.turn = chess.WHITE
-            else:
-                previous_board.turn = chess.BLACK
-            if (
-                previous_list[initial_sq] == "P" and initial_coordinates[1] == "7"
-            ):  # White promotes (and we have to figure out the promoted piece)
-                promoted_piece = __determine_promoted_piece(
-                    previous_fen, pieces_probs, final_move_sq, "white"
+            return board_to_list(
+                fen_to_board(
+                    __generate_fen_based_on_previous_fen_and_detected_move(
+                        previous_fen, move, pieces_probs
+                    )
                 )
-                move_UCI = move_UCI + promoted_piece.lower()
-                previous_board.push_uci(move_UCI)
-                return board_to_list(fen_to_board(previous_board.board_fen()))
-            elif (
-                previous_list[initial_sq] == "p" and initial_coordinates[1] == "2"
-            ):  # Black promotes (and we have to figure out the promoted piece)
-                promoted_piece = __determine_promoted_piece(
-                    previous_fen, pieces_probs, final_move_sq, "black"
-                )
-                move_UCI = move_UCI + promoted_piece
-                previous_board.push_uci(move_UCI)
-                return board_to_list(fen_to_board(previous_board.board_fen()))
-            elif action.endswith("en_passants"):
-                previous_board.ep_square = chess.parse_square(final_coordinates)
-                previous_board.push_uci(move_UCI)
-                return board_to_list(fen_to_board(previous_board.board_fen()))
-            elif action.startswith("white") and action[6:13] == "castles":
-                if action.endswith("kingside"):
-                    previous_board.set_castling_fen("K")
-                else:
-                    previous_board.set_castling_fen("Q")
-                previous_board.push_uci(move_UCI)
-                return board_to_list(fen_to_board(previous_board.board_fen()))
-            elif action.startswith("black") and action[6:13] == "castles":
-                if action.endswith("kingside"):
-                    previous_board.set_castling_fen("k")
-                else:
-                    previous_board.set_castling_fen("q")
-                previous_board.push_uci(move_UCI)
-                return board_to_list(fen_to_board(previous_board.board_fen()))
-            else:
-                previous_board.push_uci(move_UCI)
-                return board_to_list(fen_to_board(previous_board.board_fen()))
+            )
 
     # Move detection was either not invoked or not successful, so the pieces on the
     # board will now be inferred one at a time
