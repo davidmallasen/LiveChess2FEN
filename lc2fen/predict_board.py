@@ -74,7 +74,7 @@ def predict_board_keras(
         return predictions
 
     if test:
-        test_predict_board(obtain_pieces_probs, previous_fen)
+        test_predict_board(obtain_pieces_probs)
     else:
         if os.path.isdir(path):
             return continuous_predictions(path, a1_pos, obtain_pieces_probs)
@@ -115,7 +115,7 @@ def predict_board_onnx(
         return predictions
 
     if test:
-        test_predict_board(obtain_pieces_probs, previous_fen)
+        test_predict_board(obtain_pieces_probs)
     else:
         if os.path.isdir(path):
             return continuous_predictions(path, a1_pos, obtain_pieces_probs)
@@ -221,7 +221,7 @@ def predict_board_trt(
             return [trt_outputs[ind : ind + 13] for ind in range(0, 13 * 64, 13)]
 
         if test:
-            test_predict_board(obtain_pieces_probs, previous_fen)
+            test_predict_board(obtain_pieces_probs)
         else:
             if os.path.isdir(path):
                 return continuous_predictions(path, a1_pos, obtain_pieces_probs)
@@ -310,18 +310,33 @@ def continuous_predictions(path, a1_pos, obtain_pieces_probs):
             time.sleep(0.1)
 
 
-def test_predict_board(obtain_predictions, previous_fen=None):
+def test_predict_board(obtain_predictions):
     """Tests board prediction."""
-    fens, a1_squares = read_correct_fen(os.path.join("predictions", "boards.fen"))
+    fens, a1_squares, previous_fens = read_correct_fen(
+        os.path.join("predictions", "boards_with_previous.fen")
+    )
 
     for i in range(5):
         fen = time_predict_board(
             os.path.join("predictions", "test" + str(i + 1) + ".jpg"),
             a1_squares[i],
             obtain_predictions,
-            previous_fen,
         )
-        print_fen_comparison("test" + str(i + 1) + ".jpg", fen, fens[i])
+        print_fen_comparison(
+            "test" + str(i + 1) + ".jpg",
+            fen,
+            fens[i],
+            False,
+        )
+
+        if previous_fens[i] is not None:
+            fen = time_predict_board(
+                os.path.join("predictions", "test" + str(i + 1) + ".jpg"),
+                a1_squares[i],
+                obtain_predictions,
+                previous_fens[i],
+            )
+            print_fen_comparison("test" + str(i + 1) + ".jpg", fen, fens[i], True)
 
 
 def detect_input_board(board_path, board_corners=None):
@@ -426,7 +441,7 @@ def time_predict_board(board_path, a1_pos, obtain_pieces_probs, previous_fen=Non
     return fen
 
 
-def print_fen_comparison(board_name, fen, correct_fen):
+def print_fen_comparison(board_name, fen, correct_fen, used_previous_fen):
     """
     Compares the predicted fen with the correct fen and pretty prints
     the result.
@@ -434,13 +449,18 @@ def print_fen_comparison(board_name, fen, correct_fen):
     :param board_name: Name of the board. For example: 'test1.jpg'
     :param fen: Predicted fen string.
     :param correct_fen: Correct fen string.
+    :param used_previous_fen: Whether previous fen was used during prediction.
     """
     n_dif = compare_fen(fen, correct_fen)
+    used_previous_fen_str = (
+        "_with_previous_fen" if used_previous_fen else "_without_previous_fen"
+    )
     print(
         board_name[:-4]
+        + used_previous_fen_str
         + " - Err:"
         + str(n_dif)
-        + " Acc:{:.2f}% FEN:".format(1 - (n_dif / 64))
+        + " Acc:{:.2f}% FEN:".format((1 - (n_dif / 64)) * 100)
         + fen
         + "\n"
     )
@@ -450,22 +470,28 @@ def read_correct_fen(fen_file):
     """
     Reads the correct fen for testing from fen_file.
 
-    :param board_path: Path to the file containing the correct fens and
-        a1 squares.
-    :return: List with the correct fens and list with the correct
-        a1 squares.
+    :param board_path: Path to the file containing the correct fens,
+        a1 squares, and (optionally) correct previous fens.
+    :return: List with the correct fens, list with the correct
+        a1 squares, and list with correct previous fens.
     """
     fens = []
     a1_squares = []
+    previous_fens = []
 
     with open(fen_file, "r") as fen_fd:
         lines = fen_fd.read().splitlines()
         for line in lines:
             line = line.split()
-            if len(line) != 2:
+            if not len(line) in [2, 3]:
                 raise ValueError(
-                    "All lines in fen file must have the format " "'fen orientation'"
+                    "All lines in fen file must have the format "
+                    "'fen orientation [previous_fen]'"
                 )
             fens.append(line[0])
             a1_squares.append(line[1])
-    return fens, a1_squares
+            if len(line) == 2:
+                previous_fens.append(None)
+            else:
+                previous_fens.append(line[2])
+    return fens, a1_squares, previous_fens
