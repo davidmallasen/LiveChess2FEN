@@ -77,7 +77,7 @@ def __sort_pieces_list(_pieces_probs_sort):
 
 def __max_piece(tops):
     """
-    takes a nested list of sorted piece probabilities(tops) and
+    The function takes a nested list of sorted piece probabilities(tops) and
     Returns the index of the piece with max probability.
     """
     # Set the initial maximum probability and index to the first piece in the list
