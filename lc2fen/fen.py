@@ -100,10 +100,10 @@ def is_white_square(list_pos):
     if not 0 <= list_pos <= 63:
         raise ValueError("List positions must be between 0 and 63")
 
-    if list_pos % 16 < 8:  # Rank 8, 6, 4, or 2
-        return list_pos % 2 == 0  # File a, c, e, or g
-    else:  # Rank 7, 5, 3, or 1
-        return list_pos % 2 == 1  # File b, d, f, or h
+    if list_pos % 16 < 8:  # Odd rows
+        return list_pos % 2 == 0
+    else:  # Even rows
+        return list_pos % 2 == 1
 
 
 def rotate_board_fen2image(board, a1_pos):
