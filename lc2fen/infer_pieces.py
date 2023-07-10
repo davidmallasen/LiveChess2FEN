@@ -76,34 +76,38 @@ def __sort_pieces_list(_pieces_probs_sort):
 
 
 def __max_piece(tops):
-    """Returns the index of the piece with max probability."""
-    value = tops[0][0][0]  # B
+    """
+    The function takes a nested list of sorted piece probabilities(tops) and
+    Returns the index of the piece with max probability.
+    """
+    # Set the initial maximum probability and index to the first piece in the list
+    value = tops[0][0][0]  # B(White Bishop)
     idx = 0
-    if tops[1][0][2] > value:  # N
+    if tops[1][0][2] > value:  # N(White Knight)
         value = tops[1][0][2]
         idx = 1
-    if tops[2][0][3] > value:  # P
+    if tops[2][0][3] > value:  # P(White Pawn)
         value = tops[2][0][3]
         idx = 2
-    if tops[3][0][4] > value:  # Q
+    if tops[3][0][4] > value:  # Q(White Queen)
         value = tops[3][0][4]
         idx = 3
-    if tops[4][0][5] > value:  # R
+    if tops[4][0][5] > value:  # R(White Rook)
         value = tops[4][0][5]
         idx = 4
-    if tops[5][0][7] > value:  # b
+    if tops[5][0][7] > value:  # b(Black Bishop)
         value = tops[5][0][7]
         idx = 5
-    if tops[6][0][9] > value:  # n
+    if tops[6][0][9] > value:  # n(Black Knight)
         value = tops[6][0][9]
         idx = 6
-    if tops[7][0][10] > value:  # p
+    if tops[7][0][10] > value:  # p(Black Pawn)
         value = tops[7][0][10]
         idx = 7
-    if tops[8][0][11] > value:  # q
+    if tops[8][0][11] > value:  # q(Black Queen)
         value = tops[8][0][11]
         idx = 8
-    if tops[9][0][12] > value:  # r
+    if tops[9][0][12] > value:  # r(Balck Rook)
         # value = tops[9][0][12]
         idx = 9
     return idx
