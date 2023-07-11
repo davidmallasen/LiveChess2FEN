@@ -12,6 +12,7 @@ import numpy as np
 import onnxruntime
 from keras.models import load_model
 from keras.utils.image_utils import load_img, img_to_array
+import chess
 
 try:
     import pycuda.driver as cuda
@@ -25,7 +26,14 @@ except ImportError:
     trt = None
 
 from lc2fen.detectboard.detect_board import detect, compute_corners
-from lc2fen.fen import list_to_board, board_to_fen, compare_fen
+from lc2fen.fen import (
+    list_to_board,
+    board_to_fen,
+    compare_fen,
+    is_white_square,
+    fen_to_board,
+    board_to_list,
+)
 from lc2fen.infer_pieces import infer_chess_pieces
 from lc2fen.split_board import split_square_board_image
 
@@ -263,6 +271,11 @@ def predict_board(
     board_corners = detect_input_board(board_path, board_corners)
     pieces = obtain_individual_pieces(board_path)
     pieces_probs = obtain_pieces_probs(pieces)
+    if previous_fen is not None and not check_validity_of_fen(previous_fen):
+        print(
+            "Warning: the previous FEN is ignored because it is invalid for a standard physical chess set"
+        )
+        previous_fen = None
     predictions = infer_chess_pieces(pieces_probs, a1_pos, previous_fen)
 
     board = list_to_board(predictions)
@@ -328,6 +341,12 @@ def test_predict_board(obtain_predictions):
             fens[i],
             False,
         )
+
+        if previous_fens[i] is not None and not check_validity_of_fen(previous_fens[i]):
+            print(
+                f"Warning: the previous FEN for test{i + 1}.jpg is ignored because it is invalid for a standard physical chess set\n"
+            )
+            previous_fens[i] = None
 
         if previous_fens[i] is not None:
             fen = time_predict_board(
@@ -495,3 +514,91 @@ def read_correct_fen(fen_file):
             else:
                 previous_fens.append(line[2])
     return fens, a1_squares, previous_fens
+
+
+def check_validity_of_fen(fen: str) -> bool:
+    """
+    Checks the validity of the FEN string (assuming a standard physical chess set).
+
+    :param fen: FEN string whose validity is to be checked.
+    :return: Whether the input FEN is valid or not.
+    """
+    board = chess.Board(fen)
+    if not board.is_valid():  # If it's white to move, the FEN is invalid
+        board.turn = chess.BLACK
+        if not board.is_valid():  # If it's black to move, the FEN is also invalid
+            return False
+
+    num_of_P = fen.count("P")  # Number of white pawns
+    num_of_Q = fen.count("Q")  # Number of white queens
+    num_of_R = fen.count("R")  # Number of white rooks
+    num_of_N = fen.count("N")  # Number of white knights
+    num_of_p = fen.count("p")  # Number of black pawns
+    num_of_q = fen.count("q")  # Number of black queens
+    num_of_r = fen.count("r")  # Number of black rooks
+    num_of_n = fen.count("n")  # Number of black knights
+    fen_list = board_to_list(fen_to_board(fen))
+    num_of_light_squared_B = sum(
+        [
+            is_white_square(square)
+            for (square, piece_type) in enumerate(fen_list)
+            if piece_type == "B"
+        ]
+    )  # Number of light-squared bishops for white
+    num_of_dark_squared_B = (
+        fen.count("B") - num_of_light_squared_B
+    )  # Number of dark-squared bishops for white
+    num_of_light_squared_b = sum(
+        [
+            is_white_square(square)
+            for (square, piece_type) in enumerate(fen_list)
+            if piece_type == "b"
+        ]
+    )  # Number of light-squared bishops for black
+    num_of_dark_squared_b = (
+        fen.count("b") - num_of_light_squared_b
+    )  # Number of dark-squared bishops for black
+
+    if (
+        num_of_R > 2
+        or num_of_r > 2
+        or num_of_N > 2
+        or num_of_n > 2
+        or (num_of_light_squared_B + num_of_dark_squared_B) > 2
+        or (num_of_light_squared_b + num_of_dark_squared_b) > 2
+        or num_of_Q > 2
+        or num_of_q > 2
+    ):  # Number of some piece does not make sense for a standard physical chess set
+        return False
+
+    if (
+        num_of_P == 7
+        and num_of_Q == 2  # A white pawn has promoted into a queen
+        and (
+            num_of_light_squared_B == 2 or num_of_dark_squared_B == 2
+        )  # A white pawn has promoted into a bishop
+    ):
+        return False
+
+    if num_of_P == 8 and (
+        num_of_Q == 2  # A white pawn has promoted into a queen
+        or (num_of_light_squared_B == 2 or num_of_dark_squared_B == 2)
+    ):  # A white pawn has promoted into a bishop
+        return False
+
+    if (
+        num_of_p == 7
+        and num_of_q == 2  # A black pawn has promoted into a queen
+        and (
+            num_of_light_squared_b == 2 or num_of_dark_squared_b == 2
+        )  # A black pawn has promoted into a bishop
+    ):
+        return False
+
+    if num_of_p == 8 and (
+        num_of_q == 2  # A black pawn has promoted into a queen
+        or (num_of_light_squared_b == 2 or num_of_dark_squared_b == 2)
+    ):  # A black pawn has promoted into a bishop
+        return False
+
+    return True
