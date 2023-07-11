@@ -8,19 +8,19 @@ import chess
 from lc2fen.fen import board_to_list, list_to_board, is_white_square, fen_to_board
 
 __PREDS_DICT = {
-    0: "B",
-    1: "K",
-    2: "N",
-    3: "P",
-    4: "Q",
-    5: "R",
-    6: "_",
-    7: "b",
-    8: "k",
-    9: "n",
-    10: "p",
-    11: "q",
-    12: "r",
+    "B": 0,
+    "K": 1,
+    "N": 2,
+    "P": 3,
+    "Q": 4,
+    "R": 5,
+    "_": 6,
+    "b": 7,
+    "k": 8,
+    "n": 9,
+    "p": 10,
+    "q": 11,
+    "r": 12,
 }
 
 __IDX_TO_PIECE = {
@@ -81,34 +81,34 @@ def __max_piece(tops):
     Returns the index of the piece with max probability.
     """
     # Set the initial maximum probability and index to the first piece in the list
-    value = tops[0][0][0]  # B(White Bishop)
+    value = tops[0][0]["B"]  # B(White Bishop)
     idx = 0
-    if tops[1][0][2] > value:  # N(White Knight)
-        value = tops[1][0][2]
+    if tops[1][0]["N"] > value:  # N(White Knight)
+        value = tops[1][0]["N"]
         idx = 1
-    if tops[2][0][3] > value:  # P(White Pawn)
-        value = tops[2][0][3]
+    if tops[2][0]["P"] > value:  # P(White Pawn)
+        value = tops[2][0]["P"]
         idx = 2
-    if tops[3][0][4] > value:  # Q(White Queen)
-        value = tops[3][0][4]
+    if tops[3][0]["Q"] > value:  # Q(White Queen)
+        value = tops[3][0]["Q"]
         idx = 3
-    if tops[4][0][5] > value:  # R(White Rook)
-        value = tops[4][0][5]
+    if tops[4][0]["R"] > value:  # R(White Rook)
+        value = tops[4][0]["R"]
         idx = 4
-    if tops[5][0][7] > value:  # b(Black Bishop)
-        value = tops[5][0][7]
+    if tops[5][0]['b'] > value:  # b(Black Bishop)
+        value = tops[5][0]["b"]
         idx = 5
-    if tops[6][0][9] > value:  # n(Black Knight)
-        value = tops[6][0][9]
+    if tops[6][0]["n"] > value:  # n(Black Knight)
+        value = tops[6][0]["n"]
         idx = 6
-    if tops[7][0][10] > value:  # p(Black Pawn)
-        value = tops[7][0][10]
+    if tops[7][0]["p"] > value:  # p(Black Pawn)
+        value = tops[7][0]["p"]
         idx = 7
-    if tops[8][0][11] > value:  # q(Black Queen)
-        value = tops[8][0][11]
+    if tops[8][0]["q"] > value:  # q(Black Queen)
+        value = tops[8][0]["q"]
         idx = 8
-    if tops[9][0][12] > value:  # r(Balck Rook)
-        # value = tops[9][0][12]
+    if tops[9][0]["r"] > value:  # r(Balck Rook)
+        # value = tops[9][0]["r"]
         idx = 9
     return idx
 
@@ -386,7 +386,7 @@ def is_empty_square(square_probs):
         square of the chessboard.
     :return: True if the square_probs infer that the square is empty.
     """
-    return __PREDS_DICT[np.argmax(square_probs)] == "_"
+    return __PREDS_DICT["_"] == np.argmax(square_probs)
 
 
 def is_white_piece(square_probs):
