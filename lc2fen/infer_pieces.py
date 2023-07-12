@@ -614,7 +614,7 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
     b_dark_squared = 0  # Number of dark-squared bishops for black
     # Occasionally, the model is not accurate enough to predict a balanced board configuration
     # (balanced in terms of the numbers of pawns, queens, and bishops)
-    failed_to_complete_prediction = True
+    failed_to_complete_prediction = False
 
     while num_of_undetermined_squares > 0:
         # Determine the piece type of the square that has the piece with the
