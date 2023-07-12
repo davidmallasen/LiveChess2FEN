@@ -36,6 +36,19 @@ __IDX_TO_PIECE = {
     9: "r",
 }
 
+__PIECE_TO_IDX = {
+    "B": 0,
+    "N": 1,
+    "P": 2,
+    "Q": 3,
+    "R": 4,
+    "b": 5,
+    "n": 6,
+    "p": 7,
+    "q": 8,
+    "r": 9,
+}
+
 __WHITE_PIECES = ("P", "B", "N", "R", "K", "Q")
 __BLACK_PIECES = ("p", "b", "n", "r", "k", "q")
 
@@ -272,6 +285,257 @@ def __generate_fen_based_on_previous_fen_and_detected_move(
         return previous_board.board_fen()
 
 
+def __determine_most_probable_white_piece(pieces_probs, square):
+    """Determines the most probable white piece."""
+    most_probable_piece_prob = 0
+    if pieces_probs[square][4] > most_probable_piece_prob:
+        most_probable_piece = "Q"
+        most_probable_piece_prob = pieces_probs[square][4]
+    if pieces_probs[square][2] > most_probable_piece_prob:
+        most_probable_piece = "N"
+        most_probable_piece_prob = pieces_probs[square][2]
+    if pieces_probs[square][5] > most_probable_piece_prob:
+        most_probable_piece = "R"
+        most_probable_piece_prob = pieces_probs[square][5]
+    if pieces_probs[square][0] > most_probable_piece_prob:
+        most_probable_piece = "B"
+        most_probable_piece_prob = pieces_probs[square][0]
+    if pieces_probs[square][3] > most_probable_piece_prob:
+        most_probable_piece = "P"
+    return most_probable_piece
+
+
+def __determine_most_probable_black_piece(pieces_probs, square):
+    """Determines the most probable black piece."""
+    most_probable_piece_prob = 0
+    if pieces_probs[square][11] > most_probable_piece_prob:
+        most_probable_piece = "q"
+        most_probable_piece_prob = pieces_probs[square][4]
+    if pieces_probs[square][9] > most_probable_piece_prob:
+        most_probable_piece = "n"
+        most_probable_piece_prob = pieces_probs[square][2]
+    if pieces_probs[square][12] > most_probable_piece_prob:
+        most_probable_piece = "r"
+        most_probable_piece_prob = pieces_probs[square][5]
+    if pieces_probs[square][7] > most_probable_piece_prob:
+        most_probable_piece = "b"
+        most_probable_piece_prob = pieces_probs[square][0]
+    if pieces_probs[square][10] > most_probable_piece_prob:
+        most_probable_piece = "p"
+    return most_probable_piece
+
+
+def __check_balance_among_pawns_queens_and_bishops(
+    piece_type,
+    max_pieces_left,
+    B_light_squared,
+    B_dark_squared,
+    b_light_squared,
+    b_dark_squared,
+    square,
+):
+    """
+    Checks that the numbers of pawns, queens, and bishops make sense
+    for a standard physical chess set.
+
+    For example, if there are 2 light-squared bishops and 2 queens
+    for white, then the number of pawns that white has must be at most 6.
+    """
+    if not piece_type in ["P", "p", "Q", "q", "B", "b"]:
+        return True
+    elif piece_type in ["P", "p"] and max_pieces_left[__PIECE_TO_IDX[piece_type]] >= 3:
+        return True
+    elif (
+        piece_type == "P"
+        and (
+            max_pieces_left[__PIECE_TO_IDX["P"]] == 2
+        )  # We are about to have 7 white pawns
+        and not (
+            (
+                max_pieces_left[__PIECE_TO_IDX["Q"]] == 0
+            )  # A white pawn has promoted into a queen
+            and (
+                B_dark_squared == 2 or B_light_squared == 2
+            )  # A white pawn has promoted into a bishop
+        )
+    ):
+        return True
+    elif (
+        piece_type == "P"
+        and (
+            max_pieces_left[__PIECE_TO_IDX["P"]] == 1
+        )  # We are about to have 8 white pawns
+        and not (
+            (
+                max_pieces_left[__PIECE_TO_IDX["Q"]] == 0
+            )  # A white pawn has promoted into a queen
+            or (
+                B_dark_squared == 2 or B_light_squared == 2
+            )  # A white pawn has promoted into a bishop
+        )
+    ):
+        return True
+    elif (
+        piece_type == "p"
+        and (
+            max_pieces_left[__PIECE_TO_IDX["p"]] == 2
+        )  # We are about to have 7 black pawns
+        and not (
+            (
+                max_pieces_left[__PIECE_TO_IDX["q"]] == 0
+            )  # A black pawn has promoted into a queen
+            and (
+                b_dark_squared == 2 or b_light_squared == 2
+            )  # A black pawn has promoted into a bishop
+        )
+    ):
+        return True
+    elif (
+        piece_type == "p"
+        and (
+            max_pieces_left[__PIECE_TO_IDX["p"]] == 1
+        )  # We are about to have 8 black pawns
+        and not (
+            (
+                max_pieces_left[__PIECE_TO_IDX["q"]] == 0
+            )  # A black pawn has promoted into a queen
+            or (
+                b_dark_squared == 2 or b_light_squared == 2
+            )  # A black pawn has promoted into a bishop
+        )
+    ):
+        return True
+
+    elif piece_type in ["Q", "q"] and max_pieces_left[__PIECE_TO_IDX[piece_type]] == 2:
+        return True
+    elif (
+        piece_type == "Q"
+        and (
+            max_pieces_left[__PIECE_TO_IDX["Q"]] == 1
+        )  # We are about to have 2 white queens
+        and (
+            max_pieces_left[__PIECE_TO_IDX["P"]] >= 2
+        )  # There are currently at most 6 white pawns
+    ):
+        return True
+    elif (
+        piece_type == "Q"
+        and (
+            max_pieces_left[__PIECE_TO_IDX["Q"]] == 1
+        )  # We are about to have 2 white queens
+        and (
+            max_pieces_left[__PIECE_TO_IDX["P"]] == 1
+        )  # There are currently 7 white pawns
+        and (
+            not (B_dark_squared == 2 or B_light_squared == 2)
+        )  # No white pawn has promoted into a bishop
+    ):
+        return True
+    elif (
+        piece_type == "q"
+        and (
+            max_pieces_left[__PIECE_TO_IDX["q"]] == 1
+        )  # We are about to have 2 black queens
+        and (
+            max_pieces_left[__PIECE_TO_IDX["p"]] >= 2
+        )  # There are currently at most 6 black pawns
+    ):
+        return True
+    elif (
+        piece_type == "q"
+        and (
+            max_pieces_left[__PIECE_TO_IDX["q"]] == 1
+        )  # We are about to have 2 black queens
+        and (
+            max_pieces_left[__PIECE_TO_IDX["p"]] == 1
+        )  # There are currently 7 black pawns
+        and (
+            not (b_dark_squared == 2 or b_light_squared == 2)
+        )  # No black pawn has promoted into a bishop
+    ):
+        return True
+
+    elif piece_type in ["B", "b"] and max_pieces_left[__PIECE_TO_IDX[piece_type]] == 2:
+        return True
+    elif piece_type == "B" and (
+        (is_white_square(square) and B_light_squared == 0)
+        or (not is_white_square(square) and B_dark_squared == 0)
+    ):
+        return True
+    elif (
+        piece_type == "B"
+        and (
+            (
+                is_white_square(square) and B_light_squared == 1
+            )  # We are about to have the second light-squared bishop for white
+            or (
+                not is_white_square(square) and B_dark_squared == 1
+            )  # We are about to have the second dark-squared bishop for white
+        )
+        and max_pieces_left[__PIECE_TO_IDX["P"]]
+        >= 2  # There are currently at most 6 white pawns
+    ):
+        return True
+    elif (
+        piece_type == "B"
+        and (
+            (
+                is_white_square(square) and B_light_squared == 1
+            )  # We are about to have the second light-squared bishop for white
+            or (
+                not is_white_square(square) and B_dark_squared == 1
+            )  # We are about to have the second dark-squared bishop for white
+        )
+        and (
+            max_pieces_left[__PIECE_TO_IDX["P"]] == 1
+        )  # There are currently 7 white pawns
+        and (
+            not max_pieces_left[__PIECE_TO_IDX["Q"]] == 0
+        )  # No white pawn has promoted into a queen
+    ):
+        return True
+    elif piece_type == "b" and (
+        (is_white_square(square) and b_light_squared == 0)
+        or (not is_white_square(square) and b_dark_squared == 0)
+    ):
+        return True
+    elif (
+        piece_type == "b"
+        and (
+            (
+                is_white_square(square) and b_light_squared == 1
+            )  # We are about to have the second light-squared bishop for black
+            or (
+                not is_white_square(square) and b_dark_squared == 1
+            )  # We are about to have the second dark-squared bishop for black
+        )
+        and (
+            max_pieces_left[__PIECE_TO_IDX["p"]] >= 2
+        )  # There are currently at most 6 black pawns
+    ):
+        return True
+    elif (
+        piece_type == "b"
+        and (
+            (
+                is_white_square(square) and b_light_squared == 1
+            )  # We are about to have the second light-squared bishop for black
+            or (
+                not is_white_square(square) and b_dark_squared == 1
+            )  # We are about to have the second dark-squared bishop for black
+        )
+        and (
+            max_pieces_left[__PIECE_TO_IDX["p"]] == 1
+        )  # There are currently 7 black pawns
+        and (
+            not max_pieces_left[__PIECE_TO_IDX["q"]] == 0
+        )  # No black pawn has promoted into a queen
+    ):
+        return True
+    else:
+        return False
+
+
 def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
     """
     Infers the chess pieces in all of the board based on the given
@@ -287,7 +551,7 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
     """
     pieces_probs = board_to_list(list_to_board(pieces_probs, a1_pos))
 
-    # None represents that no piece is set in that position yet
+    # None represents that the piece type of that square has not been determined yet
     out_preds = [None] * 64
 
     if previous_fen is not None:  # Perform move detection
@@ -343,6 +607,14 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
     tops = [piece_list[0] for piece_list in pieces_lists]
     # Maximum number of pieces of each type in the same order as `tops`
     max_pieces_left = [2, 2, 8, 2, 2, 2, 2, 8, 2, 2]
+    # Keep track of the numbers of light-squared and dark-squared bishops for both sides
+    B_light_squared = 0  # Number of light-squared bishops for white
+    B_dark_squared = 0  # Number of dark-squared bishops for white
+    b_light_squared = 0  # Number of light-squared bishops for black
+    b_dark_squared = 0  # Number of dark-squared bishops for black
+    # Occasionally, the model is not accurate enough to predict a balanced board configuration
+    # (balanced in terms of the numbers of pawns, queens, and bishops)
+    failed_to_complete_prediction = True
 
     while num_of_undetermined_squares > 0:
         # Determine the piece type of the square that has the piece with the
@@ -353,13 +625,61 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
         # hasn't been determined, then we conclude that that square has exactly
         # that piece
         if max_pieces_left[max_idx] > 0 and out_preds[square] is None:
-            out_preds[square] = __IDX_TO_PIECE[max_idx]
-            num_of_undetermined_squares -= 1
-            max_pieces_left[max_idx] -= 1
+            piece_type = __IDX_TO_PIECE[max_idx]
+            if __check_balance_among_pawns_queens_and_bishops(
+                piece_type,
+                max_pieces_left,
+                B_light_squared,
+                B_dark_squared,
+                b_light_squared,
+                b_dark_squared,
+                square,
+            ):
+                out_preds[square] = piece_type
+                num_of_undetermined_squares -= 1
+                max_pieces_left[max_idx] -= 1
+
+                if piece_type == "B" and is_white_square(square):
+                    B_light_squared += 1
+                elif piece_type == "B" and not is_white_square(square):
+                    B_dark_squared += 1
+                elif piece_type == "b" and is_white_square(square):
+                    b_light_squared += 1
+                elif piece_type == "b" and not is_white_square(square):
+                    b_dark_squared += 1
+
         # In any case, for the piece type we have tried above, we must replace
         # the entry in `tops` with the next-highest-probability entry
-        idx[max_idx] += 1
-        tops[max_idx] = pieces_lists[max_idx][idx[max_idx]]
+        try:
+            idx[max_idx] += 1
+            tops[max_idx] = pieces_lists[max_idx][idx[max_idx]]
+        except (
+            IndexError
+        ):  # Model is not accurate enough to predict a balanced configuration
+            # (balance in terms of the numbers of pawns, queens, and bishops)
+            print(
+                "Warning: the selected model is not accurate enough to predict a balanced board configuration"
+            )
+            print(
+                "\tPlease consider providing the previous FEN, selecting a different model, or performing"
+                "\n\ttransfer learning on that model"
+            )
+            failed_to_complete_prediction = True
+            break
+
+    if failed_to_complete_prediction:
+        for square, piece_type in enumerate(out_preds):
+            if (
+                piece_type is None
+            ):  # Rather than give up on that square, we will determine it by brute force
+                if is_white_piece(pieces_probs[square]):
+                    out_preds[square] = __determine_most_probable_white_piece(
+                        pieces_probs, square
+                    )
+                else:
+                    out_preds[square] = __determine_most_probable_black_piece(
+                        pieces_probs, square
+                    )
 
     if previous_fen is not None:  # We will now give move detection another try
         changed_squares_idx = changed_squares_after_piece_inference(
