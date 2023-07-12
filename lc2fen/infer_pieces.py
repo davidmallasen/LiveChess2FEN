@@ -343,193 +343,112 @@ def __check_balance_among_pawns_queens_and_bishops(
     """
     if not piece_type in ["P", "p", "Q", "q", "B", "b"]:
         return True
-    elif piece_type in ["P", "p"] and max_pieces_left[__PIECE_TO_IDX[piece_type]] >= 3:
-        return True
-    elif (
-        piece_type == "P"
-        and (
-            max_pieces_left[__PIECE_TO_IDX["P"]] == 2
-        )  # We are about to have 7 white pawns
-        and not (
+    elif piece_type == "P" and (
+        (
             (
                 max_pieces_left[__PIECE_TO_IDX["Q"]] == 0
-            )  # A white pawn has promoted into a queen
-            and (
-                B_dark_squared == 2 or B_light_squared == 2
-            )  # A white pawn has promoted into a bishop
+            )  # Whether a white pawn has promoted into a queen
+            + max(
+                B_dark_squared == 2, B_light_squared == 2
+            )  # Whether a white pawn has promoted into a bishop
         )
+        <= (max_pieces_left[__PIECE_TO_IDX["P"]] - 1)
     ):
         return True
-    elif (
-        piece_type == "P"
-        and (
-            max_pieces_left[__PIECE_TO_IDX["P"]] == 1
-        )  # We are about to have 8 white pawns
-        and not (
-            (
-                max_pieces_left[__PIECE_TO_IDX["Q"]] == 0
-            )  # A white pawn has promoted into a queen
-            or (
-                B_dark_squared == 2 or B_light_squared == 2
-            )  # A white pawn has promoted into a bishop
-        )
-    ):
-        return True
-    elif (
-        piece_type == "p"
-        and (
-            max_pieces_left[__PIECE_TO_IDX["p"]] == 2
-        )  # We are about to have 7 black pawns
-        and not (
+    elif piece_type == "p" and (
+        (
             (
                 max_pieces_left[__PIECE_TO_IDX["q"]] == 0
-            )  # A black pawn has promoted into a queen
-            and (
-                b_dark_squared == 2 or b_light_squared == 2
-            )  # A black pawn has promoted into a bishop
+            )  # Whether a black pawn has promoted into a queen
+            + max(
+                b_dark_squared == 2, b_light_squared == 2
+            )  # Whether a black pawn has promoted into a bishop
         )
+        <= (max_pieces_left[__PIECE_TO_IDX["p"]] - 1)
     ):
         return True
-    elif (
-        piece_type == "p"
-        and (
-            max_pieces_left[__PIECE_TO_IDX["p"]] == 1
-        )  # We are about to have 8 black pawns
-        and not (
-            (
-                max_pieces_left[__PIECE_TO_IDX["q"]] == 0
-            )  # A black pawn has promoted into a queen
-            or (
-                b_dark_squared == 2 or b_light_squared == 2
-            )  # A black pawn has promoted into a bishop
+    elif piece_type == "Q" and (
+        (
+            ((max_pieces_left[__PIECE_TO_IDX["Q"]] - 1) == 0)
+            + max(
+                B_dark_squared == 2, B_light_squared == 2
+            )  # Whether a white pawn has promoted into a bishop
         )
+        <= max_pieces_left[__PIECE_TO_IDX["P"]]
     ):
         return True
-
-    elif piece_type in ["Q", "q"] and max_pieces_left[__PIECE_TO_IDX[piece_type]] == 2:
-        return True
-    elif (
-        piece_type == "Q"
-        and (
-            max_pieces_left[__PIECE_TO_IDX["Q"]] == 1
-        )  # We are about to have 2 white queens
-        and (
-            max_pieces_left[__PIECE_TO_IDX["P"]] >= 2
-        )  # There are currently at most 6 white pawns
-    ):
-        return True
-    elif (
-        piece_type == "Q"
-        and (
-            max_pieces_left[__PIECE_TO_IDX["Q"]] == 1
-        )  # We are about to have 2 white queens
-        and (
-            max_pieces_left[__PIECE_TO_IDX["P"]] == 1
-        )  # There are currently 7 white pawns
-        and (
-            not (B_dark_squared == 2 or B_light_squared == 2)
-        )  # No white pawn has promoted into a bishop
-    ):
-        return True
-    elif (
-        piece_type == "q"
-        and (
-            max_pieces_left[__PIECE_TO_IDX["q"]] == 1
-        )  # We are about to have 2 black queens
-        and (
-            max_pieces_left[__PIECE_TO_IDX["p"]] >= 2
-        )  # There are currently at most 6 black pawns
-    ):
-        return True
-    elif (
-        piece_type == "q"
-        and (
-            max_pieces_left[__PIECE_TO_IDX["q"]] == 1
-        )  # We are about to have 2 black queens
-        and (
-            max_pieces_left[__PIECE_TO_IDX["p"]] == 1
-        )  # There are currently 7 black pawns
-        and (
-            not (b_dark_squared == 2 or b_light_squared == 2)
-        )  # No black pawn has promoted into a bishop
-    ):
-        return True
-
-    elif piece_type in ["B", "b"] and max_pieces_left[__PIECE_TO_IDX[piece_type]] == 2:
-        return True
-    elif piece_type == "B" and (
-        (is_white_square(square) and B_light_squared == 0)
-        or (not is_white_square(square) and B_dark_squared == 0)
+    elif piece_type == "q" and (
+        (
+            ((max_pieces_left[__PIECE_TO_IDX["q"]] - 1) == 0)
+            + max(
+                b_dark_squared == 2, b_light_squared == 2
+            )  # Whether a black pawn has promoted into a bishop
+        )
+        <= max_pieces_left[__PIECE_TO_IDX["p"]]
     ):
         return True
     elif (
         piece_type == "B"
+        and not is_white_square(square)
         and (
             (
-                is_white_square(square) and B_light_squared == 1
-            )  # We are about to have the second light-squared bishop for white
-            or (
-                not is_white_square(square) and B_dark_squared == 1
-            )  # We are about to have the second dark-squared bishop for white
+                (
+                    max_pieces_left[__PIECE_TO_IDX["Q"]] == 0
+                )  # Whether a white pawn has promoted into a queen
+                + max(
+                    (B_dark_squared + 1) == 2, B_light_squared == 2
+                )  # Whether we are about to have 2 dark-squared bishops for white
+            )
+            <= max_pieces_left[__PIECE_TO_IDX["P"]]
         )
-        and max_pieces_left[__PIECE_TO_IDX["P"]]
-        >= 2  # There are currently at most 6 white pawns
     ):
         return True
     elif (
         piece_type == "B"
+        and is_white_square(square)
         and (
             (
-                is_white_square(square) and B_light_squared == 1
-            )  # We are about to have the second light-squared bishop for white
-            or (
-                not is_white_square(square) and B_dark_squared == 1
-            )  # We are about to have the second dark-squared bishop for white
+                (
+                    max_pieces_left[__PIECE_TO_IDX["Q"]] == 0
+                )  # Whether a white pawn has promoted into a queen
+                + max(
+                    B_dark_squared == 2, (B_light_squared + 1) == 2
+                )  # Whether we are about to have 2 light-squared bishops for white
+            )
+            <= max_pieces_left[__PIECE_TO_IDX["P"]]
         )
-        and (
-            max_pieces_left[__PIECE_TO_IDX["P"]] == 1
-        )  # There are currently 7 white pawns
-        and (
-            not max_pieces_left[__PIECE_TO_IDX["Q"]] == 0
-        )  # No white pawn has promoted into a queen
-    ):
-        return True
-    elif piece_type == "b" and (
-        (is_white_square(square) and b_light_squared == 0)
-        or (not is_white_square(square) and b_dark_squared == 0)
     ):
         return True
     elif (
         piece_type == "b"
+        and not is_white_square(square)
         and (
             (
-                is_white_square(square) and b_light_squared == 1
-            )  # We are about to have the second light-squared bishop for black
-            or (
-                not is_white_square(square) and b_dark_squared == 1
-            )  # We are about to have the second dark-squared bishop for black
+                (
+                    max_pieces_left[__PIECE_TO_IDX["q"]] == 0
+                )  # Whether a black pawn has promoted into a queen
+                + max(
+                    (b_dark_squared + 1) == 2, b_light_squared == 2
+                )  # Whether we are about to have 2 dark-squared bishops for black
+            )
+            <= max_pieces_left[__PIECE_TO_IDX["p"]]
         )
-        and (
-            max_pieces_left[__PIECE_TO_IDX["p"]] >= 2
-        )  # There are currently at most 6 black pawns
     ):
         return True
     elif (
         piece_type == "b"
+        and is_white_square(square)
         and (
             (
-                is_white_square(square) and b_light_squared == 1
-            )  # We are about to have the second light-squared bishop for black
-            or (
-                not is_white_square(square) and b_dark_squared == 1
-            )  # We are about to have the second dark-squared bishop for black
+                (
+                    max_pieces_left[__PIECE_TO_IDX["q"]] == 0
+                )  # Whether a black pawn has promoted into a queen
+                + max(
+                    b_dark_squared == 2, (b_light_squared + 1) == 2
+                )  # Whether we are about to have 2 light-squared bishops for black
+            )
+            <= max_pieces_left[__PIECE_TO_IDX["p"]]
         )
-        and (
-            max_pieces_left[__PIECE_TO_IDX["p"]] == 1
-        )  # There are currently 7 black pawns
-        and (
-            not max_pieces_left[__PIECE_TO_IDX["q"]] == 0
-        )  # No black pawn has promoted into a queen
     ):
         return True
     else:
