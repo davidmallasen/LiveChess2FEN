@@ -81,34 +81,34 @@ def __max_piece(tops):
     Returns the index of the piece with max probability.
     """
     # Set the initial maximum probability and index to the first piece in the list
-    value = tops[0][0]["B"]  # B(White Bishop)
+    value = tops[0][0][__PREDS_DICT["B"]]
     idx = 0
-    if tops[1][0]["N"] > value:  # N(White Knight)
-        value = tops[1][0]["N"]
+    if tops[1][0][__PREDS_DICT["N"]] > value:
+        value = tops[1][0][__PREDS_DICT["N"]]
         idx = 1
-    if tops[2][0]["P"] > value:  # P(White Pawn)
-        value = tops[2][0]["P"]
+    if tops[2][0][__PREDS_DICT["P"]] > value:
+        value = tops[2][0][__PREDS_DICT["P"]]
         idx = 2
-    if tops[3][0]["Q"] > value:  # Q(White Queen)
-        value = tops[3][0]["Q"]
+    if tops[3][0][__PREDS_DICT["Q"]] > value:
+        value = tops[3][0][__PREDS_DICT["Q"]]
         idx = 3
-    if tops[4][0]["R"] > value:  # R(White Rook)
-        value = tops[4][0]["R"]
+    if tops[4][0][__PREDS_DICT["R"]] > value:
+        value = tops[4][0][__PREDS_DICT["R"]]
         idx = 4
-    if tops[5][0]['b'] > value:  # b(Black Bishop)
-        value = tops[5][0]["b"]
+    if tops[5][0][__PREDS_DICT["b"]] > value:
+        value = tops[5][0][__PREDS_DICT["b"]]
         idx = 5
-    if tops[6][0]["n"] > value:  # n(Black Knight)
-        value = tops[6][0]["n"]
+    if tops[6][0][__PREDS_DICT["n"]] > value:
+        value = tops[6][0][__PREDS_DICT["n"]]
         idx = 6
-    if tops[7][0]["p"] > value:  # p(Black Pawn)
-        value = tops[7][0]["p"]
+    if tops[7][0][__PREDS_DICT["p"]] > value:
+        value = tops[7][0][__PREDS_DICT["p"]]
         idx = 7
-    if tops[8][0]["q"] > value:  # q(Black Queen)
-        value = tops[8][0]["q"]
+    if tops[8][0][__PREDS_DICT["q"]] > value:
+        value = tops[8][0][__PREDS_DICT["q"]]
         idx = 8
-    if tops[9][0]["r"] > value:  # r(Balck Rook)
-        # value = tops[9][0]["r"]
+    if tops[9][0][__PREDS_DICT["r"]] > value:
+        # value = tops[9][0][__PREDS_DICT["r"]]
         idx = 9
     return idx
 
