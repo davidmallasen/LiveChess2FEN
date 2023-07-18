@@ -8,19 +8,19 @@ import chess
 from lc2fen.fen import board_to_list, list_to_board, is_white_square, fen_to_board
 
 __PREDS_DICT = {
-    0: "B",
-    1: "K",
-    2: "N",
-    3: "P",
-    4: "Q",
-    5: "R",
-    6: "_",
-    7: "b",
-    8: "k",
-    9: "n",
-    10: "p",
-    11: "q",
-    12: "r",
+    "B": 0,
+    "K": 1,
+    "N": 2,
+    "P": 3,
+    "Q": 4,
+    "R": 5,
+    "_": 6,
+    "b": 7,
+    "k": 8,
+    "n": 9,
+    "p": 10,
+    "q": 11,
+    "r": 12,
 }
 
 __IDX_TO_PIECE = {
@@ -58,22 +58,22 @@ RANKS = "87654321"
 
 def __sort_pieces_list(_pieces_probs_sort):
     """Returns a list of each piece sorted in descending order."""
-    w_bishops = sorted(_pieces_probs_sort, key=lambda prob: prob[0][0], reverse=True)
-    w_knights = sorted(_pieces_probs_sort, key=lambda prob: prob[0][2], reverse=True)
+    w_bishops = sorted(_pieces_probs_sort, key=lambda prob: prob[0][__PREDS_DICT["B"]], reverse=True)
+    w_knights = sorted(_pieces_probs_sort, key=lambda prob: prob[0][__PREDS_DICT["N"]], reverse=True)
     # Pawns can't be in the first or last row
     w_pawns = sorted(
-        _pieces_probs_sort[8:-8], key=lambda prob: prob[0][3], reverse=True
+        _pieces_probs_sort[8:-8], key=lambda prob: prob[0][__PREDS_DICT["P"]], reverse=True
     )
-    w_queens = sorted(_pieces_probs_sort, key=lambda prob: prob[0][4], reverse=True)
-    w_rooks = sorted(_pieces_probs_sort, key=lambda prob: prob[0][5], reverse=True)
-    b_bishops = sorted(_pieces_probs_sort, key=lambda prob: prob[0][7], reverse=True)
-    b_knights = sorted(_pieces_probs_sort, key=lambda prob: prob[0][9], reverse=True)
+    w_queens = sorted(_pieces_probs_sort, key=lambda prob: prob[0][__PREDS_DICT["Q"]], reverse=True)
+    w_rooks = sorted(_pieces_probs_sort, key=lambda prob: prob[0][__PREDS_DICT["R"]], reverse=True)
+    b_bishops = sorted(_pieces_probs_sort, key=lambda prob: prob[0][__PREDS_DICT["b"]], reverse=True)
+    b_knights = sorted(_pieces_probs_sort, key=lambda prob: prob[0][__PREDS_DICT["n"]], reverse=True)
     # Pawns can't be in the first or last row
     b_pawns = sorted(
-        _pieces_probs_sort[8:-8], key=lambda prob: prob[0][10], reverse=True
+        _pieces_probs_sort[8:-8], key=lambda prob: prob[0][__PREDS_DICT["p"]], reverse=True
     )
-    b_queens = sorted(_pieces_probs_sort, key=lambda prob: prob[0][11], reverse=True)
-    b_rooks = sorted(_pieces_probs_sort, key=lambda prob: prob[0][12], reverse=True)
+    b_queens = sorted(_pieces_probs_sort, key=lambda prob: prob[0][__PREDS_DICT["q"]], reverse=True)
+    b_rooks = sorted(_pieces_probs_sort, key=lambda prob: prob[0][__PREDS_DICT["r"]], reverse=True)
     return [
         w_bishops,
         w_knights,
@@ -94,34 +94,34 @@ def __max_piece(tops):
     Returns the index of the piece with max probability.
     """
     # Set the initial maximum probability and index to the first piece in the list
-    value = tops[0][0][0]  # B(White Bishop)
+    value = tops[0][0][__PREDS_DICT["B"]]
     idx = 0
-    if tops[1][0][2] > value:  # N(White Knight)
-        value = tops[1][0][2]
+    if tops[1][0][__PREDS_DICT["N"]] > value:
+        value = tops[1][0][__PREDS_DICT["N"]]
         idx = 1
-    if tops[2][0][3] > value:  # P(White Pawn)
-        value = tops[2][0][3]
+    if tops[2][0][__PREDS_DICT["P"]] > value:
+        value = tops[2][0][__PREDS_DICT["P"]]
         idx = 2
-    if tops[3][0][4] > value:  # Q(White Queen)
-        value = tops[3][0][4]
+    if tops[3][0][__PREDS_DICT["Q"]] > value:
+        value = tops[3][0][__PREDS_DICT["Q"]]
         idx = 3
-    if tops[4][0][5] > value:  # R(White Rook)
-        value = tops[4][0][5]
+    if tops[4][0][__PREDS_DICT["R"]] > value:
+        value = tops[4][0][__PREDS_DICT["R"]]
         idx = 4
-    if tops[5][0][7] > value:  # b(Black Bishop)
-        value = tops[5][0][7]
+    if tops[5][0][__PREDS_DICT["b"]] > value:
+        value = tops[5][0][__PREDS_DICT["b"]]
         idx = 5
-    if tops[6][0][9] > value:  # n(Black Knight)
-        value = tops[6][0][9]
+    if tops[6][0][__PREDS_DICT["n"]] > value:
+        value = tops[6][0][__PREDS_DICT["n"]]
         idx = 6
-    if tops[7][0][10] > value:  # p(Black Pawn)
-        value = tops[7][0][10]
+    if tops[7][0][__PREDS_DICT["p"]] > value:
+        value = tops[7][0][__PREDS_DICT["p"]]
         idx = 7
-    if tops[8][0][11] > value:  # q(Black Queen)
-        value = tops[8][0][11]
+    if tops[8][0][__PREDS_DICT["q"]] > value:
+        value = tops[8][0][__PREDS_DICT["q"]]
         idx = 8
-    if tops[9][0][12] > value:  # r(Balck Rook)
-        # value = tops[9][0][12]
+    if tops[9][0][__PREDS_DICT["r"]] > value:
+        # value = tops[9][0][__PREDS_DICT["r"]]
         idx = 9
     return idx
 
@@ -177,49 +177,49 @@ def __determine_promoted_piece(previous_fen, pieces_probs, final_move_sq, color)
     promoted_piece_prob = 0
     if color == "white":
         if (
-            pieces_probs[final_move_sq][4] > promoted_piece_prob
+            pieces_probs[final_move_sq][__PREDS_DICT["Q"]] > promoted_piece_prob
             and previous_fen.count("Q") < 2
         ):
             promoted_piece = "Q"
-            promoted_piece_prob = pieces_probs[final_move_sq][4]
+            promoted_piece_prob = pieces_probs[final_move_sq][__PREDS_DICT["Q"]]
         if (
-            pieces_probs[final_move_sq][2] > promoted_piece_prob
+            pieces_probs[final_move_sq][__PREDS_DICT["N"]] > promoted_piece_prob
             and previous_fen.count("N") < 2
         ):
             promoted_piece = "N"
-            promoted_piece_prob = pieces_probs[final_move_sq][2]
+            promoted_piece_prob = pieces_probs[final_move_sq][__PREDS_DICT["N"]]
         if (
-            pieces_probs[final_move_sq][5] > promoted_piece_prob
+            pieces_probs[final_move_sq][__PREDS_DICT["R"]] > promoted_piece_prob
             and previous_fen.count("R") < 2
         ):
             promoted_piece = "R"
-            promoted_piece_prob = pieces_probs[final_move_sq][5]
+            promoted_piece_prob = pieces_probs[final_move_sq][__PREDS_DICT["R"]]
         if (
-            pieces_probs[final_move_sq][0] > promoted_piece_prob
+            pieces_probs[final_move_sq][__PREDS_DICT['B']] > promoted_piece_prob
             and previous_fen.count("B") < 2
         ):
             promoted_piece = "B"
     else:
         if (
-            pieces_probs[final_move_sq][11] > promoted_piece_prob
+            pieces_probs[final_move_sq][__PREDS_DICT["q"]] > promoted_piece_prob
             and previous_fen.count("q") < 2
         ):
             promoted_piece = "q"
-            promoted_piece_prob = pieces_probs[final_move_sq][11]
+            promoted_piece_prob = pieces_probs[final_move_sq][__PREDS_DICT["q"]]
         if (
-            pieces_probs[final_move_sq][9] > promoted_piece_prob
+            pieces_probs[final_move_sq][__PREDS_DICT["n"]] > promoted_piece_prob
             and previous_fen.count("n") < 2
         ):
             promoted_piece = "n"
-            promoted_piece_prob = pieces_probs[final_move_sq][9]
+            promoted_piece_prob = pieces_probs[final_move_sq][__PREDS_DICT["n"]]
         if (
-            pieces_probs[final_move_sq][12] > promoted_piece_prob
+            pieces_probs[final_move_sq][__PREDS_DICT["r"]] > promoted_piece_prob
             and previous_fen.count("r") < 2
         ):
             promoted_piece = "r"
-            promoted_piece_prob = pieces_probs[final_move_sq][12]
+            promoted_piece_prob = pieces_probs[final_move_sq][__PREDS_DICT["r"]]
         if (
-            pieces_probs[final_move_sq][7] > promoted_piece_prob
+            pieces_probs[final_move_sq][__PREDS_DICT["b"]] > promoted_piece_prob
             and previous_fen.count("b") < 2
         ):
             promoted_piece = "b"
@@ -288,19 +288,19 @@ def __generate_fen_based_on_previous_fen_and_detected_move(
 def __determine_most_probable_white_piece(pieces_probs, square):
     """Determines the most probable white piece."""
     most_probable_piece_prob = 0
-    if pieces_probs[square][4] > most_probable_piece_prob:
+    if pieces_probs[square][__PREDS_DICT["Q"]] > most_probable_piece_prob:
         most_probable_piece = "Q"
-        most_probable_piece_prob = pieces_probs[square][4]
-    if pieces_probs[square][2] > most_probable_piece_prob:
+        most_probable_piece_prob = pieces_probs[square][__PREDS_DICT["Q"]]
+    if pieces_probs[square][__PREDS_DICT["N"]] > most_probable_piece_prob:
         most_probable_piece = "N"
-        most_probable_piece_prob = pieces_probs[square][2]
-    if pieces_probs[square][5] > most_probable_piece_prob:
+        most_probable_piece_prob = pieces_probs[square][__PREDS_DICT["N"]]
+    if pieces_probs[square][__PREDS_DICT["R"]] > most_probable_piece_prob:
         most_probable_piece = "R"
-        most_probable_piece_prob = pieces_probs[square][5]
-    if pieces_probs[square][0] > most_probable_piece_prob:
+        most_probable_piece_prob = pieces_probs[square][__PREDS_DICT["R"]]
+    if pieces_probs[square][__PREDS_DICT["B"]] > most_probable_piece_prob:
         most_probable_piece = "B"
-        most_probable_piece_prob = pieces_probs[square][0]
-    if pieces_probs[square][3] > most_probable_piece_prob:
+        most_probable_piece_prob = pieces_probs[square][__PREDS_DICT["B"]]
+    if pieces_probs[square][__PREDS_DICT["P"]] > most_probable_piece_prob:
         most_probable_piece = "P"
     return most_probable_piece
 
@@ -308,19 +308,19 @@ def __determine_most_probable_white_piece(pieces_probs, square):
 def __determine_most_probable_black_piece(pieces_probs, square):
     """Determines the most probable black piece."""
     most_probable_piece_prob = 0
-    if pieces_probs[square][11] > most_probable_piece_prob:
+    if pieces_probs[square][__PREDS_DICT["q"]] > most_probable_piece_prob:
         most_probable_piece = "q"
-        most_probable_piece_prob = pieces_probs[square][4]
-    if pieces_probs[square][9] > most_probable_piece_prob:
+        most_probable_piece_prob = pieces_probs[square][__PREDS_DICT["q"]]
+    if pieces_probs[square][__PREDS_DICT["n"]] > most_probable_piece_prob:
         most_probable_piece = "n"
-        most_probable_piece_prob = pieces_probs[square][2]
-    if pieces_probs[square][12] > most_probable_piece_prob:
+        most_probable_piece_prob = pieces_probs[square][__PREDS_DICT["n"]]
+    if pieces_probs[square][__PREDS_DICT["r"]] > most_probable_piece_prob:
         most_probable_piece = "r"
-        most_probable_piece_prob = pieces_probs[square][5]
-    if pieces_probs[square][7] > most_probable_piece_prob:
+        most_probable_piece_prob = pieces_probs[square][__PREDS_DICT["r"]]
+    if pieces_probs[square][__PREDS_DICT["b"]] > most_probable_piece_prob:
         most_probable_piece = "b"
-        most_probable_piece_prob = pieces_probs[square][0]
-    if pieces_probs[square][10] > most_probable_piece_prob:
+        most_probable_piece_prob = pieces_probs[square][__PREDS_DICT["b"]]
+    if pieces_probs[square][__PREDS_DICT["p"]] > most_probable_piece_prob:
         most_probable_piece = "p"
     return most_probable_piece
 
@@ -492,9 +492,9 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
     pieces_probs_sort = [(probs, i) for i, probs in enumerate(pieces_probs)]
 
     # First determine the locations of the kings (one white king and one black king)
-    white_king = max(pieces_probs_sort, key=lambda prob: prob[0][1])
+    white_king = max(pieces_probs_sort, key=lambda prob: prob[0][__PREDS_DICT["K"]])
     black_kings = sorted(
-        pieces_probs_sort, key=lambda prob: prob[0][8], reverse=True
+        pieces_probs_sort, key=lambda prob: prob[0][__PREDS_DICT["k"]], reverse=True
     )  # Descending order
 
     black_king = black_kings[0]
@@ -625,7 +625,7 @@ def is_empty_square(square_probs):
         square of the chessboard.
     :return: True if the square_probs infer that the square is empty.
     """
-    return __PREDS_DICT[np.argmax(square_probs)] == "_"
+    return __PREDS_DICT["_"] == np.argmax(square_probs)
 
 
 def is_white_piece(square_probs):
