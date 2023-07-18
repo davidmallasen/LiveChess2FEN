@@ -177,49 +177,49 @@ def __determine_promoted_piece(previous_fen, pieces_probs, final_move_sq, color)
     promoted_piece_prob = 0
     if color == "white":
         if (
-            pieces_probs[final_move_sq][4] > promoted_piece_prob
+            pieces_probs[final_move_sq][__PREDS_DICT["Q"]] > promoted_piece_prob
             and previous_fen.count("Q") < 2
         ):
             promoted_piece = "Q"
-            promoted_piece_prob = pieces_probs[final_move_sq][4]
+            promoted_piece_prob = pieces_probs[final_move_sq][__PREDS_DICT["Q"]]
         if (
-            pieces_probs[final_move_sq][2] > promoted_piece_prob
+            pieces_probs[final_move_sq][__PREDS_DICT["N"]] > promoted_piece_prob
             and previous_fen.count("N") < 2
         ):
             promoted_piece = "N"
-            promoted_piece_prob = pieces_probs[final_move_sq][2]
+            promoted_piece_prob = pieces_probs[final_move_sq][__PREDS_DICT["N"]]
         if (
-            pieces_probs[final_move_sq][5] > promoted_piece_prob
+            pieces_probs[final_move_sq][__PREDS_DICT["R"]] > promoted_piece_prob
             and previous_fen.count("R") < 2
         ):
             promoted_piece = "R"
-            promoted_piece_prob = pieces_probs[final_move_sq][5]
+            promoted_piece_prob = pieces_probs[final_move_sq][__PREDS_DICT["R"]]
         if (
-            pieces_probs[final_move_sq][0] > promoted_piece_prob
+            pieces_probs[final_move_sq][__PREDS_DICT['B']] > promoted_piece_prob
             and previous_fen.count("B") < 2
         ):
             promoted_piece = "B"
     else:
         if (
-            pieces_probs[final_move_sq][11] > promoted_piece_prob
+            pieces_probs[final_move_sq][__PREDS_DICT["q"]] > promoted_piece_prob
             and previous_fen.count("q") < 2
         ):
             promoted_piece = "q"
-            promoted_piece_prob = pieces_probs[final_move_sq][11]
+            promoted_piece_prob = pieces_probs[final_move_sq][__PREDS_DICT["q"]]
         if (
-            pieces_probs[final_move_sq][9] > promoted_piece_prob
+            pieces_probs[final_move_sq][__PREDS_DICT["n"]] > promoted_piece_prob
             and previous_fen.count("n") < 2
         ):
             promoted_piece = "n"
-            promoted_piece_prob = pieces_probs[final_move_sq][9]
+            promoted_piece_prob = pieces_probs[final_move_sq][__PREDS_DICT["n"]]
         if (
-            pieces_probs[final_move_sq][12] > promoted_piece_prob
+            pieces_probs[final_move_sq][__PREDS_DICT["r"]] > promoted_piece_prob
             and previous_fen.count("r") < 2
         ):
             promoted_piece = "r"
-            promoted_piece_prob = pieces_probs[final_move_sq][12]
+            promoted_piece_prob = pieces_probs[final_move_sq][__PREDS_DICT["r"]]
         if (
-            pieces_probs[final_move_sq][7] > promoted_piece_prob
+            pieces_probs[final_move_sq][__PREDS_DICT["b"]] > promoted_piece_prob
             and previous_fen.count("b") < 2
         ):
             promoted_piece = "b"
@@ -288,19 +288,19 @@ def __generate_fen_based_on_previous_fen_and_detected_move(
 def __determine_most_probable_white_piece(pieces_probs, square):
     """Determines the most probable white piece."""
     most_probable_piece_prob = 0
-    if pieces_probs[square][4] > most_probable_piece_prob:
+    if pieces_probs[square][__PREDS_DICT["Q"]] > most_probable_piece_prob:
         most_probable_piece = "Q"
-        most_probable_piece_prob = pieces_probs[square][4]
-    if pieces_probs[square][2] > most_probable_piece_prob:
+        most_probable_piece_prob = pieces_probs[square][__PREDS_DICT["Q"]]
+    if pieces_probs[square][__PREDS_DICT["N"]] > most_probable_piece_prob:
         most_probable_piece = "N"
-        most_probable_piece_prob = pieces_probs[square][2]
-    if pieces_probs[square][5] > most_probable_piece_prob:
+        most_probable_piece_prob = pieces_probs[square][__PREDS_DICT["N"]]
+    if pieces_probs[square][__PREDS_DICT["R"]] > most_probable_piece_prob:
         most_probable_piece = "R"
-        most_probable_piece_prob = pieces_probs[square][5]
-    if pieces_probs[square][0] > most_probable_piece_prob:
+        most_probable_piece_prob = pieces_probs[square][__PREDS_DICT["R"]]
+    if pieces_probs[square][__PREDS_DICT["B"]] > most_probable_piece_prob:
         most_probable_piece = "B"
-        most_probable_piece_prob = pieces_probs[square][0]
-    if pieces_probs[square][3] > most_probable_piece_prob:
+        most_probable_piece_prob = pieces_probs[square][__PREDS_DICT["B"]]
+    if pieces_probs[square][__PREDS_DICT["P"]] > most_probable_piece_prob:
         most_probable_piece = "P"
     return most_probable_piece
 
@@ -308,19 +308,19 @@ def __determine_most_probable_white_piece(pieces_probs, square):
 def __determine_most_probable_black_piece(pieces_probs, square):
     """Determines the most probable black piece."""
     most_probable_piece_prob = 0
-    if pieces_probs[square][11] > most_probable_piece_prob:
+    if pieces_probs[square][__PREDS_DICT["q"]] > most_probable_piece_prob:
         most_probable_piece = "q"
-        most_probable_piece_prob = pieces_probs[square][4]
-    if pieces_probs[square][9] > most_probable_piece_prob:
+        most_probable_piece_prob = pieces_probs[square][__PREDS_DICT["q"]]
+    if pieces_probs[square][__PREDS_DICT["n"]] > most_probable_piece_prob:
         most_probable_piece = "n"
-        most_probable_piece_prob = pieces_probs[square][2]
-    if pieces_probs[square][12] > most_probable_piece_prob:
+        most_probable_piece_prob = pieces_probs[square][__PREDS_DICT["n"]]
+    if pieces_probs[square][__PREDS_DICT["r"]] > most_probable_piece_prob:
         most_probable_piece = "r"
-        most_probable_piece_prob = pieces_probs[square][5]
-    if pieces_probs[square][7] > most_probable_piece_prob:
+        most_probable_piece_prob = pieces_probs[square][__PREDS_DICT["r"]]
+    if pieces_probs[square][__PREDS_DICT["b"]] > most_probable_piece_prob:
         most_probable_piece = "b"
-        most_probable_piece_prob = pieces_probs[square][0]
-    if pieces_probs[square][10] > most_probable_piece_prob:
+        most_probable_piece_prob = pieces_probs[square][__PREDS_DICT["b"]]
+    if pieces_probs[square][__PREDS_DICT["p"]] > most_probable_piece_prob:
         most_probable_piece = "p"
     return most_probable_piece
 
