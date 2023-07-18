@@ -58,22 +58,22 @@ RANKS = "87654321"
 
 def __sort_pieces_list(_pieces_probs_sort):
     """Returns a list of each piece sorted in descending order."""
-    w_bishops = sorted(_pieces_probs_sort, key=lambda prob: prob[0][0], reverse=True)
-    w_knights = sorted(_pieces_probs_sort, key=lambda prob: prob[0][2], reverse=True)
+    w_bishops = sorted(_pieces_probs_sort, key=lambda prob: prob[0][__PREDS_DICT["B"]], reverse=True)
+    w_knights = sorted(_pieces_probs_sort, key=lambda prob: prob[0][__PREDS_DICT["N"]], reverse=True)
     # Pawns can't be in the first or last row
     w_pawns = sorted(
-        _pieces_probs_sort[8:-8], key=lambda prob: prob[0][3], reverse=True
+        _pieces_probs_sort[8:-8], key=lambda prob: prob[0][__PREDS_DICT["P"]], reverse=True
     )
-    w_queens = sorted(_pieces_probs_sort, key=lambda prob: prob[0][4], reverse=True)
-    w_rooks = sorted(_pieces_probs_sort, key=lambda prob: prob[0][5], reverse=True)
-    b_bishops = sorted(_pieces_probs_sort, key=lambda prob: prob[0][7], reverse=True)
-    b_knights = sorted(_pieces_probs_sort, key=lambda prob: prob[0][9], reverse=True)
+    w_queens = sorted(_pieces_probs_sort, key=lambda prob: prob[0][__PREDS_DICT["Q"]], reverse=True)
+    w_rooks = sorted(_pieces_probs_sort, key=lambda prob: prob[0][__PREDS_DICT["R"]], reverse=True)
+    b_bishops = sorted(_pieces_probs_sort, key=lambda prob: prob[0][__PREDS_DICT["b"]], reverse=True)
+    b_knights = sorted(_pieces_probs_sort, key=lambda prob: prob[0][__PREDS_DICT["n"]], reverse=True)
     # Pawns can't be in the first or last row
     b_pawns = sorted(
-        _pieces_probs_sort[8:-8], key=lambda prob: prob[0][10], reverse=True
+        _pieces_probs_sort[8:-8], key=lambda prob: prob[0][__PREDS_DICT["p"]], reverse=True
     )
-    b_queens = sorted(_pieces_probs_sort, key=lambda prob: prob[0][11], reverse=True)
-    b_rooks = sorted(_pieces_probs_sort, key=lambda prob: prob[0][12], reverse=True)
+    b_queens = sorted(_pieces_probs_sort, key=lambda prob: prob[0][__PREDS_DICT["q"]], reverse=True)
+    b_rooks = sorted(_pieces_probs_sort, key=lambda prob: prob[0][__PREDS_DICT["r"]], reverse=True)
     return [
         w_bishops,
         w_knights,
@@ -492,9 +492,9 @@ def infer_chess_pieces(pieces_probs, a1_pos, previous_fen=None):
     pieces_probs_sort = [(probs, i) for i, probs in enumerate(pieces_probs)]
 
     # First determine the locations of the kings (one white king and one black king)
-    white_king = max(pieces_probs_sort, key=lambda prob: prob[0][1])
+    white_king = max(pieces_probs_sort, key=lambda prob: prob[0][__PREDS_DICT["K"]])
     black_kings = sorted(
-        pieces_probs_sort, key=lambda prob: prob[0][8], reverse=True
+        pieces_probs_sort, key=lambda prob: prob[0][__PREDS_DICT["k"]], reverse=True
     )  # Descending order
 
     black_king = black_kings[0]
