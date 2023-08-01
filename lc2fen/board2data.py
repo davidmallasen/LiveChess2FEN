@@ -1,8 +1,11 @@
 """
-Processes input boards and their transformation to individual pieces.
-Useful when testing the detectboard module or to create images for a
-dataset.
+This module is responsible for transforming input boards into individual pieces.
+
+It is useful for detecting chessboards (with "board_detection.py") and creating
+images for a dataset.
 """
+
+
 import glob
 import os
 import re
@@ -12,21 +15,20 @@ import cv2
 from tqdm import tqdm
 
 from lc2fen.detectboard import detect_board
-from lc2fen.fen import fen_to_board, rotate_board_fen2image
-from lc2fen.split_board import split_square_board_image, split_board_image
+from lc2fen.fen import fen_to_board, rotate_board_from_standard_view
+from lc2fen.split_board import split_board_image_trivial, split_board_image_advanced
 
 
-def regenerate_data_state(data_path):
+def regenerate_data_folder(data_path: str):
+    """Regenerate the data folder.
+
+    This function deletes the "`data_path`/boards/output" folder, the
+    "`data_path`/boards/debug_steps" folder, and the "`data_path`/pieces"
+    folder, and then it regenerates these folders (the folders will be
+    empty) and creates the 13 piece subfolders.
+
+    :param data_path: Path to the data folder (for example, `"data"`).
     """
-    Regenerates the state of the data directory.
-
-    Deletes all files and subdirectories in 'data_path/boards/output',
-    'data_path/boards/debug_steps' and 'data_path/pieces'. Regenerates
-    these directories and the pieces subdirectories.
-
-    :param data_path: Path to the 'data' folder. For example: '../data'.
-    """
-
     shutil.rmtree(data_path + "/boards/output/")
     shutil.rmtree(data_path + "/boards/debug_steps/")
     shutil.rmtree(data_path + "/pieces/")
@@ -49,14 +51,19 @@ def regenerate_data_state(data_path):
     os.mkdir(data_path + "/pieces/P/")
 
 
-def split_detected_square_boards(data_path):
-    """
-    Splits all detected .jpg boards in 'data_path/boards/output' into
-    individual pieces in 'data_path/pieces' classifying them
-    by fen. Line i of .fen file corresponds to board i .jpg. Fen file
-    must be in 'data_path/boards/input'.
+def split_detected_square_boards(data_path: str):
+    """Split all the detected boards into individual pieces.
 
-    :param data_path: Path to the 'data' folder. For example: '../data'.
+    This function splits all the detected .jpg boards in the
+    "`data_path`/boards/output" folder into individual pieces in the
+    "`data_path`/pieces" folder. The pieces are appropriately
+    classified based on the provided .fen file, which must be in the
+    "`data_path`/boards/input" folder.
+
+    Note: line i of .fen file must correspond be the FEN string of the
+    board position corresponding to the "board i .jpg" image.
+
+    :param data_path: Path to the data folder (for example, `"data"`).
     """
 
     def natural_key(text):
@@ -69,7 +76,7 @@ def split_detected_square_boards(data_path):
 
     fen_file = glob.glob(data_path + "/boards/input/*.fen")
     if len(fen_file) != 1:
-        raise ValueError("Only one fen file must be in input directory")
+        raise ValueError("Exactly one FEN file must be in the input folder")
 
     with open(fen_file[0], "r") as fen_fd:
         for detected_board in detected_boards:
@@ -77,22 +84,26 @@ def split_detected_square_boards(data_path):
             line = fen_fd.readline()[:-1].split()
             if len(line) != 2:
                 raise ValueError(
-                    "All lines in fen file must have the format " "'fen orientation'"
+                    "All lines in the FEN file must have the format "
+                    "'fen orientation'"
                 )
 
-            board_labels = rotate_board_fen2image(fen_to_board(line[0]), line[1])
+            board_labels = rotate_board_from_standard_view(
+                fen_to_board(line[0]), line[1]
+            )
             name = os.path.splitext(os.path.basename(detected_board))[0]
-            split_square_board_image(
+            split_board_image_trivial(
                 detected_board, name, data_path + "/pieces", board_labels
             )
 
 
-def process_input_boards(data_path):
-    """
-    Detects all boards in 'data_path/boards/input' and stores the
-    results in 'data_path/boards/output'.
+def process_input_boards(data_path: str):
+    """Detect boards in the input folder and store the results in the output folder.
 
-    :param data_path: Path to the 'data' folder. For example: '../data'.
+    This function detects all the boards in the "`data_path`/boards/input" folder
+    and stores the results in "`data_path`/boards/output" folder.
+
+    :param data_path: Path to the data folder (for example, `"data"`).
     """
 
     def natural_key(text):
@@ -109,4 +120,6 @@ def process_input_boards(data_path):
         _, square_corners = detect_board.compute_corners(image_object)
 
         name = os.path.splitext(os.path.basename(input_board))[0]
-        split_board_image(input_image, square_corners, name, data_path + "/pieces")
+        split_board_image_advanced(
+            input_image, square_corners, name, data_path + "/pieces"
+        )

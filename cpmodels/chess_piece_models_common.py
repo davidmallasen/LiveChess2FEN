@@ -1,24 +1,25 @@
-"""
-Common functions to train the chess piece models.
-"""
+"""This module contains the common functions for training the chess piece models."""
+
+
 import matplotlib
+
+matplotlib.use("agg")
+import matplotlib.pyplot as plt
 
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from keras.layers import Dense, GlobalAveragePooling2D
 from keras.models import Model
 from keras.preprocessing.image import ImageDataGenerator
 
-matplotlib.use("agg")
-import matplotlib.pyplot as plt
 
+def build_model(base_model: Model) -> Model:
+    """Build the model from a pretrained base model.
 
-def build_model(base_model):
-    """
-    Builds the model from a pretrained base model.
     :param base_model: Base model from keras applications.
-        Example: MobileNetV2(input_shape=(224, 224, 3),
-                             include_top=False,
-                             weights='imagenet')
+
+        Example: `MobileNetV2(input_shape=(224, 224, 3), include_top=False,
+        weights='imagenet'`).
+
     :return: The compiled model to train.
     """
     layers = base_model.output
@@ -37,24 +38,28 @@ def build_model(base_model):
 
 def data_generators(
     preprocessing_function,
-    target_size,
-    batch_size,
-    train_path="../data/train/",
-    validation_path="../data/validation/",
+    target_size: tuple[int, int],
+    batch_size: int,
+    train_path: str = "../data/train/",
+    validation_path: str = "../data/validation/",
 ):
-    """
-    Returns the train and validation generators.
+    """Return the train and validation generators.
 
-    :param preprocessing_function: Corresponding preprocessing function
-        for the pretrained base model.
-        Example: from keras.applications.mobilenet_v2
-            import preprocess_input
-    :param target_size: The dimensions to which all images found will be
-        resized. Example: (224, 224)
+    :param preprocessing_function: Corresponding preprocessing function for the pretrained base model.
+
+        Example: `from keras.applications.mobilenet_v2 import preprocess_input`.
+
+    :param target_size: Dimensions to which all images found will be resized.
+
+        Example: `(224, 224)`.
+
     :param batch_size: Size of the batches of data.
+
     :param train_path: Path to the train folder.
+
     :param validation_path: Path to the validation folder.
-    :return: The train and validation generators.
+
+    :return: Train and validation generators.
     """
     datagen = ImageDataGenerator(
         preprocessing_function=preprocessing_function, dtype="float16"
@@ -81,9 +86,15 @@ def data_generators(
 
 
 def train_model(
-    model, epochs, train_generator, val_generator, callbacks, use_weights, workers
+    model: Model,
+    epochs: int,
+    train_generator,
+    val_generator,
+    callbacks,
+    use_weights: bool,
+    workers: int,
 ):
-    """Trains the input model."""
+    """Train the input model."""
     steps_per_epoch = train_generator.n // train_generator.batch_size
     validation_steps = val_generator.n // val_generator.batch_size
 
@@ -121,9 +132,12 @@ def train_model(
 
 
 def model_callbacks(
-    early_stopping_patience, model_checkpoint_dir, reducelr_factor, reducelr_patience
-):
-    """Initializes the model callbacks."""
+    early_stopping_patience: int,
+    model_checkpoint_dir,
+    reducelr_factor: float,
+    reducelr_patience: int,
+) -> list:
+    """Initialize the model callbacks."""
     early_stopping = EarlyStopping(
         monitor="val_accuracy",
         mode="max",
@@ -150,7 +164,7 @@ def model_callbacks(
 
 
 def plot_model_history(history, accuracy_savedir, loss_savedir):
-    """Plots the model history (accuracy and loss)."""
+    """Plot the model history (accuracy and loss)."""
     # Summarize history for accuracy
     plt.plot(history.history["accuracy"])
     plt.plot(history.history["val_accuracy"])
@@ -174,9 +188,10 @@ def plot_model_history(history, accuracy_savedir, loss_savedir):
 
 def evaluate_model(model, test_generator):
     """
-    Prints the test loss and accuracy of the model.
+    Print the test loss and accuracy of the model.
 
     :param model: Model to evaluate.
+
     :param test_generator: Generator with which to test the model.
     """
     scores = model.evaluate_generator(test_generator, verbose=1)

@@ -1,6 +1,6 @@
-"""
-Train Xception model.
-"""
+"""This module is responsible for training the Xception model."""
+
+
 from keras.applications import Xception
 from keras.applications.xception import preprocess_input
 from keras.models import load_model
@@ -16,7 +16,7 @@ from chess_piece_models_common import (
 
 
 def train_chesspiece_model():
-    """Trains the chesspiece model based on Xception."""
+    """Train the chess-piece model based on Xception."""
     base_model = Xception(
         input_shape=(299, 299, 3), include_top=False, weights="imagenet"
     )
@@ -79,7 +79,7 @@ def train_chesspiece_model():
 
 
 def continue_training():
-    """Continues training the chesspiece model based on Xception."""
+    """Continue training the chess-piece model based on Xception."""
     model = load_model("./models/Xception.h5")
 
     train_generator, validation_generator = data_generators(

@@ -1,6 +1,6 @@
-"""
-Straight line detector.
-"""
+"""This is the straight-line-detector module."""
+
+
 import math
 
 import cv2
@@ -10,10 +10,10 @@ from lc2fen.detectboard import debug
 
 
 def __slid_segments(img):
-    """
-    Find all segments in the image using different settings.
+    """Find all segments in the image using different settings.
 
     :param img: Image to search.
+
     :return: A list of all the segments found.
     """
 
@@ -28,8 +28,7 @@ def __slid_segments(img):
         return cv2.Canny(img, lower, upper)
 
     def simplify_image(img, limit, grid, iters):
-        """Simplify image using CLAHE algorithm (adaptive histogram
-        equalization)."""
+        """Simplify image using CLAHE algorithm (adaptive histogram equalization)."""
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         for _ in range(iters):
             img = cv2.createCLAHE(clipLimit=limit, tileGridSize=grid).apply(img)
@@ -77,13 +76,15 @@ def __slid_segments(img):
     return segments
 
 
-def __scale_lines(raw_lines):
-    """
-    Scales raw_lines by a factor.
+def __scale_lines(raw_lines) -> list:
+    """Scale raw_lines by a factor.
 
-    :param raw_lines: Iterable of pairs of points. I.e. A line is given
-        by (x1, y1), (x2, y2).
-    :return: A list of the scaled lines. Each line is a pair of points.
+    :param raw_lines: Iterable of pairs of points (note that a line is given
+    by (x1, y1), (x2, y2)).
+
+    :return: List of the scaled lines.
+
+        Each line is a pair of points.
     """
     lines = []
     s = 4
@@ -102,22 +103,20 @@ def __scale_lines(raw_lines):
 
 
 def slid(img):
-    """
-    Straight line detector in the given image from the segments.
+    """Detect the straight lines in the given image from the segments.
 
     :param img: Image to search.
-    :return: A list of the detected lines. Each line is a pair of
-        points.
+
+    :return: List of the detected lines.
+
+        Each line is a pair of points.
     """
     group = {}
     hashmap = {}
     ptp_cache = {}
 
     def ptp_distance(a, b):
-        """
-        Distance from point to point with a cache to avoid multiple
-        calculations.
-        """
+        """Compute the distance from point to point with a cache to avoid multiple calculations."""
         idx = hash("__dis" + str(a) + str(b))
         if idx in ptp_cache:
             return ptp_cache[idx]
@@ -125,13 +124,15 @@ def slid(img):
         return ptp_cache[idx]
 
     def ptl_distance(line, point, dx):
-        """
-        Distance from point to line.
+        """Compute the distance from a point to a line.
 
         :param line: Line defined by two points.
+
         :param point: Point.
+
         :param dx: Distance between the points that define the line.
-        :return: The distance from point to line.
+
+        :return: Distance from the point to the line.
         """
         return (
             abs(
@@ -142,7 +143,7 @@ def slid(img):
         )
 
     def similar_lines(line1, line2):
-        """Returns if line1 is similar to line2."""
+        """Determine whether `line1` is similar to `line2`."""
         da = ptp_distance(line1[0], line1[1])
         db = ptp_distance(line2[0], line2[1])
 
@@ -177,9 +178,7 @@ def slid(img):
         group[ib] |= group[ia]
 
     def generate_points(a, b, n):
-        """
-        Returns n equispaced points in the segment given by a and b.
-        """
+        """Return n equispaced points in the segment given by a and b."""
         points = []
         t = 1 / n
         for i in range(n):

@@ -1,29 +1,37 @@
+"""This module contains functions for splitting a board into individual pieces.
+
+Specifically, it contains implementations of a trivial method that splits a board
+into the 64 squares and a more advanced method that takes into account the piece
+height and perspective.
 """
-Functions for splitting a board into individual pieces. Contains a
-trivial split into the 8x8 squares and a more advanced method that takes
-into account the piece height and perspective.
-"""
+
+
 import cv2
 
 
-def split_square_board_image(board_image, output_name, out_dir, board=None):
-    """
-    Splits a board image into the 8x8 squares.
+def split_board_image_trivial(
+    board_image: str, output_name: str, out_dir: str, board: list[list[str]] = None
+):
+    """Split a chessboard image into 64 images of the 64 squares.
 
-    Splits the board_image into individual squares and saves them into
-    out_dir as output_name appended with the corresponding position.
+    This function splits a `board_image` into individual squares. Each individual
+    square is saved into `out_dir` as `output_name` appended with its corresponding
+    position on the chessboard.
 
-    :param board_image: The board image to split. Must be a square in
-        size.
-    :param output_name: Starting name of the pieces.
-    :param out_dir: Output directory where to save the pieces.
-    :param board: If board is not None, it represents the 8x8 board
-        matrix with the corresponding labels in each position.
+    :param board_image: Chessboard image to split.
+
+        This image's height must be the same as its width.
+
+    :param output_name: Starting name of the 64 output images.
+
+    :param out_dir: Output directory where the output images are saved.
+
+    :param board: 8x8 board matrix that specifies what piece is on each square.
     """
     img = cv2.imread(board_image)
     if img.shape[0] != img.shape[1]:
-        raise ValueError("Image must be a square in size")
-    square_size = img.shape[0] // 8  # 1200 / 8
+        raise ValueError("Image must have the same height and width.")
+    square_size = img.shape[0] // 8  # This is typically 1200 / 8
     for row_start in range(0, img.shape[0], square_size):
         i = row_start // square_size
         for col_start in range(0, img.shape[1], square_size):
@@ -62,25 +70,43 @@ def split_square_board_image(board_image, output_name, out_dir, board=None):
             )
 
 
-def split_board_image(board_image, square_corners, output_name, out_dir, board=None):
-    """
-    Splits a board into the individual squares using their corners.
+def split_board_image_advanced(
+    board_image: str,
+    square_corners: list[tuple[int, int]],
+    output_name: str,
+    out_dir: str,
+    board: list[list[str]] = None,
+):
+    """Split a chessboard image into 64 square images using the square-corner coordinates.
 
-    Splits the board_image into the content of individual squares and
-    saves them into out_dir as output_name appended with the
-    corresponding position.
+    This function splits a chessboard image into 64 images of the 64 squares using
+    the coordinates of the 81 square corners. Each individual square is saved into
+    `out_dir` as `output_name` appended with its corresponding position on the chessboard.
 
-    :param board_image: The board image to split.
-    :param square_corners: List with the coordinates of each of the
-        corners of the squares of the chessboard.
-    :param output_name: Starting name of the pieces.
-    :param out_dir: Output directory where to save the pieces.
-    :param board: If board is not None, it represents the 8x8 board
-        matrix with the corresponding labels in each position.
+    :param board_image: Chessboard image to split.
+
+    :param square_corners: Length-81 list of the square-corner coordinates.
+
+        Each element of the list is a length-2 tuple.
+
+        Each tuple corresponds to a unique square corner on the chessboard.
+
+        The tuples are sorted such that the square corners that they correspond to
+        progress from top left to bottom right. (If we denote the top-left corner
+        as (0, 0) , the top-right corner as (0, 8), and the bottom-right corner
+        as (8, 8), then the first tuple corresponds to (0, 0), the second
+        corresponds to (0, 1), ..., the ninth corresponds to (0, 8), the tenth
+        corresponds to (1, 0), ..., the eleventh sorresponds to (1, 8), and so on.)
+
+    :param output_name: Starting name of the 64 output images.
+
+    :param out_dir: Output directory where the output images are saved.
+
+    :param board: 8x8 board matrix that specifies what piece is on each square.
     """
-    for row_ind in range(1, 9):  # Square_corners is 9x9
-        for col_ind in range(0, 8):
-            # Coords of each square
+    for row_ind in range(1, 9):  # There is a total of 8 rows of squares
+        for col_ind in range(0, 8):  # There is a total of 8 columns of squares
+            # Extract the coordinates of the bottom-left, bottom-right, and top-left corners
             bl_corner = square_corners[row_ind + 9 * col_ind]
             br_corner = square_corners[row_ind + 9 * (col_ind + 1)]
             tl_corner = square_corners[(row_ind - 1) + 9 * col_ind]
@@ -111,14 +137,14 @@ def split_board_image(board_image, square_corners, output_name, out_dir, board=N
                     + ".jpg"
                 )
 
-            # Height of the image
+            # Compute the height of the square image
             height = int((bl_corner[1] - tl_corner[1]) * 1.75)
 
-            # Check if we are outside of the image
+            # Check if we are outside of the chessboard image
             if bl_corner[1] - height < 0 or br_corner[1] - height < 0:
                 height = min(bl_corner[1], br_corner[1])
 
-            # Remember, image is [y1:y2, x1:x2, :], y1 < y2, x1 < x2
+            # Remember, the square image is [y1:y2, x1:x2, :], where y1 < y2 and x1 < x2
             rect = board_image[
                 bl_corner[1] - height : bl_corner[1], bl_corner[0] : br_corner[0], :
             ]

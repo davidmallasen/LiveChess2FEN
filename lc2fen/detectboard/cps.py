@@ -1,6 +1,6 @@
-"""
-Chessboard position search (CPS).
-"""
+"""This is the chessboard-position-search (CPS) module."""
+
+
 import collections
 import itertools
 import math
@@ -15,12 +15,11 @@ from sklearn.cluster import DBSCAN
 from lc2fen.detectboard import debug
 
 
-def __order_points(pts):
-    """
-    Order the four input points in the order: top-left, top-right,
-    bottom-right, bottom-left.
+def __order_points(pts: list[list]) -> list[list[int]]:
+    """Order the four points in the order of top-left, top-right, bottom-right, and bottom-left.
 
     :param pts: List of four 2D points
+
     :return: Ordered list of the four 2D points.
     """
     pts = np.float32(pts)
@@ -40,13 +39,13 @@ def __order_points(pts):
     return __normalize(rect)
 
 
-def __normalize(points):
+def __normalize(points: list[list]) -> list[list[int]]:
     """Normalize the input points."""
     return [[int(a), int(b)] for a, b in points]
 
 
-def __check_correctness(points, shape):
-    """Checks that the points are in the given shape."""
+def __check_correctness(points: list[list], shape: list):
+    """Check that the points are in the given shape."""
     __points = []
     for point in points:
         if 0 <= point[0] <= shape[1] and 0 <= point[1] <= shape[0]:
@@ -54,11 +53,8 @@ def __check_correctness(points, shape):
     return __points
 
 
-def __remove_duplicates(input_list):
-    """
-    Removes duplicate elements from the input list containing unhashable
-    elements while preserving order.
-    """
+def __remove_duplicates(input_list: list) -> list:
+    """Remove duplicate elements from the input list containing unhashable elements while preserving order."""
     indices = sorted(range(len(input_list)), key=input_list.__getitem__)
     indices = set(
         next(it) for k, it in itertools.groupby(indices, key=input_list.__getitem__)
@@ -66,7 +62,7 @@ def __remove_duplicates(input_list):
     return [x for i, x in enumerate(input_list) if i in indices]
 
 
-def __sort_points(pts):
+def __sort_points(pts: list[list]) -> list[list]:
     """Sort points clockwise."""
     mlat = sum(x[0] for x in pts) / len(pts)
     mlng = sum(x[1] for x in pts) / len(pts)
@@ -78,14 +74,16 @@ def __sort_points(pts):
     return pts
 
 
-def __ptl_distance(line, point, dx):
-    """
-    Distance from point to line.
+def __ptl_distance(line: list[list], point: list, dx):
+    """Compute the distance from a point to a line.
 
     :param line: Line defined by two points.
+
     :param point: Point.
+
     :param dx: Distance between the points that define the line.
-    :return: The distance from point to line.
+
+    :return: Distance from the point to the line.
     """
     return (
         abs(
@@ -96,10 +94,10 @@ def __ptl_distance(line, point, dx):
     )
 
 
-def __intersection(line1, line2):
-    """
-    Returns the intersection of line1 and line2. If they don't
-    intersect, returns (-1, -1).
+def __intersection(line1: list[list], line2: list[list]):
+    """Return the intersection of `line1` and `line2`.
+
+    If they don't intersect, the function returns (-1, -1).
     """
     xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
     ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1])
@@ -118,7 +116,7 @@ def __intersection(line1, line2):
 
 
 def __polyscore(cnt, pts, cen, alfa, beta):
-    """Calculates the polyscore value."""
+    """Calculate the polyscore value."""
     # Too small area
     frame_area = cv2.contourArea(cnt)
     if frame_area < (4 * alfa * alfa) * 5:
@@ -173,10 +171,7 @@ def __polyscore(cnt, pts, cen, alfa, beta):
 
 
 def __padcrop(img, four_points):
-    """
-    Apply a border to the inner four points of the chessboard in order
-    to obtain a frame that contains the full board.
-    """
+    """Apply a border to the inner four points of the chessboard in order to obtain a frame that contains the full board."""
     pco = pyclipper.PyclipperOffset()
     pco.AddPath(four_points, pyclipper.JT_MITER, pyclipper.ET_CLOSEDPOLYGON)
 
@@ -207,22 +202,21 @@ def __padcrop(img, four_points):
     return __order_points(padded)
 
 
-def cps(img, points, lines):
-    """
-    Chessboard position search in the given image.
+def cps(img: np.ndarray, points: list[list], lines: list[list]) -> list[list[int]]:
+    """Search for the chessboard position search in the given image.
 
     :param img: Image to search.
+
     :param points: Points obtained in laps.
+
     :param lines: Lines detected by slid.
+
     :return: The four inner points of the detected chessboard.
     """
     ptp_cache = {}
 
     def ptp_distance(a, b):
-        """
-        Distance from point to point with a cache to avoid multiple
-        calculations.
-        """
+        """Calculate the point-to-point distance with a cache to avoid multiple calculations."""
         idx = hash("__dis" + str(a) + str(b))
         if idx in ptp_cache:
             return ptp_cache[idx]

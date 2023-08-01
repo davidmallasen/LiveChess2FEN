@@ -1,6 +1,6 @@
-"""
-Train DenseNet201 model.
-"""
+"""This module is responsible for training the DenseNet201 model."""
+
+
 from keras.applications import DenseNet201
 from keras.applications.densenet import preprocess_input
 from keras.models import load_model
@@ -16,7 +16,7 @@ from chess_piece_models_common import (
 
 
 def train_chesspiece_model():
-    """Trains the chesspiece model based on DenseNet201."""
+    """Train the chess-piece model based on DenseNet201."""
     base_model = DenseNet201(
         input_shape=(224, 224, 3), include_top=False, weights="imagenet"
     )
@@ -79,7 +79,7 @@ def train_chesspiece_model():
 
 
 def continue_training():
-    """Continues training the chesspiece model based on DenseNet201."""
+    """Continue training the chess-piece model based on DenseNet201."""
     model = load_model("./models/DenseNet201.h5")
 
     train_generator, validation_generator = data_generators(

@@ -1,6 +1,6 @@
-"""
-SqueezeNet-v1.1 implementation.
-"""
+"""This module contains the SqueezeNet-v1.1 implementation."""
+
+
 import warnings
 
 from keras import backend as K
@@ -19,6 +19,7 @@ from keras.utils import get_file
 from keras.utils import layer_utils
 from keras.applications.imagenet_utils import obtain_input_shape
 
+
 SQ1X1 = "squeeze1x1"
 EXP1X1 = "expand1x1"
 EXP3X3 = "expand3x3"
@@ -29,7 +30,10 @@ WEIGHTS_PATH_NO_TOP = "https://github.com/rcmalli/keras-squeezenet/releases/down
 
 
 def fire_module(x, fire_id, squeeze=16, expand=64):
-    """Modular function for Fire Node."""
+    """Fire up the module.
+
+    This is the modular function for Fire Node.
+    """
     s_id = "fire" + str(fire_id) + "/"
 
     if K.image_data_format() == "channels_first":
@@ -57,8 +61,7 @@ def SqueezeNet(
     pooling=None,
     classes=1000,
 ):
-    """Instantiates the original SqueezeNet architecture from paper."""
-
+    """Instantiate the original SqueezeNet architecture from paper."""
     if weights not in {"imagenet", None}:
         raise ValueError(
             "The `weights` argument should be either "

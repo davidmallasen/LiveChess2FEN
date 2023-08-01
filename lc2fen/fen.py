@@ -1,17 +1,18 @@
-"""
-FEN notation transformations.
-"""
+"""This module is responsible for FEN-related transformations."""
+
 
 PIECE_TYPES = ["r", "n", "b", "q", "k", "p", "P", "R", "N", "B", "Q", "K", "_"]
 
 
-def fen_to_board(fen):
-    """
-    Translates fen string containing only the positions of the pieces to
-    a board matrix. Empty squares are replaced by '_'.
+def fen_to_board(fen: str) -> list[list[str]]:
+    """Translate an FEN string to a board matrix.
 
-    :param fen: Fen string to translate.
-    :return: The board corresponding to the fen string.
+    Note that the FEN string should only contain information of the positions
+    of the pieces. Each empty square is represented by a `"_"` in the board matrix.
+
+    :param fen: FEN string to translate.
+
+    :return: Board matrix corresponding to the FEN string.
     """
     rows = fen.split(sep="/")
 
@@ -33,13 +34,14 @@ def fen_to_board(fen):
     return board
 
 
-def board_to_fen(board):
-    """
-    Translates a board matrix to fen notation. Emtpy squares must be
-    represented by '_'.
+def board_to_fen(board: list[list[str]]) -> str:
+    """Translate a board matrix to an FEN string.
 
-    :param board: Board to translate.
-    :return: The fen string corresponding to the input board.
+    Each empty square must be represented by a `"_"` in the board matrix.
+
+    :param board: Board matrix to translate.
+
+    :return: FEN string corresponding to the board matrix.
     """
     fen = []
     for row in board:
@@ -64,41 +66,53 @@ def board_to_fen(board):
     return "".join(fen[:-1])  # Remove final /
 
 
-def list_to_board(pieces_list, a1_pos="BL"):
-    """
-    Translates a list of pieces to an 8x8 board. Rotates the board so
-    that the a1 square ends up in the bottom left corner.
+def list_to_board(pieces_list: list, a1_pos="BL") -> list[list[str]]:
+    """Translate a list of pieces to a board matrix.
+
+    This function translates a list of pieces to an 8x8 board matrix.
+    The board matrix is rotated such that the a1 suqare is in the bottom-left
+    corner.
 
     :param pieces_list: List of pieces to translate.
-    :param a1_pos: Position of the a1 square. Must be one of the
-        following: "BL", "BR", "TL", "TR".
-    :return: The board corresponding to the input list of pieces.
+
+    :param a1_pos: Position of the a1 square (`"BL"`, `"BR"`, `"TL"`, or `"TR"`)
+    corresponding to the list of pieces.
+
+    :return: Board matrix corresponding to the list of pieces.
     """
     if len(pieces_list) != 64:
         raise ValueError("Input pieces list must be of length 64")
 
     board = [pieces_list[ind : ind + 8] for ind in range(0, 64, 8)]
-    board = rotate_board_image2fen(board, a1_pos)
+    board = rotate_board_to_standard_view(board, a1_pos)
     return board
 
 
-def board_to_list(board):
-    """
-    Translates a board to a list.
+def board_to_list(board: list[list[str]]) -> list:
+    """Translate a board matrix to a list of pieces.
 
-    :param board: Board to translate.
-    :return: The list corresponding to the input board.
+    :param board: Board matrix to translate.
+
+    :return: List of pieces corresponding to the board matrix.
     """
     return [pos for row in board for pos in row]
 
 
-def is_white_square(list_pos):
-    """
-    Returns True if the square color from a position in a chess board in
-    list form is white. False if it is black
+def is_light_square(list_pos: int) -> bool:
+    """Determine whether a chess square is a light square or not.
+
+    This function returns `True` if the chess square corresponding to
+    `list_pos` is a light square. Otherwise it returns `False`.
+
+    :param list_pos: Integer corresponding to the position of the chess square.
+
+        `0` corresponds to the a8 square, `1` corresponds to the b8 square, ...,
+        `63` corresponds to the h1 square.
+
+    :return: Whether the chess square is a light square or not.
     """
     if not 0 <= list_pos <= 63:
-        raise ValueError("List positions must be between 0 and 63")
+        raise ValueError("List position must be between 0 and 63")
 
     if list_pos % 16 < 8:  # Rank 8, 6, 4, or 2
         return list_pos % 2 == 0  # File a, c, e, or g
@@ -106,17 +120,17 @@ def is_white_square(list_pos):
         return list_pos % 2 == 1  # File b, d, f, or h
 
 
-def rotate_board_fen2image(board, a1_pos):
-    """
-    Rotates a standard fen board so that the pieces in the image align
-    correctly with the a1 square (bottom left corner in fen).
+def rotate_board_from_standard_view(
+    board: list[list[str]], a1_pos: str
+) -> list[list[str]]:
+    """Rotate a board matrix whose a1 square is in the bottom-left corner.
 
-    B = bottom, T = top, R = right, L = left.
+    :param board: Board matrix whose a1 square is in the bottom-left corner.
 
-    :param board: Standard fen board to rotate.
-    :param a1_pos: Position of the a1 square. Must be one of the
-        following: "BL", "BR", "TL", "TR".
-    :return: The rotated board.
+    :param a1_pos: Position of the a1 square (`"BL"`, `"BR"`, `"TL"`, or `"TR"`)
+    of the rotated board matrix. (B = bottom, T = top, R = right, and L = left.)
+
+    :return: Rotated board matrix.
     """
     if a1_pos == "BL":
         return board
@@ -131,31 +145,36 @@ def rotate_board_fen2image(board, a1_pos):
     raise ValueError("a1_pos is not BL, BR, TL or TR")
 
 
-def rotate_board_image2fen(board, a1_pos):
-    """
-    Rotates a fen board from an image so that the final result is the
-    standard view in fen notation.
+def rotate_board_to_standard_view(
+    board: list[list[str]], a1_pos: str
+) -> list[list[str]]:
+    """Rotate a board matrix such that its a1 square ends up in the bottom-left corner.
 
-    B = bottom, T = top, R = right, L = left.
+    :param board: Board matrix whose a1 square is in the `a1_pos` corner.
 
-    :param board: Image fen board to rotate.
-    :param a1_pos: Position of the a1 square. Must be one of the
-        following: "BL", "BR", "TL", "TR".
-    :return: The rotated board to standard fen.
+    :param a1_pos: Position of the a1 square (`"BL"`, `"BR"`, `"TL"`, or `"TR"`)
+    of the (input) board matrix. (B = bottom, T = top, R = right, and L = left.)
+
+    :return: Rotated board matrix (whose a1 square is in the bottom-left corner).
     """
-    # Exchange clockwise and counterclockwise rotations, the rest are
-    # the same
     if a1_pos == "BR":
-        a1_pos = "TL"
+        a1_pos = "TL"  # Exchange 90-degree clockwise and 90-degree counterclockwise rotations
     elif a1_pos == "TL":
-        a1_pos = "BR"
+        a1_pos = "BR"  # Exchange 90-degree clockwise and 90-degree counterclockwise rotations
 
-    return rotate_board_fen2image(board, a1_pos)
+    return rotate_board_from_standard_view(
+        board, a1_pos
+    )  # The 180-degree rotations stay the same
 
 
-def compare_fen(fen1, fen2):
-    """
-    Returns the number of different positions between both fen strings.
+def compare_fen(fen1: str, fen2: str) -> int:
+    """Return the number of positions that differ for two FEN strings.
+
+    :param fen1: First FEN string.
+
+    :param fen2: Second FEN string.
+
+    :return: Number of positions that differ for the two FEN strings.
     """
     board1 = fen_to_board(fen1)
     board2 = fen_to_board(fen2)

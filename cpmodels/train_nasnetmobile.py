@@ -1,6 +1,6 @@
-"""
-Train NASNetMobile model.
-"""
+"""Train NASNetMobile model."""
+
+
 from keras.applications import NASNetMobile
 from keras.applications.nasnet import preprocess_input
 from keras.models import load_model
@@ -16,7 +16,7 @@ from chess_piece_models_common import (
 
 
 def train_chesspiece_model():
-    """Trains the chesspiece model based on NASNetMobile."""
+    """Train the chess-piece model based on NASNetMobile."""
     base_model = NASNetMobile(
         input_shape=(224, 224, 3), include_top=False, weights="imagenet"
     )
@@ -81,7 +81,7 @@ def train_chesspiece_model():
 
 
 def continue_training():
-    """Continues training the chesspiece model based on NASNetMobile."""
+    """Continue training the chess-piece model based on NASNetMobile."""
     model = load_model("./models/NASNetMobile.h5")
 
     train_generator, validation_generator = data_generators(

@@ -1,6 +1,9 @@
+"""This is the main program for converting chessboard images into FENs."""
+
+
 import argparse
 
-import sklearn  # Required in Jetson to avoid cannot allocate memory in static TLS block error
+import sklearn  # This is required for Jetson to avoid "cannot allocate memory in static TLS block" error
 from keras.applications.imagenet_utils import preprocess_input as prein_squeezenet
 from keras.applications.mobilenet_v2 import preprocess_input as prein_mobilenet
 
@@ -9,6 +12,7 @@ from lc2fen.predict_board import (
     predict_board_onnx,
     predict_board_trt,
 )
+
 
 ACTIVATE_KERAS = False
 MODEL_PATH_KERAS = "selected_models/SqueezeNet1p1.h5"
@@ -26,10 +30,12 @@ IMG_SIZE_TRT = 224
 PRE_INPUT_TRT = prein_mobilenet
 
 
-def parse_arguments():
-    """Parses the script arguments and sets the corresponding flags.
-    Returns the path of the image or folder and the location of the a1
-    square."""
+def parse_arguments() -> tuple[str, str, str | None]:
+    """Parse the script arguments and set the corresponding flags.
+
+    :return: Path of the image or folder, location of the a1 square, and
+    FEN string of the previous board position.
+    """
     global ACTIVATE_KERAS, ACTIVATE_ONNX, ACTIVATE_TRT
 
     parser = argparse.ArgumentParser(
@@ -79,7 +85,7 @@ def parse_arguments():
 
 
 def main():
-    """Parses the arguments and prints the predicted FEN."""
+    """Parse the arguments and print the predicted FEN."""
     path, a1_pos, previous_fen = parse_arguments()
     if ACTIVATE_KERAS:
         fen, _ = predict_board_keras(

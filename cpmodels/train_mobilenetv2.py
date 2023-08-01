@@ -1,6 +1,6 @@
-"""
-Train MobileNetV2 model.
-"""
+"""This module is responsible for training the MobileNetV2 model."""
+
+
 from keras.applications import MobileNetV2
 from keras.applications.mobilenet_v2 import preprocess_input
 from keras.models import load_model
@@ -16,7 +16,7 @@ from chess_piece_models_common import (
 
 
 def train_chesspiece_model():
-    """Trains the chesspiece model based on MobileNetV2."""
+    """Train the chess-piece model based on MobileNetV2."""
     base_model = MobileNetV2(
         input_shape=(224, 224, 3), include_top=False, weights="imagenet", alpha=0.5
     )
@@ -81,7 +81,7 @@ def train_chesspiece_model():
 
 
 def continue_training():
-    """Continues training the chesspiece model based on MobileNetV2."""
+    """Continue training the chess-piece model based on MobileNetV2."""
     model = load_model("./models/MobileNetV2_0p5.h5")
 
     train_generator, validation_generator = data_generators(
