@@ -18,7 +18,7 @@ def build_model(base_model: Model) -> Model:
     :param base_model: Base model from keras applications.
 
         Example: `MobileNetV2(input_shape=(224, 224, 3), include_top=False,
-        weights='imagenet'`).
+        weights='imagenet')`.
 
     :return: The compiled model to train.
     """
