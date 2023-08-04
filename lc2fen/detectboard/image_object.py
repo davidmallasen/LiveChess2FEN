@@ -1,4 +1,4 @@
-"""This module works with an image in the iterative process of finding a chessboard."""
+"""This module is responsible for iteratively finding a chessboard."""
 
 
 import math
@@ -26,20 +26,29 @@ def image_transform(img: np.ndarray, points):
 
     pts1 = np.float32(points)
     pts2 = np.float32(
-        [[0, 0], [board_length, 0], [board_length, board_length], [0, board_length]]
+        [
+            [0, 0],
+            [board_length, 0],
+            [board_length, board_length],
+            [0, board_length],
+        ]
     )
     mat = cv2.getPerspectiveTransform(pts1, pts2)
     return cv2.warpPerspective(img, mat, (board_length, board_length))
 
 
 class ImageObject:
-    """Represent an image object in the iterative process of finding the chessboard."""
+    """Represent an image object in process of finding chessboard.
+
+    This class represents an image object in the iterative process of
+    finding a chessboard.
+    """
 
     def __init__(self, img: (np.ndarray | None) = None):
         """Save and prepare image array."""
-        # We save the whole sequence of transformations
-        # attribute[i] is the attribute of iteration i, being iteration
-        # 0 the first one
+        # We save the whole sequence of transformations attribute[i] is
+        # the attribute of iteration i, with iteration 0 being the first
+        # one
         self.points = []  # Points of the new cropped image for next iteration
         self.images = []
         self.shape = []  # (0, 0)

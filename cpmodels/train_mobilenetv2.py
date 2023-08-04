@@ -18,7 +18,10 @@ from chess_piece_models_common import (
 def train_chesspiece_model():
     """Train the chess-piece model based on MobileNetV2."""
     base_model = MobileNetV2(
-        input_shape=(224, 224, 3), include_top=False, weights="imagenet", alpha=0.5
+        input_shape=(224, 224, 3),
+        include_top=False,
+        weights="imagenet",
+        alpha=0.5,
     )
 
     # First train only the top layers
@@ -73,7 +76,9 @@ def train_chesspiece_model():
     )
 
     plot_model_history(
-        history, "./models/MobileNetV2_0p5_acc.png", "./models/MobileNetV2_0p5_loss.png"
+        history,
+        "./models/MobileNetV2_0p5_acc.png",
+        "./models/MobileNetV2_0p5_loss.png",
     )
     evaluate_model(model, validation_generator)
 
@@ -81,7 +86,7 @@ def train_chesspiece_model():
 
 
 def continue_training():
-    """Continue training the chess-piece model based on MobileNetV2."""
+    """Continue training chess-piece model based on MobileNetV2."""
     model = load_model("./models/MobileNetV2_0p5.h5")
 
     train_generator, validation_generator = data_generators(

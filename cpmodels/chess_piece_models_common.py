@@ -1,4 +1,4 @@
-"""This module contains the common functions for training the chess piece models."""
+"""This module has common functions for training chess-piece models."""
 
 
 import matplotlib
@@ -17,8 +17,8 @@ def build_model(base_model: Model) -> Model:
 
     :param base_model: Base model from keras applications.
 
-        Example: `MobileNetV2(input_shape=(224, 224, 3), include_top=False,
-        weights='imagenet')`.
+        Example: `MobileNetV2(input_shape=(224, 224, 3),
+        include_top=False, weights='imagenet')`.
 
     :return: The compiled model to train.
     """
@@ -37,7 +37,7 @@ def build_model(base_model: Model) -> Model:
 
 
 def data_generators(
-    preprocessing_function,
+    preprocessing_func,
     target_size: tuple[int, int],
     batch_size: int,
     train_path: str = "../data/train/",
@@ -45,11 +45,15 @@ def data_generators(
 ):
     """Return the train and validation generators.
 
-    :param preprocessing_function: Corresponding preprocessing function for the pretrained base model.
+    :param preprocessing_func: Preprocessing function for base model.
 
-        Example: `from keras.applications.mobilenet_v2 import preprocess_input`.
+        This is the preprocessing function for the pretrained base
+        model.
 
-    :param target_size: Dimensions to which all images found will be resized.
+        Example: `from keras.applications.mobilenet_v2 import
+        preprocess_input`.
+
+    :param target_size: Dimensions to which all images will be resized.
 
         Example: `(224, 224)`.
 
@@ -62,7 +66,7 @@ def data_generators(
     :return: Train and validation generators.
     """
     datagen = ImageDataGenerator(
-        preprocessing_function=preprocessing_function, dtype="float16"
+        preprocessing_function=preprocessing_func, dtype="float16"
     )
 
     train_gen = datagen.flow_from_directory(

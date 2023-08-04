@@ -83,7 +83,7 @@ def alexnet(input_shape=(224, 224, 3)):
 
 
 def preprocess_input(x):
-    """Preprocess the input image appropriately according to AlexNet requirements."""
+    """Preprocess the input image according to AlexNet requirements."""
     x /= 127.5
     x -= 1.0
     return x
@@ -109,14 +109,16 @@ def train_chesspiece_model():
         workers=5,
     )
 
-    plot_model_history(history, "./models/AlexNet_acc.png", "./models/AlexNet_loss.png")
+    plot_model_history(
+        history, "./models/AlexNet_acc.png", "./models/AlexNet_loss.png"
+    )
     evaluate_model(model, validation_generator)
 
     model.save("./models/AlexNet_last.h5")
 
 
 def continue_training():
-    """Continue training the chess-piece model based on AlexNet."""
+    """Continue training chess-piece model based on AlexNet."""
     model = load_model("./models/AlexNet.h5")
 
     train_generator, validation_generator = data_generators(
@@ -124,7 +126,9 @@ def continue_training():
     )
 
     model.compile(
-        optimizer=Adam(lr=1e-4), loss="categorical_crossentropy", metrics=["accuracy"]
+        optimizer=Adam(lr=1e-4),
+        loss="categorical_crossentropy",
+        metrics=["accuracy"],
     )
 
     callbacks = model_callbacks(20, "./models/AlexNet_2.h5", 0.2, 8)

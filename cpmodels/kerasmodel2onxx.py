@@ -1,4 +1,8 @@
-"""This module is responsible for converting a Keras model to an ONNX model."""
+"""This module is responsible for the Keras-to-ONNX conversion.
+
+It converts a Keras model (a ".h5" file) to an ONNX model (a ".onnx"
+file).
+"""
 
 
 import tensorflow as tf
@@ -24,7 +28,9 @@ def main():
     # Convert to ONNX
     spec = (
         tf.TensorSpec(
-            (batch_size, image_size, image_size, channels), tf.float32, name="input"
+            (batch_size, image_size, image_size, channels),
+            tf.float32,
+            name="input",
         ),
     )
     model_proto, _ = tf2onnx.convert.from_keras(

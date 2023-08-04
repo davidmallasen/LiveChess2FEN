@@ -73,7 +73,9 @@ def train_chesspiece_model():
     )
 
     plot_model_history(
-        history, "./models/SqueezeNet1p1_acc.png", "./models/SqueezeNet1p1_loss.png"
+        history,
+        "./models/SqueezeNet1p1_acc.png",
+        "./models/SqueezeNet1p1_loss.png",
     )
     evaluate_model(model, validation_generator)
 
@@ -81,7 +83,7 @@ def train_chesspiece_model():
 
 
 def continue_training():
-    """Continues training the chess-piece model based on SqueezeNet-v1.1."""
+    """Continue training chess-piece model based on SqueezeNet-v1.1."""
     model = load_model("./models/SqueezeNet1p1.h5")
 
     train_generator, validation_generator = data_generators(

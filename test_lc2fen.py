@@ -1,8 +1,12 @@
-"""This script executes some tests for the complete digitization of a chessboard."""
+"""This script contains tests for chessboard digitization."""
 
 
-import sklearn  # This is required for Jetson to avoid "cannot allocate memory in static TLS block" error
-from keras.applications.imagenet_utils import preprocess_input as prein_squeezenet
+# `sklearn` is required for Jetson (to avoid "cannot allocate memory in
+# static TLS block" error)
+import sklearn
+from keras.applications.imagenet_utils import (
+    preprocess_input as prein_squeezenet,
+)
 from keras.applications.mobilenet_v2 import preprocess_input as prein_mobilenet
 from keras.applications.xception import preprocess_input as prein_xception
 
@@ -32,13 +36,17 @@ PRE_INPUT_TRT = prein_squeezenet
 def main_keras():
     """Execute the Keras-based board-prediction tests."""
     print("Keras predictions")
-    predict_board_keras(MODEL_PATH_KERAS, IMG_SIZE_KERAS, PRE_INPUT_KERAS, test=True)
+    predict_board_keras(
+        MODEL_PATH_KERAS, IMG_SIZE_KERAS, PRE_INPUT_KERAS, test=True
+    )
 
 
 def main_onnx():
     """Execute the ONNXRuntime-based board-prediction tests."""
     print("ONNXRuntime predictions")
-    predict_board_onnx(MODEL_PATH_ONNX, IMG_SIZE_ONNX, PRE_INPUT_ONNX, test=True)
+    predict_board_onnx(
+        MODEL_PATH_ONNX, IMG_SIZE_ONNX, PRE_INPUT_ONNX, test=True
+    )
 
 
 def main_tensorrt():

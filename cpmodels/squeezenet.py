@@ -25,8 +25,14 @@ EXP1X1 = "expand1x1"
 EXP3X3 = "expand3x3"
 RELU = "relu_"
 
-WEIGHTS_PATH = "https://github.com/rcmalli/keras-squeezenet/releases/download/v1.0/squeezenet_weights_tf_dim_ordering_tf_kernels.h5"
-WEIGHTS_PATH_NO_TOP = "https://github.com/rcmalli/keras-squeezenet/releases/download/v1.0/squeezenet_weights_tf_dim_ordering_tf_kernels_notop.h5"
+WEIGHTS_PATH = (
+    "https://github.com/rcmalli/keras-squeezenet/releases/download/v1.0/squeez"
+    "enet_weights_tf_dim_ordering_tf_kernels.h5"
+)
+WEIGHTS_PATH_NO_TOP = (
+    "https://github.com/rcmalli/keras-squeezenet/releases/download/v1.0/squeez"
+    "enet_weights_tf_dim_ordering_tf_kernels_notop.h5"
+)
 
 
 def fire_module(x, fire_id, squeeze=16, expand=64):
@@ -44,10 +50,14 @@ def fire_module(x, fire_id, squeeze=16, expand=64):
     x = Convolution2D(squeeze, (1, 1), padding="valid", name=s_id + SQ1X1)(x)
     x = Activation("relu", name=s_id + RELU + SQ1X1)(x)
 
-    left = Convolution2D(expand, (1, 1), padding="valid", name=s_id + EXP1X1)(x)
+    left = Convolution2D(expand, (1, 1), padding="valid", name=s_id + EXP1X1)(
+        x
+    )
     left = Activation("relu", name=s_id + RELU + EXP1X1)(left)
 
-    right = Convolution2D(expand, (3, 3), padding="same", name=s_id + EXP3X3)(x)
+    right = Convolution2D(expand, (3, 3), padding="same", name=s_id + EXP3X3)(
+        x
+    )
     right = Activation("relu", name=s_id + RELU + EXP3X3)(right)
 
     return concatenate([left, right], axis=channel_axis, name=s_id + "concat")
@@ -91,9 +101,9 @@ def SqueezeNet(
         else:
             img_input = input_tensor
 
-    x = Convolution2D(64, (3, 3), strides=(2, 2), padding="valid", name="conv1")(
-        img_input
-    )
+    x = Convolution2D(
+        64, (3, 3), strides=(2, 2), padding="valid", name="conv1"
+    )(img_input)
     x = Activation("relu", name="relu_conv1")(x)
     x = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), name="pool1")(x)
 

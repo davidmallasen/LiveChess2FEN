@@ -44,7 +44,9 @@ def train_chesspiece_model():
     )
 
     plot_model_history(
-        history, "./models/Xception_pre_acc.png", "./models/Xception_pre_loss.png"
+        history,
+        "./models/Xception_pre_acc.png",
+        "./models/Xception_pre_loss.png",
     )
     evaluate_model(model, validation_generator)
 
@@ -79,7 +81,7 @@ def train_chesspiece_model():
 
 
 def continue_training():
-    """Continue training the chess-piece model based on Xception."""
+    """Continue training chess-piece model based on Xception."""
     model = load_model("./models/Xception.h5")
 
     train_generator, validation_generator = data_generators(
@@ -107,7 +109,9 @@ def continue_training():
     )
 
     plot_model_history(
-        history, "./models/Xception_all_acc.png", "./models/Xception_all_loss.png"
+        history,
+        "./models/Xception_all_acc.png",
+        "./models/Xception_all_loss.png",
     )
     evaluate_model(model, validation_generator)
 

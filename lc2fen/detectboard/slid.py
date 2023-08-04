@@ -28,10 +28,16 @@ def __slid_segments(img):
         return cv2.Canny(img, lower, upper)
 
     def simplify_image(img, limit, grid, iters):
-        """Simplify image using CLAHE algorithm (adaptive histogram equalization)."""
+        """Simplify image using CLAHE algorithm.
+
+        This function simplifies an image using the CLAHE algorithm
+        (adaptive histogram equalization).
+        """
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         for _ in range(iters):
-            img = cv2.createCLAHE(clipLimit=limit, tileGridSize=grid).apply(img)
+            img = cv2.createCLAHE(clipLimit=limit, tileGridSize=grid).apply(
+                img
+            )
         debug.DebugImage(img).save("slid_clahe_@1")
         if limit != 0:
             kernel = np.ones((10, 10), np.uint8)
@@ -55,7 +61,9 @@ def __slid_segments(img):
 
         __lines = []
         for line in np.reshape(lines, (-1, 4)):
-            __lines.append([[int(line[0]), int(line[1])], [int(line[2]), int(line[3])]])
+            __lines.append(
+                [[int(line[0]), int(line[1])], [int(line[2]), int(line[3])]]
+            )
         return __lines
 
     clahe_settings = [
@@ -72,15 +80,18 @@ def __slid_segments(img):
         __segments = detect_lines(detect_edges(tmp))
         segments += __segments
         i += 1
-        debug.DebugImage(detect_edges(tmp)).lines(__segments).save("pslid_F%d" % i)
+        debug.DebugImage(detect_edges(tmp)).lines(__segments).save(
+            "pslid_F%d" % i
+        )
     return segments
 
 
 def __scale_lines(raw_lines) -> list:
     """Scale raw_lines by a factor.
 
-    :param raw_lines: Iterable of pairs of points (note that a line is given
-    by (x1, y1), (x2, y2)).
+    :param raw_lines: Iterable of pairs of points.
+
+        Note that a line is given by two points ((x1, y1), (x2, y2)).
 
     :return: List of the scaled lines.
 
@@ -116,7 +127,11 @@ def slid(img):
     ptp_cache = {}
 
     def ptp_distance(a, b):
-        """Compute the distance from point to point with a cache to avoid multiple calculations."""
+        """Calculate the point-to-point distance.
+
+        This function calculates the point-to-point distance with a
+        cache to avoid multiple calculations.
+        """
         idx = hash("__dis" + str(a) + str(b))
         if idx in ptp_cache:
             return ptp_cache[idx]
@@ -178,7 +193,7 @@ def slid(img):
         group[ib] |= group[ia]
 
     def generate_points(a, b, n):
-        """Return n equispaced points in the segment given by a and b."""
+        """Return n equispaced points in segment given by a and b."""
         points = []
         t = 1 / n
         for i in range(n):
@@ -223,9 +238,9 @@ def slid(img):
         else:
             vh_segments[1].append(l)
 
-    debug.DebugImage(img.shape).lines(vh_segments[0], color=debug.rand_color()).lines(
-        vh_segments[1], color=debug.rand_color()
-    ).save("slid_pre_groups")
+    debug.DebugImage(img.shape).lines(
+        vh_segments[0], color=debug.rand_color()
+    ).lines(vh_segments[1], color=debug.rand_color()).save("slid_pre_groups")
 
     for lines in vh_segments:
         for i in range(len(lines)):
@@ -260,9 +275,9 @@ def slid(img):
 
     lines = __scale_lines(raw_lines)
 
-    debug.DebugImage(img.shape).points(all_points, color=(0, 255, 0), size=2).lines(
-        raw_lines
-    ).save("slid_raw_lines")
+    debug.DebugImage(img.shape).points(
+        all_points, color=(0, 255, 0), size=2
+    ).lines(raw_lines).save("slid_raw_lines")
 
     debug.DebugImage(img).lines(lines).save("slid_final")
 

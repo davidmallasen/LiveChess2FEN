@@ -1,8 +1,9 @@
 """
-This module is responsible for transforming input boards into individual pieces.
+This module is responsible for board-to-pieces transformations.
 
-It is useful for detecting chessboards (with "board_detection.py") and creating
-images for a dataset.
+It transforms a chessboard into individual pieces. It is useful for
+detecting chessboards (with "board_detection.py") and creating images
+for a dataset.
 """
 
 
@@ -16,16 +17,19 @@ from tqdm import tqdm
 
 from lc2fen.detectboard import detect_board
 from lc2fen.fen import fen_to_board, rotate_board_from_standard_view
-from lc2fen.split_board import split_board_image_trivial, split_board_image_advanced
+from lc2fen.split_board import (
+    split_board_image_trivial,
+    split_board_image_advanced,
+)
 
 
 def regenerate_data_folder(data_path: str):
     """Regenerate the data folder.
 
     This function deletes the "`data_path`/boards/output" folder, the
-    "`data_path`/boards/debug_steps" folder, and the "`data_path`/pieces"
-    folder, and then it regenerates these folders (the folders will be
-    empty) and creates the 13 piece subfolders.
+    "`data_path`/boards/debug_steps" folder, and the
+    "`data_path`/pieces" folder, and then it regenerates these folders
+    (the folders will be empty) and creates the 13 piece subfolders.
 
     :param data_path: Path to the data folder (for example, `"data"`).
     """
@@ -98,10 +102,11 @@ def split_detected_square_boards(data_path: str):
 
 
 def process_input_boards(data_path: str):
-    """Detect boards in the input folder and store the results in the output folder.
+    """Detect boards and store the results.
 
-    This function detects all the boards in the "`data_path`/boards/input" folder
-    and stores the results in "`data_path`/boards/output" folder.
+    This function detects all the boards in the
+    "`data_path`/boards/input" folder and stores the results in
+    the "`data_path`/boards/output" folder.
 
     :param data_path: Path to the data folder (for example, `"data"`).
     """
@@ -109,7 +114,9 @@ def process_input_boards(data_path: str):
     def natural_key(text):
         return [int(c) if c.isdigit() else c for c in re.split(r"(\d+)", text)]
 
-    input_boards = sorted(glob.glob(data_path + "/boards/input/*.jpg"), key=natural_key)
+    input_boards = sorted(
+        glob.glob(data_path + "/boards/input/*.jpg"), key=natural_key
+    )
 
     print("INPUT: %d boards" % len(input_boards), flush=True)
 

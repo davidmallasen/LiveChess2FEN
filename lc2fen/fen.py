@@ -7,8 +7,9 @@ PIECE_TYPES = ["r", "n", "b", "q", "k", "p", "P", "R", "N", "B", "Q", "K", "_"]
 def fen_to_board(fen: str) -> list[list[str]]:
     """Translate an FEN string to a board matrix.
 
-    Note that the FEN string should only contain information of the positions
-    of the pieces. Each empty square is represented by a `"_"` in the board matrix.
+    Note that the FEN string should only contain information of the
+    positions of the pieces. Each empty square is represented by a `"_"`
+    in the board matrix.
 
     :param fen: FEN string to translate.
 
@@ -37,7 +38,8 @@ def fen_to_board(fen: str) -> list[list[str]]:
 def board_to_fen(board: list[list[str]]) -> str:
     """Translate a board matrix to an FEN string.
 
-    Each empty square must be represented by a `"_"` in the board matrix.
+    Each empty square must be represented by a `"_"` in the board
+    matrix.
 
     :param board: Board matrix to translate.
 
@@ -66,17 +68,19 @@ def board_to_fen(board: list[list[str]]) -> str:
     return "".join(fen[:-1])  # Remove final /
 
 
-def list_to_board(pieces_list: list, a1_pos="BL") -> list[list[str]]:
+def list_to_board(pieces_list: list[str], a1_pos="BL") -> list[list[str]]:
     """Translate a list of pieces to a board matrix.
 
     This function translates a list of pieces to an 8x8 board matrix.
-    The board matrix is rotated such that the a1 suqare is in the bottom-left
-    corner.
+    The board matrix is rotated such that the a1 suqare is in the
+    bottom-left corner.
 
     :param pieces_list: List of pieces to translate.
 
-    :param a1_pos: Position of the a1 square (`"BL"`, `"BR"`, `"TL"`, or `"TR"`)
-    corresponding to the list of pieces.
+    :param a1_pos: Position of the a1 square of list of pieces.
+
+        This is the position of the a1 square (`"BL"`, `"BR"`, `"TL"`,
+        or `"TR"`) corresponding to the list of pieces.
 
     :return: Board matrix corresponding to the list of pieces.
     """
@@ -88,7 +92,7 @@ def list_to_board(pieces_list: list, a1_pos="BL") -> list[list[str]]:
     return board
 
 
-def board_to_list(board: list[list[str]]) -> list:
+def board_to_list(board: list[list[str]]) -> list[str]:
     """Translate a board matrix to a list of pieces.
 
     :param board: Board matrix to translate.
@@ -104,10 +108,10 @@ def is_light_square(list_pos: int) -> bool:
     This function returns `True` if the chess square corresponding to
     `list_pos` is a light square. Otherwise it returns `False`.
 
-    :param list_pos: Integer corresponding to the position of the chess square.
+    :param list_pos: Integer corresponding to position of chess square.
 
-        `0` corresponds to the a8 square, `1` corresponds to the b8 square, ...,
-        `63` corresponds to the h1 square.
+        `0` corresponds to the a8 square, `1` corresponds to the b8
+        square, ..., `63` corresponds to the h1 square.
 
     :return: Whether the chess square is a light square or not.
     """
@@ -123,12 +127,15 @@ def is_light_square(list_pos: int) -> bool:
 def rotate_board_from_standard_view(
     board: list[list[str]], a1_pos: str
 ) -> list[list[str]]:
-    """Rotate a board matrix whose a1 square is in the bottom-left corner.
+    """Rotate a board matrix whose a1 square is in bottom-left corner.
 
-    :param board: Board matrix whose a1 square is in the bottom-left corner.
+    :param board: Board matrix whose a1 square is in bottom-left corner.
 
-    :param a1_pos: Position of the a1 square (`"BL"`, `"BR"`, `"TL"`, or `"TR"`)
-    of the rotated board matrix. (B = bottom, T = top, R = right, and L = left.)
+    :param a1_pos: Position of the a1 square of rotated board matrix.
+
+        This is the position of the a1 square (`"BL"`, `"BR"`, `"TL"`,
+        or `"TR"`) corresponding to the rotated board matrix. (B =
+        bottom, T = top, R = right, and L = left.)
 
     :return: Rotated board matrix.
     """
@@ -148,19 +155,29 @@ def rotate_board_from_standard_view(
 def rotate_board_to_standard_view(
     board: list[list[str]], a1_pos: str
 ) -> list[list[str]]:
-    """Rotate a board matrix such that its a1 square ends up in the bottom-left corner.
+    """Rotate board matrix s.t. its a1 square ends up in BL corner.
 
-    :param board: Board matrix whose a1 square is in the `a1_pos` corner.
+    This function rotates a board matrix such that its a1 square ends up
+    in the bottom-left corner.
 
-    :param a1_pos: Position of the a1 square (`"BL"`, `"BR"`, `"TL"`, or `"TR"`)
-    of the (input) board matrix. (B = bottom, T = top, R = right, and L = left.)
+    :param board: Board matrix whose a1 square is in `a1_pos` corner.
 
-    :return: Rotated board matrix (whose a1 square is in the bottom-left corner).
+    :param a1_pos: Position of the a1 square of (input) board matrix.
+
+        This is the position of the a1 square (`"BL"`, `"BR"`, `"TL"`,
+        or `"TR"`) corresponding to the (input) board matrix. (B =
+        bottom, T = top, R = right, and L = left.)
+
+    :return: Rotated board matrix.
+
+        The rotated board matrix has its a1 square in the bottom-left
+        corner.
     """
+    # In the next two comments, C = clockwise and CC = counterclockwise
     if a1_pos == "BR":
-        a1_pos = "TL"  # Exchange 90-degree clockwise and 90-degree counterclockwise rotations
+        a1_pos = "TL"  # Exchange 90-degree C and 90-degree CC rotations
     elif a1_pos == "TL":
-        a1_pos = "BR"  # Exchange 90-degree clockwise and 90-degree counterclockwise rotations
+        a1_pos = "BR"  # Exchange 90-degree C and 90-degree CC rotations
 
     return rotate_board_from_standard_view(
         board, a1_pos

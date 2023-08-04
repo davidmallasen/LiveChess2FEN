@@ -44,7 +44,9 @@ def train_chesspiece_model():
     )
 
     plot_model_history(
-        history, "./models/DenseNet201_pre_acc.png", "./models/DenseNet201_pre_loss.png"
+        history,
+        "./models/DenseNet201_pre_acc.png",
+        "./models/DenseNet201_pre_loss.png",
     )
     evaluate_model(model, validation_generator)
 
@@ -71,7 +73,9 @@ def train_chesspiece_model():
     )
 
     plot_model_history(
-        history, "./models/DenseNet201_acc.png", "./models/DenseNet201_loss.png"
+        history,
+        "./models/DenseNet201_acc.png",
+        "./models/DenseNet201_loss.png",
     )
     evaluate_model(model, validation_generator)
 
@@ -79,7 +83,7 @@ def train_chesspiece_model():
 
 
 def continue_training():
-    """Continue training the chess-piece model based on DenseNet201."""
+    """Continue training chess-piece model based on DenseNet201."""
     model = load_model("./models/DenseNet201.h5")
 
     train_generator, validation_generator = data_generators(
@@ -107,7 +111,9 @@ def continue_training():
     )
 
     plot_model_history(
-        history, "./models/DenseNet201_all_acc.png", "./models/DenseNet201_all_loss.png"
+        history,
+        "./models/DenseNet201_all_acc.png",
+        "./models/DenseNet201_all_loss.png",
     )
     evaluate_model(model, validation_generator)
 

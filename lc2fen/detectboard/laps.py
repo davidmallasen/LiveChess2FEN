@@ -13,7 +13,9 @@ from lc2fen.detectboard import debug, image_object
 from lc2fen.detectboard import poly_point_isect
 
 
-__LAPS_SESS = onnxruntime.InferenceSession("lc2fen/detectboard/models/laps_model.onnx")
+__LAPS_SESS = onnxruntime.InferenceSession(
+    "lc2fen/detectboard/models/laps_model.onnx"
+)
 
 __ANALYSIS_RADIUS = 10
 
@@ -35,7 +37,10 @@ def __cluster_points(points, max_dist=10):
     clusters = clusters.values()
     # If two points are close, they become one mean point
     clusters = map(
-        lambda arr: (np.mean(np.array(arr)[:, 0]), np.mean(np.array(arr)[:, 1])),
+        lambda arr: (
+            np.mean(np.array(arr)[:, 0]),
+            np.mean(np.array(arr)[:, 1]),
+        ),
         clusters,
     )
     return list(clusters)
@@ -61,7 +66,9 @@ def __is_lattice_point(img):
     )
     mask = cv2.bitwise_not(mask)
 
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    contours, _ = cv2.findContours(
+        mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
+    )
 
     _c = np.zeros((23, 23, 3), np.uint8)
     num_rhomboid = 0
@@ -132,9 +139,9 @@ def laps(img: np.ndarray, lines):
     if points:
         points = __cluster_points(points)
 
-    debug.DebugImage(img).points(intersection_points, color=(0, 0, 255), size=3).points(
-        points, color=(0, 255, 0)
-    ).save("laps_good_points")
+    debug.DebugImage(img).points(
+        intersection_points, color=(0, 0, 255), size=3
+    ).points(points, color=(0, 255, 0)).save("laps_good_points")
 
     return points
 
@@ -142,11 +149,11 @@ def laps(img: np.ndarray, lines):
 def check_board_position(
     img: np.ndarray, board_corners: list[list[int]], tolerance: int = 20
 ):
-    """Check if a chessboard is in the position given by the board corners.
+    """Check if chessboard is in position given by the board corners.
 
     :param img: Image to check.
 
-    :param board_corners: A list of the coordinates of the four board corners.
+    :param board_corners: List of the coordinates of four board corners.
 
     :param tolerance: Number of lattice points that must be correct.
 

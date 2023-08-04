@@ -1,8 +1,8 @@
-"""This module contains functions for splitting a board into individual pieces.
+"""This module is responsible for board-into-individual-pieces splits.
 
-Specifically, it contains implementations of a trivial method that splits a board
-into the 64 squares and a more advanced method that takes into account the piece
-height and perspective.
+Specifically, it contains implementations of a trivial method that
+splits a board into the 64 squares and a more advanced method that takes
+into account the piece height and perspective.
 """
 
 
@@ -10,13 +10,16 @@ import cv2
 
 
 def split_board_image_trivial(
-    board_image: str, output_name: str, out_dir: str, board: list[list[str]] = None
+    board_image: str,
+    output_name: str,
+    out_dir: str,
+    board: list[list[str]] = None,
 ):
     """Split a chessboard image into 64 images of the 64 squares.
 
-    This function splits a `board_image` into individual squares. Each individual
-    square is saved into `out_dir` as `output_name` appended with its corresponding
-    position on the chessboard.
+    This function splits a `board_image` into individual squares. Each
+    individual square is saved into `out_dir` as `output_name` appended
+    with its corresponding position on the chessboard.
 
     :param board_image: Chessboard image to split.
 
@@ -26,7 +29,8 @@ def split_board_image_trivial(
 
     :param out_dir: Output directory where the output images are saved.
 
-    :param board: 8x8 board matrix that specifies what piece is on each square.
+    :param board: 8x8 board matrix that specifies what piece is on each
+    square.
     """
     img = cv2.imread(board_image)
     if img.shape[0] != img.shape[1]:
@@ -77,36 +81,41 @@ def split_board_image_advanced(
     out_dir: str,
     board: list[list[str]] = None,
 ):
-    """Split a chessboard image into 64 square images using the square-corner coordinates.
+    """Split a board image into 64 square images using square corners.
 
-    This function splits a chessboard image into 64 images of the 64 squares using
-    the coordinates of the 81 square corners. Each individual square is saved into
-    `out_dir` as `output_name` appended with its corresponding position on the chessboard.
+    This function splits a chessboard image into 64 images of the 64
+    squares using the coordinates of the 81 square corners. Each
+    individual square is saved into `out_dir` as `output_name` appended
+    with its corresponding position on the chessboard.
 
     :param board_image: Chessboard image to split.
 
-    :param square_corners: Length-81 list of the square-corner coordinates.
+    :param square_corners: Length-81 list of square-corner coordinates.
 
         Each element of the list is a length-2 tuple.
 
-        Each tuple corresponds to a unique square corner on the chessboard.
+        Each tuple corresponds to a unique square corner on the
+        chessboard.
 
-        The tuples are sorted such that the square corners that they correspond to
-        progress from top left to bottom right. (If we denote the top-left corner
-        as (0, 0) , the top-right corner as (0, 8), and the bottom-right corner
-        as (8, 8), then the first tuple corresponds to (0, 0), the second
-        corresponds to (0, 1), ..., the ninth corresponds to (0, 8), the tenth
-        corresponds to (1, 0), ..., the eleventh sorresponds to (1, 8), and so on.)
+        The tuples are sorted such that the square corners that they
+        correspond to progress from top left to bottom right. (If we
+        denote the top-left corner as (0, 0) , the top-right corner as
+        (0, 8), and the bottom-right corner as (8, 8), then the first
+        tuple corresponds to (0, 0), the second corresponds to (0, 1),
+        ..., the ninth corresponds to (0, 8), the tenth corresponds to
+        (1, 0), ..., the eleventh sorresponds to (1, 8), and so on.)
 
     :param output_name: Starting name of the 64 output images.
 
     :param out_dir: Output directory where the output images are saved.
 
-    :param board: 8x8 board matrix that specifies what piece is on each square.
+    :param board: 8x8 board matrix that specifies what piece is on each
+    square.
     """
     for row_ind in range(1, 9):  # There is a total of 8 rows of squares
         for col_ind in range(0, 8):  # There is a total of 8 columns of squares
-            # Extract the coordinates of the bottom-left, bottom-right, and top-left corners
+            # Extract the coordinates of the bottom-left, bottom-right,
+            # and top-left corners
             bl_corner = square_corners[row_ind + 9 * col_ind]
             br_corner = square_corners[row_ind + 9 * (col_ind + 1)]
             tl_corner = square_corners[(row_ind - 1) + 9 * col_ind]
@@ -144,9 +153,12 @@ def split_board_image_advanced(
             if bl_corner[1] - height < 0 or br_corner[1] - height < 0:
                 height = min(bl_corner[1], br_corner[1])
 
-            # Remember, the square image is [y1:y2, x1:x2, :], where y1 < y2 and x1 < x2
+            # Remember, the square image is [y1:y2, x1:x2, :],
+            # where y1 < y2 and x1 < x2
             rect = board_image[
-                bl_corner[1] - height : bl_corner[1], bl_corner[0] : br_corner[0], :
+                bl_corner[1] - height : bl_corner[1],
+                bl_corner[0] : br_corner[0],
+                :,
             ]
 
             cv2.imwrite(out_loc, rect)

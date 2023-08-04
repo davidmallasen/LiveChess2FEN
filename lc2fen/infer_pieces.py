@@ -8,7 +8,12 @@ convolutional neural network (CNN).
 import numpy as np
 import chess
 
-from lc2fen.fen import board_to_list, list_to_board, is_light_square, fen_to_board
+from lc2fen.fen import (
+    board_to_list,
+    list_to_board,
+    is_light_square,
+    fen_to_board,
+)
 
 
 _IDX_TO_PIECE_FULL = {
@@ -77,33 +82,45 @@ _RANKS = "87654321"
 
 
 def _sort_probs_by_piece_type(
-    probs_by_square: list[tuple[list, int]]
-) -> list[list[tuple[list, int]]]:
-    """Return a length-10 list of piece probabilities sorted in descending order.
+    probs_by_square: list[tuple[list[float], int]]
+) -> list[list[tuple[list[float], int]]]:
+    """Return a length-10 descending-order list of piece probabilities.
+
+    This function returns a length-10 list of piece probabilities sorted
+    in descending order.
 
     :param probs_by_square: Length-64 list of piece probabilities.
 
-        Each tuple in the list corresponds to a unique square on the chessboard.
+        Each tuple in the list corresponds to a unique square on the
+        chessboard.
 
-        The first element of each tuple is the list of piece probabilities (in the
-        order of `_PIECE_TO_IDX_FULL`) for the corresponding square, while the second is
-        the integer specifying the position of the corresponding square on the chessboard.
+        The first element of each tuple is the list of piece
+        probabilities (in the order of `_PIECE_TO_IDX_FULL`) for the
+        corresponding square, while the second is
+        the integer specifying the position of the corresponding square
+        on the chessboard.
 
-    :return: List-10 list of piece probabilities (in the order of `_IDX_TO_PIECE`).
+    :return: List-10 list of piece probabilities.
 
-        Each element in the list is a sublist that corresponds to a unique piece type.
+        Each element in the list is a sublist that corresponds to a
+        unique piece type (the piece types are in the order of
+        `_IDX_TO_PIECE`).
 
-        Each sublist is either length-64 (for a nonpawn piece) or length-48 (for a pawn).
+        Each sublist is either length-64 (for a nonpawn piece) or
+        length-48 (for a pawn).
 
-        Each tuple in a sublist corresponds to a unique square on the chessboard.
+        Each tuple in a sublist corresponds to a unique square on the
+        chessboard.
 
-        The first element of each tuple is the list of piece probabilities (in the
-        order of `_PIECE_TO_IDX_FULL`) for the corresponding square, while the second is
-        the integer specifying the position of the corresponding square on the chessboard.
+        The first element of each tuple is the list of piece
+        probabilities (in the order of `_PIECE_TO_IDX_FULL`) for the
+        corresponding square, while the second is the integer specifying
+        the position of the corresponding square on the chessboard.
 
-        The tuples are ordered based on the piece probability; the first tuple in a sublist
-        corresponds to the square on the chessboard that has the highest probability of
-        having the piece type corresponding to the sublist.
+        The tuples are ordered based on the piece probability; the first
+        tuple in a sublist corresponds to the square on the chessboard
+        that has the highest probability of having the piece type
+        corresponding to the sublist.
     """
     w_bishops = sorted(
         probs_by_square,
@@ -169,52 +186,108 @@ def _sort_probs_by_piece_type(
     ]
 
 
-def _piece_with_highest_prob(top_probs_by_type: list[tuple[list, int]]) -> int:
-    """Determine the piece that has the highest piece probability across the entire chessboard.
+def _piece_with_highest_prob(
+    top_probs_by_type: list[tuple[list[float], int]]
+) -> int:
+    """Determine the piece that has the highest piece probability.
 
-    :param top_probs_by_type: Length-10 list of piece probabilities (in the order of `_IDX_TO_PIECE`).
+    This function determines the piece that has the highest piece
+    probability across the entire chessboard.
 
-        Each element in the list is a tuple that corresponds to a unique piece type.
+    :param top_probs_by_type: Length-10 list of piece probabilities.
 
-        Each tuple also corresponds to the square on the chessboard that has the highest
-        probability of having the corresponding piece type.
+        Each element in the list is a tuple that corresponds to a unique
+        piece type (the piece types are in the order of
+        `_IDX_TO_PIECE`).
 
-        The first element of each tuple is the list of piece probabilities (in the
-        order of `_PIECE_TO_IDX_FULL`) for the corresponding square, while the second is
-        the integer specifying the position of the corresponding square on the chessboard.
+        Each tuple also corresponds to the square on the chessboard that
+        has the highest probability of having the corresponding piece
+        type.
 
-    :return: Index (between 0 and 9) specifying which piece has the highest piece probability
-    on any square on the chessboard.
+        The first element of each tuple is the list of piece
+        probabilities (in the
+        order of `_PIECE_TO_IDX_FULL`) for the corresponding square,
+        while the second is the integer specifying the position of the
+        corresponding square on the chessboard.
+
+    :return: Index (between 0 and 9) specifying which piece has the
+    highest piece probability on any square on the chessboard.
     """
-    # Set the initial maximum probability and index to the first piece in the list
+    # Set the initial maximum probability and index to the first piece
+    # in the list
     value = top_probs_by_type[_PIECE_TO_IDX["B"]][0][_PIECE_TO_IDX_FULL["B"]]
     idx = _PIECE_TO_IDX["B"]
-    if top_probs_by_type[_PIECE_TO_IDX["N"]][0][_PIECE_TO_IDX_FULL["N"]] > value:
-        value = top_probs_by_type[_PIECE_TO_IDX["N"]][0][_PIECE_TO_IDX_FULL["N"]]
+    if (
+        top_probs_by_type[_PIECE_TO_IDX["N"]][0][_PIECE_TO_IDX_FULL["N"]]
+        > value
+    ):
+        value = top_probs_by_type[_PIECE_TO_IDX["N"]][0][
+            _PIECE_TO_IDX_FULL["N"]
+        ]
         idx = _PIECE_TO_IDX["N"]
-    if top_probs_by_type[_PIECE_TO_IDX["P"]][0][_PIECE_TO_IDX_FULL["P"]] > value:
-        value = top_probs_by_type[_PIECE_TO_IDX["P"]][0][_PIECE_TO_IDX_FULL["P"]]
+    if (
+        top_probs_by_type[_PIECE_TO_IDX["P"]][0][_PIECE_TO_IDX_FULL["P"]]
+        > value
+    ):
+        value = top_probs_by_type[_PIECE_TO_IDX["P"]][0][
+            _PIECE_TO_IDX_FULL["P"]
+        ]
         idx = _PIECE_TO_IDX["P"]
-    if top_probs_by_type[_PIECE_TO_IDX["Q"]][0][_PIECE_TO_IDX_FULL["Q"]] > value:
-        value = top_probs_by_type[_PIECE_TO_IDX["Q"]][0][_PIECE_TO_IDX_FULL["Q"]]
+    if (
+        top_probs_by_type[_PIECE_TO_IDX["Q"]][0][_PIECE_TO_IDX_FULL["Q"]]
+        > value
+    ):
+        value = top_probs_by_type[_PIECE_TO_IDX["Q"]][0][
+            _PIECE_TO_IDX_FULL["Q"]
+        ]
         idx = _PIECE_TO_IDX["Q"]
-    if top_probs_by_type[_PIECE_TO_IDX["R"]][0][_PIECE_TO_IDX_FULL["R"]] > value:
-        value = top_probs_by_type[_PIECE_TO_IDX["R"]][0][_PIECE_TO_IDX_FULL["R"]]
+    if (
+        top_probs_by_type[_PIECE_TO_IDX["R"]][0][_PIECE_TO_IDX_FULL["R"]]
+        > value
+    ):
+        value = top_probs_by_type[_PIECE_TO_IDX["R"]][0][
+            _PIECE_TO_IDX_FULL["R"]
+        ]
         idx = _PIECE_TO_IDX["R"]
-    if top_probs_by_type[_PIECE_TO_IDX["b"]][0][_PIECE_TO_IDX_FULL["b"]] > value:
-        value = top_probs_by_type[_PIECE_TO_IDX["b"]][0][_PIECE_TO_IDX_FULL["b"]]
+    if (
+        top_probs_by_type[_PIECE_TO_IDX["b"]][0][_PIECE_TO_IDX_FULL["b"]]
+        > value
+    ):
+        value = top_probs_by_type[_PIECE_TO_IDX["b"]][0][
+            _PIECE_TO_IDX_FULL["b"]
+        ]
         idx = _PIECE_TO_IDX["b"]
-    if top_probs_by_type[_PIECE_TO_IDX["n"]][0][_PIECE_TO_IDX_FULL["n"]] > value:
-        value = top_probs_by_type[_PIECE_TO_IDX["n"]][0][_PIECE_TO_IDX_FULL["n"]]
+    if (
+        top_probs_by_type[_PIECE_TO_IDX["n"]][0][_PIECE_TO_IDX_FULL["n"]]
+        > value
+    ):
+        value = top_probs_by_type[_PIECE_TO_IDX["n"]][0][
+            _PIECE_TO_IDX_FULL["n"]
+        ]
         idx = _PIECE_TO_IDX["n"]
-    if top_probs_by_type[_PIECE_TO_IDX["p"]][0][_PIECE_TO_IDX_FULL["p"]] > value:
-        value = top_probs_by_type[_PIECE_TO_IDX["p"]][0][_PIECE_TO_IDX_FULL["p"]]
+    if (
+        top_probs_by_type[_PIECE_TO_IDX["p"]][0][_PIECE_TO_IDX_FULL["p"]]
+        > value
+    ):
+        value = top_probs_by_type[_PIECE_TO_IDX["p"]][0][
+            _PIECE_TO_IDX_FULL["p"]
+        ]
         idx = _PIECE_TO_IDX["p"]
-    if top_probs_by_type[_PIECE_TO_IDX["q"]][0][_PIECE_TO_IDX_FULL["q"]] > value:
-        value = top_probs_by_type[_PIECE_TO_IDX["q"]][0][_PIECE_TO_IDX_FULL["q"]]
+    if (
+        top_probs_by_type[_PIECE_TO_IDX["q"]][0][_PIECE_TO_IDX_FULL["q"]]
+        > value
+    ):
+        value = top_probs_by_type[_PIECE_TO_IDX["q"]][0][
+            _PIECE_TO_IDX_FULL["q"]
+        ]
         idx = _PIECE_TO_IDX["q"]
-    if top_probs_by_type[_PIECE_TO_IDX["r"]][0][_PIECE_TO_IDX_FULL["r"]] > value:
-        # value = top_probs_by_type[_PIECE_TO_IDX["r"]][0][_PIECE_TO_IDX_FULL["r"]]
+    if (
+        top_probs_by_type[_PIECE_TO_IDX["r"]][0][_PIECE_TO_IDX_FULL["r"]]
+        > value
+    ):
+        # value = top_probs_by_type[_PIECE_TO_IDX["r"]][0][
+        #     _PIECE_TO_IDX_FULL["r"]
+        # ]
         idx = _PIECE_TO_IDX["r"]
     return idx
 
@@ -227,50 +300,63 @@ def _check_bishop(
 ) -> bool:
     """Determine if it makes sense to place a bishop on a square.
 
-    This function determines if it makes sense to place a bishop on the square
-    corresponding to `top_probs_by_type[max_idx][1]`. If `max_idx` is not a bishop index,
-    the function returns `True` immediately. Otherwise, it makes the decision
-    based on the existing bishops on the chessboard. The crucial assumption is
-    that for either side (white or black), there can be at most one dark-squared
-    bishop and at most one light-squared bishop.
+    This function determines if it makes sense to place a bishop on the
+    square corresponding to `top_probs_by_type[max_idx][1]`. If
+    `max_idx` is not a bishop index, the function returns `True`
+    immediately. Otherwise, it makes the decision based on the existing
+    bishops on the chessboard. The crucial assumption is that for either
+    side (white or black), there can be at most one dark-squared bishop
+    and at most one light-squared bishop.
 
-    Note: this function is no longer used in the code because theoretically,
-    for either side, there can be two bishops of the same color (via pawn
-    promotion). Since the `max_pieces_left` variable makes sure there are at
-    most two bishops for either side, there is no more additional check that
-    we need to do for bishops; we can safely remove the requirement that if
-    any side (white or black) has two bishops, those two bishops must be
-    opposite-colored.
+    Note: this function is no longer used in the code because
+    theoretically, for either side, there can be two bishops of the same
+    color (via pawn promotion). Since the `max_pieces_left` variable
+    makes sure there are at most two bishops for either side, there is
+    no more additional check that we need to do for bishops; we can
+    safely remove the requirement that if any side (white or black) has
+    two bishops, those two bishops must be opposite-colored.
 
-    :param max_idx: Index (between 0 and 9) specifying which piece we are about to place
-    on the chessboard.
+    :param max_idx: Index specifying the piece of interest.
 
-    :param top_probs_by_type: Length-10 list of piece probabilities (in the order of `_IDX_TO_PIECE`).
+        This is the index (between 0 and 9) specifying which piece we
+        are about to place on the chessboard.
 
-        Each element in the list is a tuple that corresponds to a unique piece type.
+    :param top_probs_by_type: Length-10 list of piece probabilities.
 
-        Each tuple also corresponds to the square on the chessboard that has the highest
-        probability of having the corresponding piece type.
+        Each element in the list is a tuple that corresponds to a unique
+        piece type (the piece types are in the order of
+        `_IDX_TO_PIECE`).
 
-        The first element of each tuple is the list of piece probabilities (in the
-        order of `_PIECE_TO_IDX_FULL`) for the corresponding square, while the second is
-        the integer specifying the position of the corresponding square on the chessboard.
+        Each tuple also corresponds to the square on the chessboard that
+        has the highest probability of having the corresponding piece
+        type.
+
+        The first element of each tuple is the list of piece
+        probabilities (in the order of `_PIECE_TO_IDX_FULL`) for the
+        corresponding square, while the second is
+        the integer specifying the position of the corresponding square
+        on the chessboard.
 
     :param w_bishop_sq: Length-2 list storing what bishops white has.
 
-        The first boolean specifies whether white has a light-squared bishop, while
-        the second boolean specifies whether white has a dark-squared bishop.
+        The first boolean specifies whether white has a light-squared
+        bishop, while the second boolean specifies whether white has a
+        dark-squared bishop.
 
     :param b_bishop_sq: Length-2 list storing what bishops black has.
 
-        The first boolean specifies whether black has a light-squared bishop, while
-        the second boolean specifies whether black has a dark-squared bishop.
+        The first boolean specifies whether black has a light-squared
+        bishop, while the second boolean specifies whether black has a
+        dark-squared bishop.
 
-    :return: Boolean specifying whether it makes sense to place a bishop on the square.
+    :return: Boolean specifying whether it makes sense to place a bishop
+    on the square.
     """
     if max_idx == _PIECE_TO_IDX["B"]:  # We want to place a white bishop
         if is_light_square(top_probs_by_type[max_idx][1]):
-            if not w_bishop_sq[0]:  # White does not have a light-squared bishop yet
+            if not w_bishop_sq[
+                0
+            ]:  # White does not have a light-squared bishop yet
                 w_bishop_sq[0] = True  # Now white has a light-squared bishop
                 return True
             return False
@@ -280,7 +366,9 @@ def _check_bishop(
         return False
     elif max_idx == _PIECE_TO_IDX["b"]:  # We want to place a black bishop
         if is_light_square(top_probs_by_type[max_idx][1]):
-            if not b_bishop_sq[0]:  # Black does not have a light-squared bishop yet
+            if not b_bishop_sq[
+                0
+            ]:  # Black does not have a light-squared bishop yet
                 b_bishop_sq[0] = True  # Now black has a light-squared bishop
                 return True
             return False
@@ -294,7 +382,7 @@ def _check_bishop(
 
 def _determine_promoted_piece(
     previous_fen: str,
-    probs_with_no_indices: list[list],
+    probs_with_no_indices: list[list[float]],
     final_sq: int,
     color: str,
 ) -> str:
@@ -304,96 +392,123 @@ def _determine_promoted_piece(
 
     :param probs_with_no_indices: Length-64 list of piece probabilities.
 
-        Each element in the list is a length-13 sublist that corresponds to a unique
-        square on the chessboard.
+        Each element in the list is a length-13 sublist that corresponds
+        to a unique square on the chessboard.
 
-        Each sublist contains 13 piece probabilities (in the order of `_IDX_TO_PIECE_FULL`)
-        for the corresponding square.
+        Each sublist contains 13 piece probabilities (in the order of
+        `_IDX_TO_PIECE_FULL`) for the corresponding square.
 
-    :param final_sq: Integer specifying which square we are interested in determining
-    the piece type for.
+    :param final_sq: Integer specifying the square of interest.
 
-        Since we are determining the promoted piece, the integer must be between 0 and 7
-        or between 56 and 63.
+        This integer specifies which square we are interested in
+        determining the piece type for.
 
-    :param color: String (`"white"` or `"black"`) specifying the color of the piece on the
-    square corresponding to `final_sq`.
+        Since we are determining the promoted piece, the integer must be
+        between 0 and 7 or between 56 and 63.
+
+    :param color: String specifying the piece color.
+
+        This string (`"white"` or `"black"`) specifies the color of the
+        piece on the square corresponding to `final_sq`.
 
     :return: Which piece is most likely to be on the square.
     """
     highest_prob = 0
     if color == "white":
         if (
-            probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["Q"]] > highest_prob
+            probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["Q"]]
+            > highest_prob
             and previous_fen.count("Q") < 2
         ):
             promoted_piece = "Q"
-            highest_prob = probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["Q"]]
+            highest_prob = probs_with_no_indices[final_sq][
+                _PIECE_TO_IDX_FULL["Q"]
+            ]
         if (
-            probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["N"]] > highest_prob
+            probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["N"]]
+            > highest_prob
             and previous_fen.count("N") < 2
         ):
             promoted_piece = "N"
-            highest_prob = probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["N"]]
+            highest_prob = probs_with_no_indices[final_sq][
+                _PIECE_TO_IDX_FULL["N"]
+            ]
         if (
-            probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["R"]] > highest_prob
+            probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["R"]]
+            > highest_prob
             and previous_fen.count("R") < 2
         ):
             promoted_piece = "R"
-            highest_prob = probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["R"]]
+            highest_prob = probs_with_no_indices[final_sq][
+                _PIECE_TO_IDX_FULL["R"]
+            ]
         if (
-            probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["B"]] > highest_prob
+            probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["B"]]
+            > highest_prob
             and previous_fen.count("B") < 2
         ):
             promoted_piece = "B"
     else:
         if (
-            probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["q"]] > highest_prob
+            probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["q"]]
+            > highest_prob
             and previous_fen.count("q") < 2
         ):
             promoted_piece = "q"
-            highest_prob = probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["q"]]
+            highest_prob = probs_with_no_indices[final_sq][
+                _PIECE_TO_IDX_FULL["q"]
+            ]
         if (
-            probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["n"]] > highest_prob
+            probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["n"]]
+            > highest_prob
             and previous_fen.count("n") < 2
         ):
             promoted_piece = "n"
-            highest_prob = probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["n"]]
+            highest_prob = probs_with_no_indices[final_sq][
+                _PIECE_TO_IDX_FULL["n"]
+            ]
         if (
-            probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["r"]] > highest_prob
+            probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["r"]]
+            > highest_prob
             and previous_fen.count("r") < 2
         ):
             promoted_piece = "r"
-            highest_prob = probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["r"]]
+            highest_prob = probs_with_no_indices[final_sq][
+                _PIECE_TO_IDX_FULL["r"]
+            ]
         if (
-            probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["b"]] > highest_prob
+            probs_with_no_indices[final_sq][_PIECE_TO_IDX_FULL["b"]]
+            > highest_prob
             and previous_fen.count("b") < 2
         ):
             promoted_piece = "b"
-    # Note that if the provided previous FEN is correct, `promoted_piece`
-    # should be defined at this point
+    # Note that if the provided previous FEN is correct,
+    # `promoted_piece` should be defined at this point
     return promoted_piece
 
 
 def _generate_fen_based_on_previous_fen_and_detected_move(
     previous_fen: str,
     move: tuple[int, int, str],
-    probs_with_no_indices: list[list],
+    probs_with_no_indices: list[list[float]],
 ) -> str:
     """Generate the FEN based on the previous FEN and detected move.
 
     :param previous_fen: FEN string of the previous board position.
 
-    :param move: Tuple containing information (initial square, final square, and
-    action) on the detected move.
+    :param move: Tuple containing information on the detected move.
+
+        The first element of the tuple specifies the initial square, the
+        second specifies the final square, and the third describes the
+        action.
 
     :param probs_with_no_indices: Length-64 list of piece probabilities.
 
-        Each element in the list is a length-13 sublist that corresponds to a unique
-        square on the chessboard.
+        Each element in the list is a length-13 sublist that corresponds
+        to a unique square on the chessboard.
 
-        Each sublist contains 13 piece probabilities (in the order of `_IDX_TO_PIECE_FULL`)
-        for the corresponding square.
+        Each sublist contains 13 piece probabilities (in the order of
+        `_IDX_TO_PIECE_FULL`) for the corresponding square.
 
     :return: FEN string of the current board position.
     """
@@ -451,20 +566,22 @@ def _generate_fen_based_on_previous_fen_and_detected_move(
 
 
 def _determine_most_probable_white_piece(
-    probs_with_no_indices: list[list], square: int
+    probs_with_no_indices: list[list[float]], square: int
 ) -> str:
     """Determine the most probable white piece.
 
     :param probs_with_no_indices: Length-64 list of piece probabilities.
 
-        Each element in the list is a length-13 sublist that corresponds to a unique
-        square on the chessboard.
+        Each element in the list is a length-13 sublist that corresponds
+        to a unique square on the chessboard.
 
-        Each sublist contains 13 piece probabilities (in the order of `_IDX_TO_PIECE_FULL`)
-        for the corresponding square.
+        Each sublist contains 13 piece probabilities (in the order of
+        `_IDX_TO_PIECE_FULL`) for the corresponding square.
 
-    :param square: Integer specifying which square we are interested in determining
-    the piece type for.
+    :param square: Integer specifying the square of interest.
+
+        This integer specifies which square we are interested in
+        determining the piece type for.
 
     :return: Which white piece is most likely to be on the square.
     """
@@ -510,20 +627,22 @@ def _determine_most_probable_white_piece(
 
 
 def _determine_most_probable_black_piece(
-    probs_with_no_indices: list[list], square: int
+    probs_with_no_indices: list[list[float]], square: int
 ) -> str:
     """Determine the most probable black piece.
 
     :param probs_with_no_indices: Length-64 list of piece probabilities.
 
-        Each element in the list is a length-13 sublist that corresponds to a unique
-        square on the chessboard.
+        Each element in the list is a length-13 sublist that corresponds
+        to a unique square on the chessboard.
 
-        Each sublist contains 13 piece probabilities (in the order of `_IDX_TO_PIECE_FULL`)
-        for the corresponding square.
+        Each sublist contains 13 piece probabilities (in the order of
+        `_IDX_TO_PIECE_FULL`) for the corresponding square.
 
-    :param square: Integer specifying which square we are interested in determining
-    the piece type for.
+    :param square: Integer specifying the square of interest.
+
+        This integer specifies which square we are interested in
+        determining the piece type for.
 
     :return: Which black piece is most likely to be on the square.
     """
@@ -577,30 +696,49 @@ def _check_balance_among_pawns_queens_and_bishops(
     b_dark_squared: int,
     square: int,
 ) -> bool:
-    """Check the balance among pawns, queens, and bishops on the chessboard.
+    """Check the balance among pawns, queens, and bishops on the board.
 
-    This function determines whether the numbers of pawns, queens, and bishops
-    make sense for a standard physical chess set after placing another piece.
-    For example, if there are 2 light-squared bishops and 2 queens for white,
-    then the number of pawns that white has must be at most 6.
+    This function determines whether the numbers of pawns, queens, and
+    bishops make sense for a standard physical chess set after placing
+    another piece. For example, if there are 2 light-squared bishops and
+    2 queens for white, then the number of pawns that white has must be
+    at most 6 (so if there are already 6 pawns on the board, we cannot
+    place another pawn on the board).
 
-    :param piece_type: Which piece we are about to place on the chessboard.
+    :param piece_type: Which piece we are about to place on the board.
 
-    :param max_pieces_left: Length-10 list of integers (in the order of `_IDX_TO_PIECE`)
-    specifying how many additional pieces we may place on the rest of the board.
+    :param max_pieces_left: Length-10 list of integers.
 
-    :param B_light_squared: Number of light-squared bishops that white already has.
+        The 10 integers, in the order of `_IDX_TO_PIECE`, specifies how
+        many additional pieces we may place on the rest of the board.
 
-    :param B_dark_squared: Number of dark-squared bishops that white already has.
+    :param B_light_squared: Number of white's light-squared bishops.
 
-    :param b_light_squared: Number of light-squared bishops that black already has.
+        This is the number of light-squared bishops that white already
+        has.
 
-    :param b_dark_squared: Number of dark-squared bishops that black already has.
+    :param B_dark_squared: Number of  white's dark-squared bishops.
 
-    :param square: Integer specifying which square we are interested in placing the piece on.
+        This is the number of dark-squared bishops that white already
+        has.
 
-    :return: Whether placing the piece would affect the balance among pawns, queens, and
-    bishops on the chessboard.
+    :param b_light_squared: Number of black's light-squared bishops.
+
+        This is the number of light-squared bishops that black already
+        has.
+
+    :param b_dark_squared: Number of black's dark-squared bishops.
+
+        This is the number of dark-squared bishops that black already
+        has.
+
+    :param square: Integer specifying the square of interest.
+
+        This integer specifies which square we are interested in placing
+        the piece on.
+
+    :return: Whether placing the piece would affect the balance among
+    pawns, queens, and bishops on the chessboard.
     """
     if not piece_type in ["P", "p", "Q", "q", "B", "b"]:
         return True
@@ -658,7 +796,7 @@ def _check_balance_among_pawns_queens_and_bishops(
                 )  # Whether a white pawn has promoted into a queen
                 + max(
                     (B_dark_squared + 1) == 2, B_light_squared == 2
-                )  # Whether we are about to have 2 dark-squared bishops for white
+                )  # Whether white is about to have 2 dark-squared bishops
             )
             <= max_pieces_left[_PIECE_TO_IDX["P"]]
         )
@@ -674,7 +812,7 @@ def _check_balance_among_pawns_queens_and_bishops(
                 )  # Whether a white pawn has promoted into a queen
                 + max(
                     B_dark_squared == 2, (B_light_squared + 1) == 2
-                )  # Whether we are about to have 2 light-squared bishops for white
+                )  # Whether white is about to have 2 light-squared bishops
             )
             <= max_pieces_left[_PIECE_TO_IDX["P"]]
         )
@@ -690,7 +828,7 @@ def _check_balance_among_pawns_queens_and_bishops(
                 )  # Whether a black pawn has promoted into a queen
                 + max(
                     (b_dark_squared + 1) == 2, b_light_squared == 2
-                )  # Whether we are about to have 2 dark-squared bishops for black
+                )  # Whether black is about to have 2 dark-squared bishops
             )
             <= max_pieces_left[_PIECE_TO_IDX["p"]]
         )
@@ -706,7 +844,7 @@ def _check_balance_among_pawns_queens_and_bishops(
                 )  # Whether a black pawn has promoted into a queen
                 + max(
                     b_dark_squared == 2, (b_light_squared + 1) == 2
-                )  # Whether we are about to have 2 light-squared bishops for black
+                )  # Whether black is about to have 2 light-squared bishops
             )
             <= max_pieces_left[_PIECE_TO_IDX["p"]]
         )
@@ -717,63 +855,74 @@ def _check_balance_among_pawns_queens_and_bishops(
 
 
 def infer_chess_pieces(
-    probs_with_no_indices: list[list],
+    probs_with_no_indices: list[list[float]],
     a1_pos: str,
     previous_fen: (str | None) = None,
 ) -> list[str]:
     """Infer the exact piece positions on the chessboard.
 
-    This function infers, based on the given piece probabilities and previous FEN,
-    the exact piece positions on the entire chessboard.
+    This function infers, based on the given piece probabilities and
+    previous FEN, the exact piece positions on the entire chessboard.
 
     :param probs_with_no_indices: Length-64 list of piece probabilities.
 
-        Each element in the list is a length-13 sublist that corresponds to a unique
-        square on the chessboard.
+        Each element in the list is a length-13 sublist that corresponds
+        to a unique square on the chessboard.
 
-        Each sublist contains 13 piece probabilities (in the order of `_IDX_TO_PIECE_FULL`)
-        for the corresponding square.
+        Each sublist contains 13 piece probabilities (in the order of
+        `_IDX_TO_PIECE_FULL`) for the corresponding square.
 
-    :param a1_pos: Position of the a1 square (`"BL"`, `"BR"`, `"TL"`, or `"TR"`)
-    corresponding to the list of piece probabilities.
+    :param a1_pos: Position of the a1 square of list of probabilities.
+
+        This is the position of the a1 square (`"BL"`, `"BR"`, `"TL"`,
+        or `"TR"`) corresponding to the list of piece probabilities.
 
     :param previous_fen: FEN string of the previous board position.
 
-        If it is not `None`, it could significantly improve the accuracy of
-        piece inference.
+        If it is not `None`, it could significantly improve the accuracy
+        of piece inference.
 
-    :return: Length-64 list of the inferred chess pieces in FEN-notation order (the first
-    element corresponds to the a8 square, the second to the b8 square, and so on).
+    :return: Length-64 list of the inferred chess pieces in FEN-notation
+    order (the first element corresponds to the a8 square, the second to
+    the b8 square, and so on).
 
-        If a square is inferred to be empty, it is given a `"_"` in the list.
+        If a square is inferred to be empty, it is given a `"_"` in the
+        list.
     """
-    probs_with_no_indices = board_to_list(list_to_board(probs_with_no_indices, a1_pos))
+    probs_with_no_indices = board_to_list(
+        list_to_board(probs_with_no_indices, a1_pos)
+    )
 
-    # Initialize the output list of predicted piece types (from a8, b8, ..., to h1)
-    # (`None` represents that the piece type of that square has not been determined yet)
+    # Initialize the output list of predicted piece types (from a8, b8,
+    # ..., to h1)
+    # (`None` represents that the piece type of that square has not been
+    # determined yet)
     piece_list_from_a8_to_h1 = [None] * 64
 
     if previous_fen is not None:  # Perform move detection
         changed_squares = _determine_changed_squares(
             previous_fen, probs_with_no_indices
         )
-        move = _detect_move(previous_fen, probs_with_no_indices, changed_squares)
-        if (
-            move is not None
-        ):  # A move has been successfully detected so the FEN will be concluded immediately
+        move = _detect_move(
+            previous_fen, probs_with_no_indices, changed_squares
+        )
+        if move is not None:  # A move has been successfully detected
             return board_to_list(
                 fen_to_board(
                     _generate_fen_based_on_previous_fen_and_detected_move(
                         previous_fen, move, probs_with_no_indices
                     )
                 )
-            )
+            )  # Conclude the FEN immediately
 
-    # Move detection was either not invoked or not successful, so the pieces on the
-    # board will now be inferred one at a time
-    probs_by_square = [(probs, i) for i, probs in enumerate(probs_with_no_indices)]
+    # Move detection was either not invoked or not successful, so the
+    # pieces on the board will now be inferred one at a time
+    probs_by_square = [
+        (probs, i) for i, probs in enumerate(probs_with_no_indices)
+    ]
 
-    # First determine the locations of the kings (one white king and one black king)
+    # First determine the king locations (one white king and one black
+    # king)
     white_king = max(
         probs_by_square,
         key=lambda prob: prob[0][_PIECE_TO_IDX_FULL["K"]],
@@ -791,48 +940,59 @@ def infer_chess_pieces(
     piece_list_from_a8_to_h1[white_king[1]] = "K"
     piece_list_from_a8_to_h1[black_king[1]] = "k"
 
-    num_of_undetermined_squares = 62  # We have already determined the king locations
+    num_of_undetermined_squares = (
+        62  # We have already determined the king locations
+    )
 
-    # Then identify the empty squares (the CNN has a very high accuracy of
-    # detecting empty squares)
+    # Then identify the empty squares (the CNN has a very high accuracy
+    # of detecting empty squares)
     for idx, piece in enumerate(probs_with_no_indices):
         if piece_list_from_a8_to_h1[idx] is None:
             if _is_empty_square(piece):
                 piece_list_from_a8_to_h1[idx] = "_"
                 num_of_undetermined_squares -= 1
 
-    # Determine the locations of the other pieces in order of probability
-    # (there is a total of (`num_of_undetermined_squares` * 10) probabilities)
+    # Determine the locations of the other pieces in order of
+    # probability (there is a total of
+    # (`num_of_undetermined_squares` * 10) probabilities)
     probs_by_type = _sort_probs_by_piece_type(probs_by_square)
-    # Keep track of the indices to the squares, whose piece types have not been
-    # determined, with the highest probabilities in `probs_by_type` (there are 10
-    # piece types left, so we need to keep track of 10 indices)
+    # Keep track of the indices to the squares, whose piece types have
+    # not been determined, with the highest probabilities in
+    # `probs_by_type` (there are 10 piece types left, so we need to keep
+    # track of 10 indices)
     idx = [0] * 10
-    # Keep track of the top entry of each sorted piece list (corresponding to
-    # the square with the highest probability)
+    # Keep track of the top entry of each sorted piece list
+    # (corresponding to the square with the highest probability)
     top_probs_by_type = [
-        probs_for_a_specific_type[0] for probs_for_a_specific_type in probs_by_type
+        probs_for_a_specific_type[0]
+        for probs_for_a_specific_type in probs_by_type
     ]
-    # Maximum number of pieces of each type in the same order as `top_probs_by_type`
+    # Maximum number of pieces of each type in the same order as
+    # `top_probs_by_type`
     max_pieces_left = [2, 2, 8, 2, 2, 2, 2, 8, 2, 2]
-    # Keep track of the numbers of light-squared and dark-squared bishops for both sides
+    # Keep track of the numbers of light-squared and dark-squared
+    # bishops for both sides
     B_light_squared = 0  # Number of light-squared bishops for white
     B_dark_squared = 0  # Number of dark-squared bishops for white
     b_light_squared = 0  # Number of light-squared bishops for black
     b_dark_squared = 0  # Number of dark-squared bishops for black
-    # Occasionally, the model is not accurate enough to predict a balanced board configuration
-    # (balanced in terms of the numbers of pawns, queens, and bishops)
+    # Occasionally, the model is not accurate enough to predict a
+    # balanced board configuration (balanced in terms of the numbers of
+    # pawns, queens, and bishops)
     failed_to_complete_prediction = False
 
     while num_of_undetermined_squares > 0:
-        # Determine the piece type of the square that has the piece with the
-        # highest probability across the entire board
+        # Determine the piece type of the square that has the piece with
+        # the highest probability across the entire board
         max_idx = _piece_with_highest_prob(top_probs_by_type)
         square = top_probs_by_type[max_idx][1]
-        # If we haven't maxed that piece type and the piece type of that square
-        # hasn't been determined, then we conclude that that square has exactly
-        # that piece
-        if max_pieces_left[max_idx] > 0 and piece_list_from_a8_to_h1[square] is None:
+        # If we haven't maxed that piece type and the piece type of that
+        # square hasn't been determined, then we conclude that that
+        # square has exactly that piece
+        if (
+            max_pieces_left[max_idx] > 0
+            and piece_list_from_a8_to_h1[square] is None
+        ):
             piece_type = _IDX_TO_PIECE[max_idx]
             if _check_balance_among_pawns_queens_and_bishops(
                 piece_type,
@@ -856,8 +1016,9 @@ def infer_chess_pieces(
                 elif piece_type == "b" and not is_light_square(square):
                     b_dark_squared += 1
 
-        # In any case, for the piece type we have tried above, we must replace
-        # the entry in `top_probs_by_type` with the next-highest-probability entry
+        # In any case, for the piece type we have tried above, we must
+        # replace the entry in `top_probs_by_type` with the
+        # next-highest-probability entry
         try:
             idx[max_idx] += 1
             top_probs_by_type[max_idx] = probs_by_type[max_idx][idx[max_idx]]
@@ -866,20 +1027,23 @@ def infer_chess_pieces(
         ):  # Model is not accurate enough to predict a balanced configuration
             # (balance in terms of the numbers of pawns, queens, and bishops)
             print(
-                "Warning: the selected model is not accurate enough to predict a balanced board configuration"
+                "Warning: the selected model is not accurate enough to predict"
+                " a balanced board configuration"
             )
             print(
-                "\tPlease consider providing the previous FEN, selecting a different model, or performing"
-                "\n\ttransfer learning on that model"
+                "\tPlease consider providing the previous FEN, selecting a "
+                "different model, or performing\n\ttransfer learning on that "
+                "model"
             )
             failed_to_complete_prediction = True
             break
 
     if failed_to_complete_prediction:
+        # For every undetermined square, rather than give up on that
+        # square, we will determine the piece on that square by brute
+        # force
         for square, piece_type in enumerate(piece_list_from_a8_to_h1):
-            if (
-                piece_type is None
-            ):  # Rather than give up on that square, we will determine it by brute force
+            if piece_type is None:
                 if _is_white_piece(probs_with_no_indices[square]):
                     piece_list_from_a8_to_h1[
                         square
@@ -897,7 +1061,9 @@ def infer_chess_pieces(
         changed_squares = _determine_changed_squares_after_piece_inference(
             previous_fen, piece_list_from_a8_to_h1
         )
-        move = _detect_move(previous_fen, probs_with_no_indices, changed_squares)
+        move = _detect_move(
+            previous_fen, probs_with_no_indices, changed_squares
+        )
         if move is not None:  # Finally a move has been successfully detected
             return board_to_list(
                 fen_to_board(
@@ -916,12 +1082,13 @@ def _is_empty_square(probs_for_a_specific_square: list) -> bool:
     This function infers, based on piece probabilities, whether a square
     is empty or not.
 
-    :param probs_for_a_specific_square: Length-13 list of piece probabilities.
+    :param probs_for_a_specific_square: Length-13 list of probabilities.
 
-        The 13 piece probabilities in the list are in the order of `_IDX_TO_PIECE_FULL`.
+        The 13 piece probabilities in the list are in the order of
+        `_IDX_TO_PIECE_FULL`.
 
-    :return: Whether the square whose piece probabilities are given by `probs_for_a_specific_square`
-    is empty or not.
+    :return: Whether the square whose piece probabilities are given by
+    `probs_for_a_specific_square` is empty or not.
     """
     return _PIECE_TO_IDX_FULL["_"] == np.argmax(probs_for_a_specific_square)
 
@@ -930,15 +1097,16 @@ def _is_white_piece(probs_for_a_specific_square: list) -> bool:
     """Infer if a square has a white piece on it.
 
     This function infers, based on piece probabilities, whether a square
-    has a white piece on it or not. Note that the function does not check
-    if the square is empty or not.
+    has a white piece on it or not. Note that the function does not
+    check if the square is empty or not.
 
-    :param probs_for_a_specific_square: Length-13 list of piece probabilities.
+    :param probs_for_a_specific_square: Length-13 list of probabilities.
 
-        The 13 piece probabilities in the list are in the order of `_IDX_TO_PIECE_FULL`.
+        The 13 piece probabilities in the list are in the order of
+        `_IDX_TO_PIECE_FULL`.
 
-    :return: Whether the square whose piece probabilities are given by `probs_for_a_specific_square`
-    has a white piece on it or not.
+    :return: Whether the square whose piece probabilities are given by
+    `probs_for_a_specific_square` has a white piece on it or not.
     """
     return (
         np.sum(
@@ -972,26 +1140,28 @@ def _determine_changed_squares(
 
     :param previous_fen: FEN string of the previous board position.
 
-    :param probs_with_no_indices: Length-64 list of piece probabilities for the current board
-    position.
+    :param probs_with_no_indices: Length-64 list of piece probabilities.
 
-        Each element in the list is a length-13 sublist that corresponds to a unique
-        square on the chessboard.
+        Each element in the list is a length-13 sublist that corresponds
+        to a unique square on the chessboard.
 
-        Each sublist contains 13 piece probabilities (in the order of `_IDX_TO_PIECE_FULL`)
-        for the corresponding square.
+        Each sublist contains 13 piece probabilities (in the order of
+        `_IDX_TO_PIECE_FULL`) for the corresponding square.
 
-    :return: List of integers specifying which squares on the chessboard experienced
-    a state change.
+    :return: List of integers specifying which squares on the chessboard
+    experienced a state change.
 
-        `0` corresponds to the a8 square, `1` corresponds to the b8 square, ...,
-        `63` corresponds to the h1 square.
+        `0` corresponds to the a8 square, `1` corresponds to the b8
+        square, ..., `63` corresponds to the h1 square.
     """
     previous_list = board_to_list(fen_to_board(previous_fen))
     changed_squares = []
     for idx, previous_piece in enumerate(previous_list):
-        # If a square's previous state is the same as its current one, ignore that square
-        if previous_piece == "_" and _is_empty_square(probs_with_no_indices[idx]):
+        # If a square's previous state is the same as its current one,
+        # ignore that square
+        if previous_piece == "_" and _is_empty_square(
+            probs_with_no_indices[idx]
+        ):
             continue
         if (
             previous_piece in _WHITE_PIECES
@@ -1005,7 +1175,8 @@ def _determine_changed_squares(
             and not _is_white_piece(probs_with_no_indices[idx])
         ):
             continue
-        # If a square whose state has changed, store the index of that square
+        # If a square whose state has changed, store the index of that
+        # square
         changed_squares.append(idx)
 
     return changed_squares
@@ -1014,30 +1185,36 @@ def _determine_changed_squares(
 def _determine_changed_squares_after_piece_inference(
     previous_fen: str, piece_list_from_a8_to_h1: list[str]
 ) -> list[int]:
-    """Determine, based on the piece-inferece result, the squares that experienced a state change.
+    """Determine, after piece inference, the changed-state squares.
 
-    A square has three states: white (if it has a white piece on it), black (if it
-    has a black piece on it), and empty (if it is empty).
+    This function determines, based on the piece-inference result, the
+    squares that experienced a state change.
 
-    This function determines the squares whose current states are different from the
-    previous ones.
+    A square has three states: white (if it has a white piece on it),
+    black (if it has a black piece on it), and empty (if it is empty).
+
+    This function determines the squares whose current states are
+    different from the previous ones.
 
     :param previous_fen: FEN string of the previous board position.
 
-    :param piece_list_from_a8_to_h1: Length-64 list of the inferred chess pieces in FEN-notation
-    order (the first element corresponds to the a8 square, the second to the b8
-    square, and so on).
+    :param piece_list_from_a8_to_h1: Length-64 list of inferred pieces.
 
-    :return: List of integers specifying which squares on the chessboard experienced
-    a state change.
+        The 64 inferred chess pieces are in the FEN-notation order (the
+        first element corresponds to the a8 square, the second to the b8
+        square, and so on).
 
-        `0` corresponds to the a8 square, `1` corresponds to the b8 square, ...,
-        `63` corresponds to the h1 square.
+    :return: List of integers specifying which squares on the chessboard
+    experienced a state change.
+
+        `0` corresponds to the a8 square, `1` corresponds to the b8
+        square, ..., `63` corresponds to the h1 square.
     """
     previous_list = board_to_list(fen_to_board(previous_fen))
     changed_squares = []
     for idx, previous_piece in enumerate(previous_list):
-        # If a square's previous state is the same as its current one, ignore that square
+        # If a square's previous state is the same as its current one,
+        # ignore that square
         if previous_piece == "_" and piece_list_from_a8_to_h1[idx] == "_":
             continue
         if (
@@ -1050,44 +1227,51 @@ def _determine_changed_squares_after_piece_inference(
             and piece_list_from_a8_to_h1[idx] in _BLACK_PIECES
         ):
             continue
-        # If a square whose state has changed, store the index of that square
+        # If a square whose state has changed, store the index of that
+        # square
         changed_squares.append(idx)
 
     return changed_squares
 
 
 def _detect_move(
-    previous_fen: str, probs_with_no_indices: list[list], changed_squares: list[int]
+    previous_fen: str,
+    probs_with_no_indices: list[list],
+    changed_squares: list[int],
 ) -> (tuple[int, int, str]) | None:
     """Detect the move made.
 
-    This function detects what move (initial square, final square, and action) was
-    made by comparing the previous board position and the current board position.
-    Only the states of the squares are used for inferring the move. A square has
-    three states: white (if it has a white piece on it), black (if it has a black
-    piece on it), and empty (if it is empty). If the function fails to detect the
-    move, it returns `None`.
+    This function detects what move (initial square, final square, and
+    action) was made by comparing the previous board position and the
+    current board position. Only the states of the squares are used for
+    inferring the move. A square has three states: white (if it has a
+    white piece on it), black (if it has a black piece on it), and empty
+    (if it is empty). If the function fails to detect the move, it
+    returns `None`.
 
     :param previous_fen: FEN string of the previous board position.
 
-    :param probs_with_no_indices: Length-64 list of piece probabilities for the current board
-    position.
+    :param probs_with_no_indices: Length-64 list of piece probabilities.
 
-        Each element in the list is a length-13 sublist that corresponds to a unique
-        square on the chessboard.
+        Each element in the list is a length-13 sublist that corresponds
+        to a unique square on the chessboard.
 
-        Each sublist contains 13 piece probabilities (in the order of `_IDX_TO_PIECE_FULL`)
-        for the corresponding square.
+        Each sublist contains 13 piece probabilities (in the order of
+        `_IDX_TO_PIECE_FULL`) for the corresponding square.
 
-    :param changed_squares: List of integers specifying which squares on the
-    chessboard experienced a state change.
+    :param changed_squares: List specifying changed-state squares.
 
-    :return: (Initial-square index, final-square index, and action) or `None`.
+        This list of integers specifies which squares on the chessboard
+        experienced a state change.
 
-        The inferred action is one of the following: `"white_moves"`, `"white_captures"`,
-        `"black_moves"`, `"black_captures"`, `"white_en_passants"`, `"black_en_passants"`,
-        `"white_castles_kingside"`, `"white_castles_queenside"`, `"black_castles_kingside"`,
-        and `"black_castles_queenside"`.
+    :return: (Initial-square index, final-square index, and action) or
+    `None`.
+
+        The inferred action is one of the following: `"white_moves"`,
+        `"white_captures"`, `"black_moves"`, `"black_captures"`,
+        `"white_en_passants"`, `"black_en_passants"`,
+        `"white_castles_kingside"`, `"white_castles_queenside"`,
+        `"black_castles_kingside"`, and `"black_castles_queenside"`.
     """
     previous_list = board_to_list(fen_to_board(previous_fen))
 
@@ -1117,13 +1301,17 @@ def _detect_move(
                     action = "white_moves"
                     return initial_sq, final_sq, action
                 else:
-                    return None  # A white piece can't suddenly turn into a black piece after moving
+                    # A white piece can't suddenly turn into a black
+                    # piece after moving
+                    return None
             elif previous_list[final_sq] in _BLACK_PIECES:
                 if _is_white_piece(probs_with_no_indices[final_sq]):
                     action = "white_captures"
                     return initial_sq, final_sq, action
                 else:
-                    return None  # A white piece can't suddenly turn into a black piece after capturing
+                    # A white piece can't suddenly turn into a black
+                    # piece after capturing
+                    return None
             else:
                 return None  # A white piece can't capture another white piece
         else:  # The initial square is a black piece
@@ -1132,18 +1320,23 @@ def _detect_move(
                     action = "black_moves"
                     return initial_sq, final_sq, action
                 else:
-                    return None  # A black piece can't suddenly turn into a white piece after moving
+                    # A black piece can't suddenly turn into a white
+                    # piece after moving
+                    return None
             elif previous_list[final_sq] in _WHITE_PIECES:
                 if not _is_white_piece(probs_with_no_indices[final_sq]):
                     action = "black_captures"
                     return initial_sq, final_sq, action
                 else:
-                    return None  # A black piece can't suddenly turn into a white piece after capturing
+                    # A black piece can't suddenly turn into a white
+                    # piece after capturing
+                    return None
             else:
                 return None  # A black piece can't capture another black piece
 
     elif len(changed_squares) == 3:  # An en passant move may have been made
-        # Determine the initial square, the final square, and the third square
+        # Determine the initial square, the final square, and the third
+        # square
         if not _is_empty_square(probs_with_no_indices[changed_squares[0]]):
             final_sq = changed_squares[0]
             if previous_list[changed_squares[1]] == "P" and _is_white_piece(
@@ -1151,9 +1344,9 @@ def _detect_move(
             ):
                 initial_sq = changed_squares[1]
                 third_sq = changed_squares[2]
-            elif previous_list[changed_squares[1]] == "p" and not _is_white_piece(
-                probs_with_no_indices[final_sq]
-            ):
+            elif previous_list[
+                changed_squares[1]
+            ] == "p" and not _is_white_piece(probs_with_no_indices[final_sq]):
                 initial_sq = changed_squares[1]
                 third_sq = changed_squares[2]
             elif previous_list[changed_squares[2]] == "P" and _is_white_piece(
@@ -1161,9 +1354,9 @@ def _detect_move(
             ):
                 initial_sq = changed_squares[2]
                 third_sq = changed_squares[1]
-            elif previous_list[changed_squares[2]] == "p" and not _is_white_piece(
-                probs_with_no_indices[final_sq]
-            ):
+            elif previous_list[
+                changed_squares[2]
+            ] == "p" and not _is_white_piece(probs_with_no_indices[final_sq]):
                 initial_sq = changed_squares[2]
                 third_sq = changed_squares[1]
             else:
@@ -1175,9 +1368,9 @@ def _detect_move(
             ):
                 initial_sq = changed_squares[0]
                 third_sq = changed_squares[2]
-            elif previous_list[changed_squares[0]] == "p" and not _is_white_piece(
-                probs_with_no_indices[final_sq]
-            ):
+            elif previous_list[
+                changed_squares[0]
+            ] == "p" and not _is_white_piece(probs_with_no_indices[final_sq]):
                 initial_sq = changed_squares[0]
                 third_sq = changed_squares[2]
             elif previous_list[changed_squares[2]] == "P" and _is_white_piece(
@@ -1185,9 +1378,9 @@ def _detect_move(
             ):
                 initial_sq = changed_squares[2]
                 third_sq = changed_squares[0]
-            elif previous_list[changed_squares[2]] == "p" and not _is_white_piece(
-                probs_with_no_indices[final_sq]
-            ):
+            elif previous_list[
+                changed_squares[2]
+            ] == "p" and not _is_white_piece(probs_with_no_indices[final_sq]):
                 initial_sq = changed_squares[2]
                 third_sq = changed_squares[0]
             else:
@@ -1199,9 +1392,9 @@ def _detect_move(
             ):
                 initial_sq = changed_squares[0]
                 third_sq = changed_squares[1]
-            elif previous_list[changed_squares[0]] == "p" and not _is_white_piece(
-                probs_with_no_indices[final_sq]
-            ):
+            elif previous_list[
+                changed_squares[0]
+            ] == "p" and not _is_white_piece(probs_with_no_indices[final_sq]):
                 initial_sq = changed_squares[0]
                 third_sq = changed_squares[1]
             elif previous_list[changed_squares[1]] == "P" and _is_white_piece(
@@ -1209,9 +1402,9 @@ def _detect_move(
             ):
                 initial_sq = changed_squares[1]
                 third_sq = changed_squares[0]
-            elif previous_list[changed_squares[1]] == "p" and not _is_white_piece(
-                probs_with_no_indices[final_sq]
-            ):
+            elif previous_list[
+                changed_squares[1]
+            ] == "p" and not _is_white_piece(probs_with_no_indices[final_sq]):
                 initial_sq = changed_squares[1]
                 third_sq = changed_squares[0]
             else:
@@ -1223,7 +1416,9 @@ def _detect_move(
         if previous_list[initial_sq] == "P" and previous_list[third_sq] == "p":
             action = "white_en_passants"
             return initial_sq, final_sq, action
-        elif previous_list[initial_sq] == "p" and previous_list[third_sq] == "P":
+        elif (
+            previous_list[initial_sq] == "p" and previous_list[third_sq] == "P"
+        ):
             action = "black_en_passants"
             return initial_sq, final_sq, action
         else:
@@ -1231,8 +1426,8 @@ def _detect_move(
 
     elif len(changed_squares) == 4:  # A castling move may have been made
         # Determine which square is the initial and which is the final
-        # (the initial and final squares of the king, not the rook,
-        #  as per the UCI notation)
+        # (the initial and final squares of the king, not the rook, as
+        # per the UCI notation)
         if previous_list[changed_squares[0]] in ["K", "k"]:
             initial_sq = changed_squares[0]
             if (
@@ -1328,61 +1523,81 @@ def _detect_move(
         else:
             return None
 
-    else:  # The number of squares whose states have changed is neither 2, 3, nor 4
+    else:  # The number of changed-state squares is neither 2, 3, nor 4
         return None
 
 
-def _is_king_move(initial_sq: tuple[int, int], final_sq: tuple[int, int]) -> bool:
+def _is_king_move(
+    initial_sq: tuple[int, int], final_sq: tuple[int, int]
+) -> bool:
     """Determine if the move could have been a king move.
 
-    A king can move at most one square in any direction (horizontally, vertically, or
-    diagonally).
+    A king can move at most one square in any direction (horizontally,
+    vertically, or diagonally).
 
-    :param initial_sq: Row and column indices of the initial square. (The `0` row index
-    corresponds to the 8th rank, and the `0` column index corresponds to the a file.)
+    :param initial_sq: Row and column indices of the initial square.
 
-    :param final_sq: Row and column indices of the final square. (The `0` row index of
-    corresponds to the 8th rank, and the `0` column index corresponds to the a file.)
+        The `0` row index corresponds to the 8th rank, and the `0`
+        column index corresponds to the a file.
 
-    :return: Whether the move given by the initial and final squares could have
-    been a king move.
+    :param final_sq: Row and column indices of the final square.
+
+        The `0` row index of corresponds to the 8th rank, and the `0`
+        column index corresponds to the a file.
+
+    :return: Whether the move given by the initial and final squares
+    could have been a king move.
     """
     return (
-        abs(initial_sq[0] - final_sq[0]) <= 1 and abs(initial_sq[1] - final_sq[1]) <= 1
+        abs(initial_sq[0] - final_sq[0]) <= 1
+        and abs(initial_sq[1] - final_sq[1]) <= 1
     )
 
 
-def _is_rook_move(initial_sq: tuple[int, int], final_sq: tuple[int, int]) -> bool:
+def _is_rook_move(
+    initial_sq: tuple[int, int], final_sq: tuple[int, int]
+) -> bool:
     """Determine if the move could have been a rook move.
 
-    A rook can move any number of squares (without jumping over any piece) along the
-    same rank or file.
+    A rook can move any number of squares (without jumping over any
+    piece) along the same rank or file.
 
-    :param initial_sq: Row and column indices of the initial square. (The `0` row index
-    corresponds to the 8th rank, and the `0` column index corresponds to the a file.)
+    :param initial_sq: Row and column indices of the initial square.
 
-    :param final_sq: Row and column indices of the final square. (The `0` row index of
-    corresponds to the 8th rank, and the `0` column index corresponds to the a file.)
+        The `0` row index corresponds to the 8th rank, and the `0`
+        column index corresponds to the a file.
 
-    :return: Whether the move given by the initial and final squares could have
-    been a rook move.
+    :param final_sq: Row and column indices of the final square.
+
+        The `0` row index of corresponds to the 8th rank, and the `0`
+        column index corresponds to the a file.
+
+    :return: Whether the move given by the initial and final squares
+    could have been a rook move.
     """
     return initial_sq[0] == final_sq[0] or initial_sq[1] == final_sq[1]
 
 
-def _is_bishop_move(initial_sq: tuple[int, int], final_sq: tuple[int, int]) -> bool:
+def _is_bishop_move(
+    initial_sq: tuple[int, int], final_sq: tuple[int, int]
+) -> bool:
     """Determine if the move could have been a bishop move.
 
-    A bishop can move any number of squares (without jumping over any piece) diagonally.
+    A bishop can move any number of squares (without jumping over any
+    piece) diagonally.
 
-    :param initial_sq: Row and column indices of the initial square. (The `0` row index
-    corresponds to the 8th rank, and the `0` column index corresponds to the a file.)
+    :param initial_sq: Row and column indices of the initial square.
 
-    :param final_sq: Row and column indices of the final square. (The `0` row index of
-    corresponds to the 8th rank, and the `0` column index corresponds to the a file.)
+        The `0` row index corresponds to the 8th rank, and the `0`
+        column index corresponds to the a file.
 
-    :return: Whether the move given by the initial and final squares could have
-    been a bishop move.
+    :param final_sq: Row and column indices of the final square.
+
+        The `0` row index of corresponds to the 8th rank, and the `0`
+        column index corresponds to the a file.
+
+    :return: Whether the move given by the initial and final squares
+    could have been a bishop move.
     """
     return (
         (
@@ -1395,46 +1610,59 @@ def _is_bishop_move(initial_sq: tuple[int, int], final_sq: tuple[int, int]) -> b
     )
 
 
-def _is_knight_move(initial_sq: tuple[int, int], final_sq: tuple[int, int]) -> bool:
+def _is_knight_move(
+    initial_sq: tuple[int, int], final_sq: tuple[int, int]
+) -> bool:
     """Determine if the move could have been a knight move.
 
-    A knight moves in an L-shape (diagonal of any 2x3 rectangle) fashion.
+    A knight moves in an L-shape (diagonal of a 2x3 rectangle) fashion.
 
-    :param initial_sq: Row and column indices of the initial square. (The `0` row index
-    corresponds to the 8th rank, and the `0` column index corresponds to the a file.)
+    :param initial_sq: Row and column indices of the initial square.
 
-    :param final_sq: Row and column indices of the final square. (The `0` row index of
-    corresponds to the 8th rank, and the `0` column index corresponds to the a file.)
+        The `0` row index corresponds to the 8th rank, and the `0`
+        column index corresponds to the a file.
 
-    :return: Whether the move given by the initial and final squares could have
-    been a knight move.
+    :param final_sq: Row and column indices of the final square.
+
+        The `0` row index of corresponds to the 8th rank, and the `0`
+        column index corresponds to the a file.
+
+    :return: Whether the move given by the initial and final squares
+    could have been a knight move.
     """
-    row_d = abs(initial_sq[0] - final_sq[0])  # This is the distance in _ranks
-    col_d = abs(initial_sq[1] - final_sq[1])  # This is the distance in _files
+    row_d = abs(initial_sq[0] - final_sq[0])  # This is the distance in ranks
+    col_d = abs(initial_sq[1] - final_sq[1])  # This is the distance in files
     return (row_d == 1 and col_d == 2) or (row_d == 2 and col_d == 1)
 
 
 def _is_pawn_move(
-    initial_sq: tuple[int, int], final_sq: tuple[int, int], capturing: bool, white: bool
+    initial_sq: tuple[int, int],
+    final_sq: tuple[int, int],
+    capturing: bool,
+    white: bool,
 ) -> bool:
     """Determine if the move could have been a pawn move.
 
-    A pawn can move one square (or two squares if it hasn't moved yet) forward along
-    the same file (or two if it hasn't moved yet) and capture one square forward
-    diagonally.
+    A pawn can move one square (or two squares if it hasn't moved yet)
+    forward along the same file (or two if it hasn't moved yet) and
+    capture one square forward diagonally.
 
-    :param initial_sq: Row and column indices of the initial square. (The `0` row index
-    corresponds to the 8th rank, and the `0` column index corresponds to the a file.)
+    :param initial_sq: Row and column indices of the initial square.
 
-    :param final_sq: Row and column indices of the final square. (The `0` row index of
-    corresponds to the 8th rank, and the `0` column index corresponds to the a file.)
+        The `0` row index corresponds to the 8th rank, and the `0`
+        column index corresponds to the a file.
+
+    :param final_sq: Row and column indices of the final square.
+
+        The `0` row index of corresponds to the 8th rank, and the `0`
+        column index corresponds to the a file.
 
     :param capturing: Whether the move was a capture.
 
     :param white: Whether it was white to move.
 
-    :return: Whether the move given by the initial and final squares could have
-    been a pawn move.
+    :return: Whether the move given by the initial and final squares
+    could have been a pawn move.
     """
     if white:
         if capturing:
@@ -1465,21 +1693,29 @@ def _infer_possible_pieces_from_move(
 ) -> list[str]:
     """Infer the possible piece types that could occupy a square.
 
-    This function infers, based on the detected move, the possible piece types that
-    could occupy the final square.
+    This function infers, based on the detected move, the possible piece
+    types that could occupy the final square.
 
-    Note: since the conclude-fen-immediately-after-move-detection feature
-    has been added, this function is no longer used in the code.
+    Note: since the conclude-fen-immediately-after-move-detection
+    feature has been added, this function is no longer used in the code.
 
-    :param initial_sq: Integer (between 0 and 63) specifying the initial square.
+    :param initial_sq: Integer specifying the initial square.
 
-    :param final_sq: Integer (between 0 and 63) specifying the final square.
+        The integer must be between `0` and `63`.
+
+    :param final_sq: Integer specifying the final square.
+
+        The integer must be between `0` and `63`.
 
     :param action: What action was detected.
 
-    :return: List of distinct piece types that could possibly occupy the final square.
+    :return: List of distinct piece types that could possibly occupy the
+    final square.
     """
-    initial_row_and_col = (initial_sq // 8, initial_sq % 8)  # (row index, column index)
+    initial_row_and_col = (
+        initial_sq // 8,
+        initial_sq % 8,
+    )  # (row index, column index)
     final_row_and_col = (final_sq // 8, final_sq % 8)
 
     capturing = action.endswith("captures") | action.endswith("en_passants")
@@ -1493,10 +1729,12 @@ def _infer_possible_pieces_from_move(
             possible_pieces.append("K")
             return possible_pieces
 
-        if _is_pawn_move(initial_row_and_col, final_row_and_col, capturing, white):
+        if _is_pawn_move(
+            initial_row_and_col, final_row_and_col, capturing, white
+        ):
             if final_row_and_col[0] == 0:
-                # If the move ends in the last row, promotions apply,
-                # so the result no longer is a pawn. This move also
+                # If the move ends in the last row, promotions apply, so
+                # the result no longer is a pawn. This move also
                 # corresponds with a king, so the result can be all
                 # pieces except for the pawn. In this case we don't need
                 # to check the rest of the pieces.
@@ -1519,7 +1757,9 @@ def _infer_possible_pieces_from_move(
             possible_pieces.append("k")
             return possible_pieces
 
-        if _is_pawn_move(initial_row_and_col, final_row_and_col, capturing, white):
+        if _is_pawn_move(
+            initial_row_and_col, final_row_and_col, capturing, white
+        ):
             if final_row_and_col[0] == 7:
                 return ["k", "r", "b", "q", "n"]
             possible_pieces.append("p")

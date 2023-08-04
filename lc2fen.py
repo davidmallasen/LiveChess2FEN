@@ -1,10 +1,14 @@
-"""This is the main program for converting chessboard images into FENs."""
+"""This is the main program for converting board images into FENs."""
 
 
 import argparse
 
-import sklearn  # This is required for Jetson to avoid "cannot allocate memory in static TLS block" error
-from keras.applications.imagenet_utils import preprocess_input as prein_squeezenet
+# `sklearn` is required for Jetson (to avoid "cannot allocate memory in
+# static TLS block" error)
+import sklearn
+from keras.applications.imagenet_utils import (
+    preprocess_input as prein_squeezenet,
+)
 from keras.applications.mobilenet_v2 import preprocess_input as prein_mobilenet
 
 from lc2fen.predict_board import (
@@ -39,11 +43,13 @@ def parse_arguments() -> tuple[str, str, str | None]:
     global ACTIVATE_KERAS, ACTIVATE_ONNX, ACTIVATE_TRT
 
     parser = argparse.ArgumentParser(
-        description="Predicts board configuration(s) (FEN string(s)) from image(s)."
+        description="Predicts board configuration(s) (FEN string(s)) from "
+        "image(s)."
     )
 
     parser.add_argument(
-        "path", help="Path to the image or folder you wish to predict the FEN(s) for"
+        "path",
+        help="Path to the image or folder you wish to predict the FEN(s) for",
     )
     parser.add_argument(
         "a1_pos",
@@ -64,7 +70,10 @@ def parse_arguments() -> tuple[str, str, str | None]:
         "-k", "--keras", help="run inference using Keras", action="store_true"
     )
     inf_engine.add_argument(
-        "-o", "--onnx", help="run inference using ONNXRuntime", action="store_true"
+        "-o",
+        "--onnx",
+        help="run inference using ONNXRuntime",
+        action="store_true",
     )
     inf_engine.add_argument(
         "-t", "--trt", help="run inference using TensorRT", action="store_true"

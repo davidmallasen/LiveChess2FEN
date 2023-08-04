@@ -73,7 +73,9 @@ def train_chesspiece_model():
     )
 
     plot_model_history(
-        history, "./models/NASNetMobile_acc.png", "./models/NASNetMobile_loss.png"
+        history,
+        "./models/NASNetMobile_acc.png",
+        "./models/NASNetMobile_loss.png",
     )
     evaluate_model(model, validation_generator)
 
@@ -81,7 +83,7 @@ def train_chesspiece_model():
 
 
 def continue_training():
-    """Continue training the chess-piece model based on NASNetMobile."""
+    """Continue training chess-piece model based on NASNetMobile."""
     model = load_model("./models/NASNetMobile.h5")
 
     train_generator, validation_generator = data_generators(

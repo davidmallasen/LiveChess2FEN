@@ -80,7 +80,9 @@ def create_dataset_csv(dataset_dir, csv_name, frac=1, validate=0.2, test=0.1):
     data_frame = load_dataset_images(dataset_dir, frac)
     total_rows = len(data_frame.index)
 
-    with open(dataset_dir + csv_name, "w", newline="", encoding="utf-8") as csvfile:
+    with open(
+        dataset_dir + csv_name, "w", newline="", encoding="utf-8"
+    ) as csvfile:
         csvwriter = csv.writer(
             csvfile, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL
         )
@@ -102,7 +104,7 @@ def create_dataset_csv(dataset_dir, csv_name, frac=1, validate=0.2, test=0.1):
 
 
 def randomize_dataset(dataset_dir):
-    """Randomize the order of the images in the subdirectories of `dataset_dir`.
+    """Randomize the order of images in subdirectories of `dataset_dir`.
 
     The randomized images are renamed using the "<number>.jpg" format.
 
@@ -125,7 +127,11 @@ def randomize_dataset(dataset_dir):
 
 
 def split_dataset(dataset_dir, train_dir, validation_dir, train_perc=0.8):
-    """Split the full dataset (`dataset_dir`) into a training dataset (`train_dir`) and a validation dataset (`validation_dir`).
+    """Split the full dataset into training and validation datasets.
+
+    This function splits the full dataset (`dataset_dir`) into a
+    training dataset (`train_dir`) and a validation dataset
+    (`validation_dir`).
 
     :param dataset_dir: Directory of the whole dataset.
 

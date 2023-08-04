@@ -22,7 +22,8 @@ def rand_color():
 class DebugImage:
     """Represent a debug image.
 
-    This class is used for drawing points and lines and saving the resulting image.
+    This class is used for drawing points and lines and saving the
+    resulting image.
     """
 
     def __init__(self, img):
@@ -45,7 +46,9 @@ class DebugImage:
         """Draw points in the image."""
         if DEBUG:
             for point in _points:
-                cv2.circle(self.img, (int(point[0]), int(point[1])), size, color, -1)
+                cv2.circle(
+                    self.img, (int(point[0]), int(point[1])), size, color, -1
+                )
         return self
 
     def save(self, filename, prefix=True):
@@ -57,4 +60,6 @@ class DebugImage:
             else:
                 __prefix = ""
 
-            cv2.imwrite(DEBUG_SAVE_DIR + __prefix + filename + ".jpg", self.img)
+            cv2.imwrite(
+                DEBUG_SAVE_DIR + __prefix + filename + ".jpg", self.img
+            )
