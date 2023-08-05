@@ -31,7 +31,7 @@ def regenerate_data_folder(data_path: str):
     "`data_path`/pieces" folder, and then it regenerates these folders
     (the folders will be empty) and creates the 13 piece subfolders.
 
-    :param data_path: Path to the data folder (for example, `"data"`).
+    :param data_path: Path to the data folder. Example: `"data"`.
     """
     shutil.rmtree(data_path + "/boards/output/")
     shutil.rmtree(data_path + "/boards/debug_steps/")
@@ -67,7 +67,7 @@ def split_detected_square_boards(data_path: str):
     Note: line i of .fen file must correspond be the FEN string of the
     board position corresponding to the "board i .jpg" image.
 
-    :param data_path: Path to the data folder (for example, `"data"`).
+    :param data_path: Path to the data folder. Example: `"data"`.
     """
 
     def natural_key(text):
@@ -108,7 +108,7 @@ def process_input_boards(data_path: str):
     "`data_path`/boards/input" folder and stores the results in
     the "`data_path`/boards/output" folder.
 
-    :param data_path: Path to the data folder (for example, `"data"`).
+    :param data_path: Path to the data folder. Example: `"data"`.
     """
 
     def natural_key(text):
