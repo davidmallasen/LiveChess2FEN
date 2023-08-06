@@ -224,7 +224,7 @@ def __padcrop(img, four_points):
 def cps(
     img: np.ndarray, points: list[list], lines: list[list]
 ) -> list[list[int]]:
-    """Search for the chessboard position search in the given image.
+    """Search for the chessboard position in the given image.
 
     :param img: Image to search.
 

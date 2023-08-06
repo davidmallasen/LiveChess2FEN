@@ -21,6 +21,12 @@ def split_board_image_trivial(
     individual square is saved into `out_dir` as `output_name` appended
     with its corresponding position on the chessboard.
 
+    For example, if `output_name` is `"square"` and `output_dir` is
+    `"Squares"`, then the "Squares" folder will be created in the
+    current directory and the image corresponding to the a8 square of
+    `board_image` will have the "Squares_0_0.jpg" filename and saved
+    into the "Squares" folder.
+
     :param board_image: Chessboard image to split.
 
         This image's height must be the same as its width.
@@ -87,6 +93,22 @@ def split_board_image_advanced(
     squares using the coordinates of the 81 square corners. Each
     individual square is saved into `out_dir` as `output_name` appended
     with its corresponding position on the chessboard.
+
+    For example, if `output_name` is `"square"` and `output_dir` is
+    `"Squares"`, then the "Squares" folder will be created in the
+    current directory and the image corresponding to the a8 square of
+    `board_image` will have the "Squares_0_0.jpg" filename and saved
+    into the "Squares" folder.
+
+    Note: this function is currently not used in the main workflow of
+    the LiveChess2FEN framework (`obtain_individual_pieces()` in
+    "predict_board.py" does not use this function). This is because the
+    CNNs were trained with a dataset of images that were cropped using
+    the trivial method (see `split_detected_square_boards()` in
+    "board2data.py") instead of this more advanced one (see
+    `process_input_boards()` in "board2data.py"). If the CNNs were
+    trained using a dataset whose images are cropped with this advanced
+    method, the overall accuracy would improve.
 
     :param board_image: Chessboard image to split.
 

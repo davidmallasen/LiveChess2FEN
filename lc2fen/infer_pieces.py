@@ -100,7 +100,7 @@ def _sort_probs_by_piece_type(
         the integer specifying the position of the corresponding square
         on the chessboard.
 
-    :return: List-10 list of piece probabilities.
+    :return: Length-10 list of piece probabilities.
 
         Each element in the list is a sublist that corresponds to a
         unique piece type (the piece types are in the order of
@@ -133,10 +133,10 @@ def _sort_probs_by_piece_type(
         reverse=True,
     )
     w_pawns = sorted(
-        probs_by_square[8:-8],
+        probs_by_square[8:-8],  # Pawns can't be in the first or last row
         key=lambda prob: prob[0][_PIECE_TO_IDX_FULL["P"]],
         reverse=True,
-    )  # Pawns can't be in the first or last row
+    )
     w_queens = sorted(
         probs_by_square,
         key=lambda prob: prob[0][_PIECE_TO_IDX_FULL["Q"]],
@@ -158,10 +158,10 @@ def _sort_probs_by_piece_type(
         reverse=True,
     )
     b_pawns = sorted(
-        probs_by_square[8:-8],
+        probs_by_square[8:-8],  # Pawns can't be in the first or last row
         key=lambda prob: prob[0][_PIECE_TO_IDX_FULL["p"]],
         reverse=True,
-    )  # Pawns can't be in the first or last row
+    )
     b_queens = sorted(
         probs_by_square,
         key=lambda prob: prob[0][_PIECE_TO_IDX_FULL["q"]],
@@ -897,7 +897,7 @@ def infer_chess_pieces(
     # ..., to h1)
     # (`None` represents that the piece type of that square has not been
     # determined yet)
-    piece_list_from_a8_to_h1 = [None] * 64
+    predicted_piece_list = [None] * 64
 
     if previous_fen is not None:  # Perform move detection
         changed_squares = _determine_changed_squares(
@@ -937,8 +937,8 @@ def infer_chess_pieces(
     if black_king[1] == white_king[1]:
         black_king = black_kings[1]
 
-    piece_list_from_a8_to_h1[white_king[1]] = "K"
-    piece_list_from_a8_to_h1[black_king[1]] = "k"
+    predicted_piece_list[white_king[1]] = "K"
+    predicted_piece_list[black_king[1]] = "k"
 
     num_of_undetermined_squares = (
         62  # We have already determined the king locations
@@ -947,9 +947,9 @@ def infer_chess_pieces(
     # Then identify the empty squares (the CNN has a very high accuracy
     # of detecting empty squares)
     for idx, piece in enumerate(probs_with_no_indices):
-        if piece_list_from_a8_to_h1[idx] is None:
+        if predicted_piece_list[idx] is None:
             if _is_empty_square(piece):
-                piece_list_from_a8_to_h1[idx] = "_"
+                predicted_piece_list[idx] = "_"
                 num_of_undetermined_squares -= 1
 
     # Determine the locations of the other pieces in order of
@@ -991,7 +991,7 @@ def infer_chess_pieces(
         # square has exactly that piece
         if (
             max_pieces_left[max_idx] > 0
-            and piece_list_from_a8_to_h1[square] is None
+            and predicted_piece_list[square] is None
         ):
             piece_type = _IDX_TO_PIECE[max_idx]
             if _check_balance_among_pawns_queens_and_bishops(
@@ -1003,7 +1003,7 @@ def infer_chess_pieces(
                 b_dark_squared,
                 square,
             ):
-                piece_list_from_a8_to_h1[square] = piece_type
+                predicted_piece_list[square] = piece_type
                 num_of_undetermined_squares -= 1
                 max_pieces_left[max_idx] -= 1
 
@@ -1042,16 +1042,16 @@ def infer_chess_pieces(
         # For every undetermined square, rather than give up on that
         # square, we will determine the piece on that square by brute
         # force
-        for square, piece_type in enumerate(piece_list_from_a8_to_h1):
+        for square, piece_type in enumerate(predicted_piece_list):
             if piece_type is None:
                 if _is_white_piece(probs_with_no_indices[square]):
-                    piece_list_from_a8_to_h1[
+                    predicted_piece_list[
                         square
                     ] = _determine_most_probable_white_piece(
                         probs_with_no_indices, square
                     )
                 else:
-                    piece_list_from_a8_to_h1[
+                    predicted_piece_list[
                         square
                     ] = _determine_most_probable_black_piece(
                         probs_with_no_indices, square
@@ -1059,7 +1059,7 @@ def infer_chess_pieces(
 
     if previous_fen is not None:  # We will now give move detection another try
         changed_squares = _determine_changed_squares_after_piece_inference(
-            previous_fen, piece_list_from_a8_to_h1
+            previous_fen, predicted_piece_list
         )
         move = _detect_move(
             previous_fen, probs_with_no_indices, changed_squares
@@ -1073,7 +1073,7 @@ def infer_chess_pieces(
                 )
             )
 
-    return piece_list_from_a8_to_h1
+    return predicted_piece_list
 
 
 def _is_empty_square(probs_for_a_specific_square: list) -> bool:
@@ -1175,7 +1175,7 @@ def _determine_changed_squares(
             and not _is_white_piece(probs_with_no_indices[idx])
         ):
             continue
-        # If a square whose state has changed, store the index of that
+        # If the state of a square has changed, store the index of that
         # square
         changed_squares.append(idx)
 
@@ -1183,7 +1183,7 @@ def _determine_changed_squares(
 
 
 def _determine_changed_squares_after_piece_inference(
-    previous_fen: str, piece_list_from_a8_to_h1: list[str]
+    previous_fen: str, predicted_piece_list: list[str]
 ) -> list[int]:
     """Determine, after piece inference, the changed-state squares.
 
@@ -1198,7 +1198,7 @@ def _determine_changed_squares_after_piece_inference(
 
     :param previous_fen: FEN string of the previous board position.
 
-    :param piece_list_from_a8_to_h1: Length-64 list of inferred pieces.
+    :param predicted_piece_list: Length-64 list of inferred pieces.
 
         The 64 inferred chess pieces are in the FEN-notation order (the
         first element corresponds to the a8 square, the second to the b8
@@ -1215,19 +1215,19 @@ def _determine_changed_squares_after_piece_inference(
     for idx, previous_piece in enumerate(previous_list):
         # If a square's previous state is the same as its current one,
         # ignore that square
-        if previous_piece == "_" and piece_list_from_a8_to_h1[idx] == "_":
+        if previous_piece == "_" and predicted_piece_list[idx] == "_":
             continue
         if (
             previous_piece in _WHITE_PIECES
-            and piece_list_from_a8_to_h1[idx] in _WHITE_PIECES
+            and predicted_piece_list[idx] in _WHITE_PIECES
         ):
             continue
         if (
             previous_piece in _BLACK_PIECES
-            and piece_list_from_a8_to_h1[idx] in _BLACK_PIECES
+            and predicted_piece_list[idx] in _BLACK_PIECES
         ):
             continue
-        # If a square whose state has changed, store the index of that
+        # If the state of a square has changed, store the index of that
         # square
         changed_squares.append(idx)
 
