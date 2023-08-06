@@ -1108,22 +1108,12 @@ def _is_white_piece(probs_for_a_specific_square: list) -> bool:
     :return: Whether the square whose piece probabilities are given by
     `probs_for_a_specific_square` has a white piece on it or not.
     """
-    return (
-        np.sum(
-            [
-                prob
-                for idx, prob in enumerate(probs_for_a_specific_square)
-                if _IDX_TO_PIECE_FULL[idx] in _WHITE_PIECES
-            ]
-        )
-    ) >= (
-        np.sum(
-            [
-                prob
-                for idx, prob in enumerate(probs_for_a_specific_square)
-                if _IDX_TO_PIECE_FULL[idx] in _BLACK_PIECES
-            ]
-        )
+    # Note that `_IDX_TO_PIECE_FULL[0]`, `_IDX_TO_PIECE_FULL[1]`, ...,
+    # `_IDX_TO_PIECE_FULL[5]` correspond to the white pieces, while
+    # `_IDX_TO_PIECE_FULL[7]`, `_IDX_TO_PIECE_FULL[8]`, ...,
+    # `_IDX_TO_PIECE_FULL[12]` correspond to the black pieces
+    return np.sum(probs_for_a_specific_square[:6]) >= np.sum(
+        probs_for_a_specific_square[7:]
     )
 
 
