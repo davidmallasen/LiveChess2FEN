@@ -3,7 +3,7 @@
 First of all, thank you for reading these lines and taking the time to
  contribute! We are open to new issues and contributions of any kind.
  
-## How Can I Contribute?
+## How to Contribute
 
 #### **Did you find a bug or intend to add a new feature or change an existing one?**
 
