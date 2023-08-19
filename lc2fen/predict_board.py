@@ -755,7 +755,7 @@ def read_correct_fen(
 def check_validity_of_fen(fen: str) -> bool:
     """Check validity of FEN assuming a standard physical chess set.
 
-    This function checks the validity of an FEN string assuming a
+    This function checks the validity of a FEN string assuming a
     standard physical chess set.
 
     :param fen: FEN string whose validity is to be checked.

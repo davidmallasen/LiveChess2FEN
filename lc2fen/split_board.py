@@ -24,7 +24,7 @@ def split_board_image_trivial(
     For example, if `output_name` is `"square"` and `output_dir` is
     `"Squares"`, then the "Squares" folder will be created in the
     current directory and the image corresponding to the a8 square of
-    `board_image` will have the "Squares_0_0.jpg" filename and saved
+    `board_image` will have the "squares_0_0.jpg" filename and saved
     into the "Squares" folder.
 
     :param board_image: Chessboard image to split.
@@ -97,7 +97,7 @@ def split_board_image_advanced(
     For example, if `output_name` is `"square"` and `output_dir` is
     `"Squares"`, then the "Squares" folder will be created in the
     current directory and the image corresponding to the a8 square of
-    `board_image` will have the "Squares_0_0.jpg" filename and saved
+    `board_image` will have the "squares_0_0.jpg" filename and saved
     into the "Squares" folder.
 
     Note: this function is currently not used in the main workflow of

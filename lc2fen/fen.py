@@ -5,7 +5,7 @@ PIECE_TYPES = ["r", "n", "b", "q", "k", "p", "P", "R", "N", "B", "Q", "K", "_"]
 
 
 def fen_to_board(fen: str) -> list[list[str]]:
-    """Translate an FEN string to a board matrix.
+    """Translate a FEN string to a board matrix.
 
     Note that the FEN string should only contain information of the
     positions of the pieces. Each empty square is represented by a `"_"`
@@ -36,7 +36,7 @@ def fen_to_board(fen: str) -> list[list[str]]:
 
 
 def board_to_fen(board: list[list[str]]) -> str:
-    """Translate a board matrix to an FEN string.
+    """Translate a board matrix to a FEN string.
 
     Each empty square must be represented by a `"_"` in the board
     matrix.

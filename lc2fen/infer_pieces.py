@@ -194,6 +194,9 @@ def _piece_with_highest_prob(
     This function determines the piece that has the highest piece
     probability across the entire chessboard.
 
+    See "infer_pieces.png" (in the "docs" folder) for a visualization of
+    the algorithm.
+
     :param top_probs_by_type: Length-10 list of piece probabilities.
 
         Each element in the list is a tuple that corresponds to a unique
@@ -398,6 +401,10 @@ def _determine_promoted_piece(
         Each sublist contains 13 piece probabilities (in the order of
         `_IDX_TO_PIECE_FULL`) for the corresponding square.
 
+        The probabilities come from the convolutional neural network
+        (see the `obtain_piece_probs_for_all_64_squares()` function
+        in "predict_board.py").
+
     :param final_sq: Integer specifying the square of interest.
 
         This integer specifies which square we are interested in
@@ -510,6 +517,10 @@ def _generate_fen_based_on_previous_fen_and_detected_move(
         Each sublist contains 13 piece probabilities (in the order of
         `_IDX_TO_PIECE_FULL`) for the corresponding square.
 
+        The probabilities come from the convolutional neural network
+        (see the `obtain_piece_probs_for_all_64_squares()` function
+        in "predict_board.py").
+
     :return: FEN string of the current board position.
     """
     assert previous_fen is not None
@@ -578,6 +589,10 @@ def _determine_most_probable_white_piece(
         Each sublist contains 13 piece probabilities (in the order of
         `_IDX_TO_PIECE_FULL`) for the corresponding square.
 
+        The probabilities come from the convolutional neural network
+        (see the `obtain_piece_probs_for_all_64_squares()` function
+        in "predict_board.py").
+
     :param square: Integer specifying the square of interest.
 
         This integer specifies which square we are interested in
@@ -638,6 +653,10 @@ def _determine_most_probable_black_piece(
 
         Each sublist contains 13 piece probabilities (in the order of
         `_IDX_TO_PIECE_FULL`) for the corresponding square.
+
+        The probabilities come from the convolutional neural network
+        (see the `obtain_piece_probs_for_all_64_squares()` function
+        in "predict_board.py").
 
     :param square: Integer specifying the square of interest.
 
@@ -872,6 +891,10 @@ def infer_chess_pieces(
         Each sublist contains 13 piece probabilities (in the order of
         `_IDX_TO_PIECE_FULL`) for the corresponding square.
 
+        The probabilities come from the convolutional neural network
+        (see the `obtain_piece_probs_for_all_64_squares()` function
+        in "predict_board.py").
+
     :param a1_pos: Position of the a1 square of list of probabilities.
 
         This is the position of the a1 square (`"BL"`, `"BR"`, `"TL"`,
@@ -981,6 +1004,8 @@ def infer_chess_pieces(
     # pawns, queens, and bishops)
     failed_to_complete_prediction = False
 
+    # See "infer_pieces.png" (in the "docs" folder) for a visualization
+    # of the following `while` loop
     while num_of_undetermined_squares > 0:
         # Determine the piece type of the square that has the piece with
         # the highest probability across the entire board
@@ -1138,6 +1163,10 @@ def _determine_changed_squares(
         Each sublist contains 13 piece probabilities (in the order of
         `_IDX_TO_PIECE_FULL`) for the corresponding square.
 
+        The probabilities come from the convolutional neural network
+        (see the `obtain_piece_probs_for_all_64_squares()` function
+        in "predict_board.py").
+
     :return: List of integers specifying which squares on the chessboard
     experienced a state change.
 
@@ -1248,6 +1277,10 @@ def _detect_move(
 
         Each sublist contains 13 piece probabilities (in the order of
         `_IDX_TO_PIECE_FULL`) for the corresponding square.
+
+        The probabilities come from the convolutional neural network
+        (see the `obtain_piece_probs_for_all_64_squares()` function
+        in "predict_board.py").
 
     :param changed_squares: List specifying changed-state squares.
 
@@ -1590,13 +1623,11 @@ def _is_bishop_move(
     could have been a bishop move.
     """
     return (
-        (
-            initial_sq[0] - initial_sq[1] == final_sq[0] - final_sq[1]
-        )  # The move is parallel to the a8-h1 diagonal
+        (initial_sq[0] - initial_sq[1] == final_sq[0] - final_sq[1])
+        # The move is parallel to the a8-h1 diagonal
     ) or (
-        (
-            initial_sq[0] + initial_sq[1] == final_sq[0] + final_sq[1]
-        )  # The move is parallel to the a1-h8 diagonal
+        (initial_sq[0] + initial_sq[1] == final_sq[0] + final_sq[1])
+        # The move is parallel to the a1-h8 diagonal
     )
 
 
