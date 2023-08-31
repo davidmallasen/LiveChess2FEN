@@ -25,14 +25,8 @@ EXP1X1 = "expand1x1"
 EXP3X3 = "expand3x3"
 RELU = "relu_"
 
-WEIGHTS_PATH = (
-    "https://github.com/rcmalli/keras-squeezenet/releases/download/v1.0/squeez"
-    "enet_weights_tf_dim_ordering_tf_kernels.h5"
-)
-WEIGHTS_PATH_NO_TOP = (
-    "https://github.com/rcmalli/keras-squeezenet/releases/download/v1.0/squeez"
-    "enet_weights_tf_dim_ordering_tf_kernels_notop.h5"
-)
+WEIGHTS_PATH = "https://github.com/rcmalli/keras-squeezenet/releases/download/v1.0/squeezenet_weights_tf_dim_ordering_tf_kernels.h5"
+WEIGHTS_PATH_NO_TOP = "https://github.com/rcmalli/keras-squeezenet/releases/download/v1.0/squeezenet_weights_tf_dim_ordering_tf_kernels_notop.h5"
 
 
 def fire_module(x, fire_id, squeeze=16, expand=64):
