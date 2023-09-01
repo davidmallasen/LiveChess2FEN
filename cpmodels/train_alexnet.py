@@ -1,6 +1,6 @@
-"""
-Train AlexNet model.
-"""
+"""This module is responsible for training the AlexNet model."""
+
+
 from keras import Sequential
 from keras.models import load_model
 from keras.layers import Conv2D, MaxPool2D, Flatten, Dense, Dropout
@@ -16,7 +16,7 @@ from chess_piece_models_common import (
 
 
 def alexnet(input_shape=(224, 224, 3)):
-    """AlexNet model."""
+    """Create the AlexNet model."""
     model = Sequential()
     model.add(
         Conv2D(
@@ -83,14 +83,14 @@ def alexnet(input_shape=(224, 224, 3)):
 
 
 def preprocess_input(x):
-    """AlexNet preprocessing function."""
+    """Preprocess the input image according to AlexNet requirements."""
     x /= 127.5
     x -= 1.0
     return x
 
 
 def train_chesspiece_model():
-    """Trains the chesspiece model based on AlexNet."""
+    """Train the chess-piece model based on AlexNet."""
     model = alexnet(input_shape=(224, 224, 3))
 
     train_generator, validation_generator = data_generators(
@@ -109,14 +109,16 @@ def train_chesspiece_model():
         workers=5,
     )
 
-    plot_model_history(history, "./models/AlexNet_acc.png", "./models/AlexNet_loss.png")
+    plot_model_history(
+        history, "./models/AlexNet_acc.png", "./models/AlexNet_loss.png"
+    )
     evaluate_model(model, validation_generator)
 
     model.save("./models/AlexNet_last.h5")
 
 
 def continue_training():
-    """Continues training the chesspiece model based on AlexNet."""
+    """Continue training chess-piece model based on AlexNet."""
     model = load_model("./models/AlexNet.h5")
 
     train_generator, validation_generator = data_generators(
@@ -124,7 +126,9 @@ def continue_training():
     )
 
     model.compile(
-        optimizer=Adam(lr=1e-4), loss="categorical_crossentropy", metrics=["accuracy"]
+        optimizer=Adam(lr=1e-4),
+        loss="categorical_crossentropy",
+        metrics=["accuracy"],
     )
 
     callbacks = model_callbacks(20, "./models/AlexNet_2.h5", 0.2, 8)

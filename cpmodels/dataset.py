@@ -1,6 +1,6 @@
-"""
-Works with the chess pieces dataset.
-"""
+"""This module works with the chess-piece dataset."""
+
+
 import csv
 import functools
 import os
@@ -10,6 +10,7 @@ from random import shuffle
 import pandas as pd
 
 from lc2fen.fen import PIECE_TYPES
+
 
 PIECES_TO_CLASSNUM = {
     "_": 0,
@@ -29,24 +30,28 @@ PIECES_TO_CLASSNUM = {
 
 
 def create_dataset_csv(dataset_dir, csv_name, frac=1, validate=0.2, test=0.1):
-    """
-    Deprecated, not currently in use.
+    """Create the csv for the dataset.
 
-    Creates the csv for the dataset.
+    Note that this function is deprecated and not currently in use.
 
     :param dataset_dir: Directory of the dataset.
+
     :param csv_name: Name of the output csv.
-    :param frac: Fraction of images to load. Default 1.
-    :param validate: Fraction of images to label as VAL. Default 0.2.
-    :param test: Fraction of images to label as TEST. Default 0.1.
+
+    :param frac: Fraction of images to load.
+
+    :param validate: Fraction of images to label as VAL.
+
+    :param test: Fraction of images to label as TEST.
+
     :return: Number of loaded images.
     """
 
     def load_dataset_images(dataset_dir, frac):
-        """
-        Returns a DataFrame with the loaded dataset images.
+        """Return a `DataFrame` with the loaded dataset images.
 
         :param dataset_dir: Directory of the dataset.
+
         :param frac: Fraction of images to load.
         """
         file_names = [
@@ -75,7 +80,9 @@ def create_dataset_csv(dataset_dir, csv_name, frac=1, validate=0.2, test=0.1):
     data_frame = load_dataset_images(dataset_dir, frac)
     total_rows = len(data_frame.index)
 
-    with open(dataset_dir + csv_name, "w", newline="", encoding="utf-8") as csvfile:
+    with open(
+        dataset_dir + csv_name, "w", newline="", encoding="utf-8"
+    ) as csvfile:
         csvwriter = csv.writer(
             csvfile, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL
         )
@@ -97,9 +104,9 @@ def create_dataset_csv(dataset_dir, csv_name, frac=1, validate=0.2, test=0.1):
 
 
 def randomize_dataset(dataset_dir):
-    """
-    Randomizes the order of the images in the subdirectories of
-    dataset_dir. Renames them to <number>.jpg.
+    """Randomize the order of images in subdirectories of `dataset_dir`.
+
+    The randomized images are renamed using the "<number>.jpg" format.
 
     :param dataset_dir: Directory of the dataset.
     """
@@ -120,14 +127,19 @@ def randomize_dataset(dataset_dir):
 
 
 def split_dataset(dataset_dir, train_dir, validation_dir, train_perc=0.8):
-    """
-    Splits dataset_dir into train_dir and validation_dir given
-    train_perc.
+    """Split the full dataset into training and validation datasets.
+
+    This function splits the full dataset (`dataset_dir`) into a
+    training dataset (`train_dir`) and a validation dataset
+    (`validation_dir`).
 
     :param dataset_dir: Directory of the whole dataset.
+
     :param train_dir: Train directory.
+
     :param validation_dir: Validation directory.
-    :param train_perc: Percentage of training images. Default 0.8.
+
+    :param train_perc: Percentage of training images.
     """
     shutil.rmtree(train_dir)
     shutil.rmtree(validation_dir)

@@ -1,6 +1,6 @@
-"""
-Train SqueezeNet-v1.1 model.
-"""
+"""Train SqueezeNet-v1.1 model."""
+
+
 from keras.applications.imagenet_utils import preprocess_input
 from keras.models import load_model
 
@@ -16,7 +16,7 @@ from chess_piece_models_common import (
 
 
 def train_chesspiece_model():
-    """Trains the chesspiece model based on SqueezeNet-v1.1."""
+    """Train the chess-piece model based on SqueezeNet-v1.1."""
     base_model = SqueezeNet(
         input_shape=(227, 227, 3), include_top=False, weights="imagenet"
     )
@@ -73,7 +73,9 @@ def train_chesspiece_model():
     )
 
     plot_model_history(
-        history, "./models/SqueezeNet1p1_acc.png", "./models/SqueezeNet1p1_loss.png"
+        history,
+        "./models/SqueezeNet1p1_acc.png",
+        "./models/SqueezeNet1p1_loss.png",
     )
     evaluate_model(model, validation_generator)
 
@@ -81,7 +83,7 @@ def train_chesspiece_model():
 
 
 def continue_training():
-    """Continues training the chesspiece model based on SqueezeNet-v1.1."""
+    """Continue training chess-piece model based on SqueezeNet-v1.1."""
     model = load_model("./models/SqueezeNet1p1.h5")
 
     train_generator, validation_generator = data_generators(

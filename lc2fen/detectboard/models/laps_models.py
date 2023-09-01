@@ -1,7 +1,8 @@
-"""
-Work with the LAPS models.
-"""
+"""This module works with the LAPS models."""
+
+
 from keras.models import model_from_json
+
 
 __laps_model = "laps.model.json"
 __laps_weights = "laps.weights.h5"

@@ -1,8 +1,13 @@
+"""This module is responsible for the Keras-to-ONNX conversion.
+
+It converts a Keras model (a ".h5" file) to an ONNX model (a ".onnx"
+file).
 """
-Convert Keras model to ONNX format.
-"""
+
+
 import tensorflow as tf
 import tf2onnx
+
 
 MODELS_PATH = "../selected_models/"
 KERAS_MODEL_NAME = "MobileNetV2_0p5_all.h5"
@@ -15,6 +20,7 @@ target_opset = 13
 
 
 def main():
+    """Convert a Keras model to an ONNX model."""
     # Convert the .h5 keras model to .pb
     keras_model = tf.keras.models.load_model(MODELS_PATH + KERAS_MODEL_NAME)
     keras_model.save(MODELS_PATH + "saved_model")
@@ -22,7 +28,9 @@ def main():
     # Convert to ONNX
     spec = (
         tf.TensorSpec(
-            (batch_size, image_size, image_size, channels), tf.float32, name="input"
+            (batch_size, image_size, image_size, channels),
+            tf.float32,
+            name="input",
         ),
     )
     model_proto, _ = tf2onnx.convert.from_keras(

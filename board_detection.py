@@ -1,11 +1,12 @@
-"""
-Executes the detection of a chessboard.
-"""
-from lc2fen.board2data import regenerate_data_state, process_input_boards
+"""This script executes the detection of chessboards."""
+
+
+from lc2fen.board2data import regenerate_data_folder, process_input_boards
 
 
 def main():
-    regenerate_data_state("data")
+    """Detect all the chessboards in the "data" folder."""
+    regenerate_data_folder("data")
     process_input_boards("data")
 
 

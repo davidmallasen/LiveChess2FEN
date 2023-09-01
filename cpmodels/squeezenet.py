@@ -1,6 +1,6 @@
-"""
-SqueezeNet-v1.1 implementation.
-"""
+"""This module contains the SqueezeNet-v1.1 implementation."""
+
+
 import warnings
 
 from keras import backend as K
@@ -19,6 +19,7 @@ from keras.utils import get_file
 from keras.utils import layer_utils
 from keras.applications.imagenet_utils import obtain_input_shape
 
+
 SQ1X1 = "squeeze1x1"
 EXP1X1 = "expand1x1"
 EXP3X3 = "expand3x3"
@@ -29,7 +30,10 @@ WEIGHTS_PATH_NO_TOP = "https://github.com/rcmalli/keras-squeezenet/releases/down
 
 
 def fire_module(x, fire_id, squeeze=16, expand=64):
-    """Modular function for Fire Node."""
+    """Fire up the module.
+
+    This is the modular function for Fire Node.
+    """
     s_id = "fire" + str(fire_id) + "/"
 
     if K.image_data_format() == "channels_first":
@@ -40,10 +44,14 @@ def fire_module(x, fire_id, squeeze=16, expand=64):
     x = Convolution2D(squeeze, (1, 1), padding="valid", name=s_id + SQ1X1)(x)
     x = Activation("relu", name=s_id + RELU + SQ1X1)(x)
 
-    left = Convolution2D(expand, (1, 1), padding="valid", name=s_id + EXP1X1)(x)
+    left = Convolution2D(expand, (1, 1), padding="valid", name=s_id + EXP1X1)(
+        x
+    )
     left = Activation("relu", name=s_id + RELU + EXP1X1)(left)
 
-    right = Convolution2D(expand, (3, 3), padding="same", name=s_id + EXP3X3)(x)
+    right = Convolution2D(expand, (3, 3), padding="same", name=s_id + EXP3X3)(
+        x
+    )
     right = Activation("relu", name=s_id + RELU + EXP3X3)(right)
 
     return concatenate([left, right], axis=channel_axis, name=s_id + "concat")
@@ -57,8 +65,7 @@ def SqueezeNet(
     pooling=None,
     classes=1000,
 ):
-    """Instantiates the original SqueezeNet architecture from paper."""
-
+    """Instantiate the original SqueezeNet architecture from paper."""
     if weights not in {"imagenet", None}:
         raise ValueError(
             "The `weights` argument should be either "
@@ -88,9 +95,9 @@ def SqueezeNet(
         else:
             img_input = input_tensor
 
-    x = Convolution2D(64, (3, 3), strides=(2, 2), padding="valid", name="conv1")(
-        img_input
-    )
+    x = Convolution2D(
+        64, (3, 3), strides=(2, 2), padding="valid", name="conv1"
+    )(img_input)
     x = Activation("relu", name="relu_conv1")(x)
     x = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), name="pool1")(x)
 

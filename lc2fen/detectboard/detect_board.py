@@ -1,7 +1,9 @@
+"""This is the main file of detectboard module.
+
+It detects a board on a given image using the `detect()` function.
 """
-Main file of detectboard module. Detects a board on a given image using
-the detect function.
-"""
+
+
 import cv2
 import numpy as np
 
@@ -13,15 +15,17 @@ from lc2fen.detectboard.slid import slid
 
 
 def __original_points_coords(point_list):
-    """
-    Detects the coordinates of the board on the original image.
+    """Detect the coordinates of the board in the original image.
 
-    :param point_list: List of the relative points in the sequence of
-        image transformations done in each layer.
+    :param point_list: List of the relative points.
+
+    The relative points are in the sequence of image transformations
+    done in each layer.
+
     :return: The coordinates in the original image of the chessboard
-        corners and the coordinates of each of the corners of the
-        chessboard squares as a pair of board_corners and
-        square_corners.
+    corners and the coordinates of each of the corners of the
+    chessboard squares as a pair of `board_corners` and
+    `square_corners`.
     """
     ptslims = np.float32([[0, 0], [1200, 0], [1200, 1200], [0, 1200]])
     last_index = len(point_list) - 1
@@ -29,7 +33,9 @@ def __original_points_coords(point_list):
     # Compute all of the transformation matrixes
     transf_mats = []
     for i in range(last_index):
-        transf_mat = cv2.getPerspectiveTransform(np.float32(point_list[i]), ptslims)
+        transf_mat = cv2.getPerspectiveTransform(
+            np.float32(point_list[i]), ptslims
+        )
         cv2.invert(transf_mat, transf_mat)
         transf_mats.append(transf_mat)
 
@@ -43,7 +49,9 @@ def __original_points_coords(point_list):
         np.float32(point_list[last_index]).reshape(-1, 1, 2), transf_mat
     )
 
-    board_corners = np.int32([transf_points[i][0] for i in range(len(transf_points))])
+    board_corners = np.int32(
+        [transf_points[i][0] for i in range(len(transf_points))]
+    )
 
     # Now obtain the corners of each square in the chessboard
     # To do so we need also the last transformation matrix
@@ -87,20 +95,29 @@ def __layer(img):
     img.crop(four_points)
 
 
-def detect(input_image, output_board, board_corners=None):
-    """
-    Detects the board position in input_image and stores the cropped
-    detected board in output_board.
+def detect(
+    input_image: np.ndarray,
+    output_board: str,
+    board_corners: (list[list[int]] | None) = None,
+):
+    """Detect the board position and store the cropped detected board.
+
+    This function detects the board position in `input_image` and stores
+    the cropped detected board in `output_board`.
 
     :param input_image: Input chessboard image.
-    :param output_board: Path (including name and extension) where to
-        store the image with the detected chessboard.
-    :param board_corners: A list of the coordinates of the four board
-        corners. If it is not None, first check if the board is in the
-        position given by these corners. If not, runs the full
-        detection.
+
+    :param output_board: Output path for the detected-board image.
+
+        This path must include both the name and extension.
+
+    :param board_corners: List of coordinates of the four board corners.
+
+        If it is not None, first check if the board is in the position
+        given by these corners. If not, runs the full detection.
+
     :return: Final ImageObject with which to compute the corners if
-        necessary.
+    necessary.
     """
     # Check if we can skip full board detection (if board position is
     # already known)
@@ -126,17 +143,20 @@ def detect(input_image, output_board, board_corners=None):
 
 
 def compute_corners(image_object):
-    """
-    Compute the coordinates of the board on the original image from the
-    ImageObject obtained in the detection.
+    """Compute the coordinates of the board in the original image.
+
+    This function computes the coordinates of the board in the original
+    image from the ImageObject obtained in the detection.
 
     :param image_object: ImageObject obtained in the detect method.
+
     :return: The coordinates in the original image of the chessboard
-        corners and the coordinates of each of the corners of the
-        chessboard squares as a pair of board_corners and
-        square_corners.
+    corners and the coordinates of each of the corners of the chessboard
+    squares as a pair of `board_corners` and `square_corners`.
     """
-    board_corners, square_corners = __original_points_coords(image_object.get_points())
+    board_corners, square_corners = __original_points_coords(
+        image_object.get_points()
+    )
 
     debug.DebugImage(image_object.get_images()[0]["orig"]).points(
         square_corners, size=50, color=(0, 0, 255)

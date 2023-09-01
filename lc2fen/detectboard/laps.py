@@ -1,6 +1,6 @@
-"""
-Lattice points search.
-"""
+"""This is the lattice-points-search module."""
+
+
 import collections
 
 import cv2
@@ -12,7 +12,10 @@ from scipy.spatial.distance import pdist
 from lc2fen.detectboard import debug, image_object
 from lc2fen.detectboard import poly_point_isect
 
-__LAPS_SESS = onnxruntime.InferenceSession("lc2fen/detectboard/models/laps_model.onnx")
+
+__LAPS_SESS = onnxruntime.InferenceSession(
+    "lc2fen/detectboard/models/laps_model.onnx"
+)
 
 __ANALYSIS_RADIUS = 10
 
@@ -34,7 +37,10 @@ def __cluster_points(points, max_dist=10):
     clusters = clusters.values()
     # If two points are close, they become one mean point
     clusters = map(
-        lambda arr: (np.mean(np.array(arr)[:, 0]), np.mean(np.array(arr)[:, 1])),
+        lambda arr: (
+            np.mean(np.array(arr)[:, 0]),
+            np.mean(np.array(arr)[:, 1]),
+        ),
         clusters,
     )
     return list(clusters)
@@ -60,7 +66,9 @@ def __is_lattice_point(img):
     )
     mask = cv2.bitwise_not(mask)
 
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    contours, _ = cv2.findContours(
+        mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
+    )
 
     _c = np.zeros((23, 23, 3), np.uint8)
     num_rhomboid = 0
@@ -85,12 +93,13 @@ def __is_lattice_point(img):
     return pred[0] > pred[1] and pred[1] < 0.03 and pred[0] > 0.975
 
 
-def laps(img, lines):
-    """
-    Lattice points search in the given image.
+def laps(img: np.ndarray, lines):
+    """Search for the lattice points in the given image.
 
     :param img: Image to search.
+
     :param lines: Lines detected by slid.
+
     :return: Points detected to be part of the chessboard grid.
     """
     intersection_points = __find_intersections(lines)
@@ -130,24 +139,26 @@ def laps(img, lines):
     if points:
         points = __cluster_points(points)
 
-    debug.DebugImage(img).points(intersection_points, color=(0, 0, 255), size=3).points(
-        points, color=(0, 255, 0)
-    ).save("laps_good_points")
+    debug.DebugImage(img).points(
+        intersection_points, color=(0, 0, 255), size=3
+    ).points(points, color=(0, 255, 0)).save("laps_good_points")
 
     return points
 
 
-def check_board_position(img, board_corners, tolerance=20):
-    """
-    Check if a chessboard is in the position given by the board corners.
+def check_board_position(
+    img: np.ndarray, board_corners: list[list[int]], tolerance: int = 20
+):
+    """Check if chessboard is in position given by the board corners.
 
     :param img: Image to check.
-    :param board_corners: A list of the coordinates of the four board
-        corners.
+
+    :param board_corners: List of the coordinates of four board corners.
+
     :param tolerance: Number of lattice points that must be correct.
+
     :return: A pair formed by a boolean indicating if the chessboard is
-        in the position given by the board corners and the cropped
-        image.
+    in the position given by the board corners and the cropped image.
     """
     # We will check the interior 6x6 square grid lattice points of the
     # cropped 500x500 image, as done by LAPS

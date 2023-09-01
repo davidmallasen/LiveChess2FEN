@@ -1,6 +1,6 @@
-"""
-Debug utils.
-"""
+"""This is the module for debugging utilities."""
+
+
 import itertools
 from copy import copy
 from random import randint
@@ -8,23 +8,26 @@ from random import randint
 import cv2
 import numpy as np
 
-DEBUG = False  # Enable or disable debug images
+
+DEBUG = False  # Set it to `True`/`False` to enable/disable debug images
 COUNTER = itertools.count()
 DEBUG_SAVE_DIR = "data/boards/debug_steps/"
 
 
 def rand_color():
-    """Returns a random rgb color."""
+    """Return a random rgb color."""
     return randint(0, 255), randint(0, 255), randint(0, 255)
 
 
 class DebugImage:
-    """
-    Represents a debug image. Can draw points and lines and save the
+    """Represent a debug image.
+
+    This class is used for drawing points and lines and saving the
     resulting image.
     """
 
     def __init__(self, img):
+        """Initialize an instance of the `DebugImage`."""
         if DEBUG:
             if isinstance(img, tuple):
                 img = np.zeros((img[0], img[1], 3), np.uint8)
@@ -43,7 +46,9 @@ class DebugImage:
         """Draw points in the image."""
         if DEBUG:
             for point in _points:
-                cv2.circle(self.img, (int(point[0]), int(point[1])), size, color, -1)
+                cv2.circle(
+                    self.img, (int(point[0]), int(point[1])), size, color, -1
+                )
         return self
 
     def save(self, filename, prefix=True):
@@ -55,4 +60,6 @@ class DebugImage:
             else:
                 __prefix = ""
 
-            cv2.imwrite(DEBUG_SAVE_DIR + __prefix + filename + ".jpg", self.img)
+            cv2.imwrite(
+                DEBUG_SAVE_DIR + __prefix + filename + ".jpg", self.img
+            )
