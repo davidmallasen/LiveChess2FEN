@@ -190,9 +190,9 @@ Windows PowerShell:
 3. If you see any warning about some directory not on PATH, follow [this](https://stackoverflow.com/questions/49966547/pip-10-0-1-warning-consider-adding-this-directory-to-path-or/51165784#51165784)
 and restart the computer to resolve it.
 
-4. In order to successfully install `tensorflow`, you need to first enable long
-paths. To do so, open another PowerShell as administrator and run the following
-command:
+4. In order to successfully install `tensorflow`, you need to first [enable
+long paths](https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation?tabs=powershell#enable-long-paths-in-windows-10-version-1607-and-later). To do
+so, open another PowerShell as administrator and run the following command:
 
     `New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force`
 
