@@ -121,8 +121,8 @@ def train_model(
     else:
         weights = None
 
-    return model.fit_generator(
-        generator=train_generator,
+    return model.fit(
+        train_generator,
         steps_per_epoch=steps_per_epoch,
         epochs=epochs,
         validation_data=val_generator,
@@ -198,6 +198,6 @@ def evaluate_model(model, test_generator):
 
     :param test_generator: Generator with which to test the model.
     """
-    scores = model.evaluate_generator(test_generator, verbose=1)
+    scores = model.evaluate(test_generator, verbose=1)
     print("Test loss:", scores[0])
     print("Test accuracy:", scores[1])
