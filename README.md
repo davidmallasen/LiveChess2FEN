@@ -53,10 +53,16 @@ _See `lc2fen/detectboard/laps.py -> check_board_position()`_
 
 ![](docs/static_digitization_times_summary.png)
 
-## Installation instructions for Jetson Nano 2GB
+## Installation instructions
+
+Follow the installation instructions for your specific computer.
+After this, you will be ready to use LiveChess2FEN by following 
+the [usage instructions](#usage-instructions).
+
+<details><summary>Jetson Nano 2GB</summary><p>
 
 Instructions for JetPack 4.6 are presented below. If you run into any problems,
-see the Troubleshooting section below.
+see the [Troubleshooting](#troubleshooting) section. You can find a list of the python packages required in the `requirements.txt` file.
 
 1. From the [Jetson Zoo](https://elinux.org/Jetson_Zoo), install:
 
@@ -172,11 +178,49 @@ error `error: command 'aarch64-linux-gnu-gcc' failed with exit status 1`, run
     sudo apt-get install python3-dev
     ~~~
 
-## Installation instructions for PC
+</p></details>
 
-Installation instructions for a Windows computer are presented below. They have
-been tested (by [David Li](https://github.com/David-davidlxl)) to be 100%
-working.
+<details><summary>Ubuntu PC</summary><p>
+
+Installation instructions for Ubuntu (22.04) are presented below. Other Linux distributions should be similar.
+
+1. First clone the repository and `cd` into it:
+    ~~~
+    git clone https://github.com/davidmallasen/LiveChess2FEN.git
+    cd LiveChess2FEN
+    ~~~
+
+2. Create a python virtual environment, activate it and upgrade pip:
+    ~~~
+    python -m venv venv
+    source venv/bin/activate
+    pip install --upgrade pip
+    ~~~
+    You will have to activate the virtual environment every time you want to use LiveChess2FEN.
+
+3. Install the required python packages:
+    ~~~
+    pip install -r requirements_pc.txt
+    ~~~
+    This should include the following packages:
+    - NumPy
+    - OpenCV4
+    - Matplotlib
+    - Scikit-learn
+    - Pillow
+    - Pyclipper
+    - Tqdm
+    
+    Also, depending on the inference engine you want to use, install the following dependencies:
+    - Keras with tensorflow backend.
+    - ONNX Runtime.
+    - (Optional) TensorRT and PyCUDA.
+
+</p></details>
+
+<details><summary>Windows PC</summary><p>
+
+Installation instructions for a Windows computer are presented below. 
 
 1. First, install Python 3.10 from Microsoft Store. It is important NOT to
 install Python 3.11 instead as
@@ -228,7 +272,9 @@ install a Microsoft Visual C++ Redistributable package from
 If you are using Windows 11 ([Windows 11 only has the 64-bit version](https://www.intowindows.com/where-can-i-download-windows-11-32-bit-iso/)), you can simply download and install
 [this](https://aka.ms/vs/17/release/vc_redist.x64.exe).
 
-## Usage instructions (for any computer)
+</p></details>
+
+## Usage instructions
 
 1. Create a "selected_models" folder and a "predictions" folder in the project
 root.
