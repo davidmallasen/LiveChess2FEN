@@ -57,7 +57,8 @@ _See `lc2fen/detectboard/laps.py -> check_board_position()`_
 
 Follow the installation instructions for your specific computer.
 After this, you will be ready to use LiveChess2FEN by following 
-the [usage instructions](#usage-instructions).
+the [usage instructions](#usage-instructions). Note that you will
+need at least Python 3.9 installed in your system.
 
 <details><summary>Jetson Nano 2GB</summary><p>
 
