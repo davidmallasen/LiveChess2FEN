@@ -60,63 +60,50 @@ After this, you will be ready to use LiveChess2FEN by following
 the [usage instructions](#usage-instructions). Note that you will
 need at least Python 3.9 installed in your system.
 
-<details><summary>Jetson Nano 2GB</summary><p>
+<details><summary>Jetson Nano</summary><p>
 
 Instructions for JetPack 4.6 are presented below. If you run into any problems,
 see the [Troubleshooting](#troubleshooting) section. You can find a list of the python packages required in the `requirements.txt` file.
 
-1. From the [Jetson Zoo](https://elinux.org/Jetson_Zoo), install:
+1. Install [tensorflow for Jetson Nano](https://forums.developer.nvidia.com/t/official-tensorflow-for-jetson-nano/71770):
 
-    1. Tensorflow
-
-        ~~~
-        sudo apt-get install libhdf5-serial-dev hdf5-tools libhdf5-dev zlib1g-dev zip libjpeg8-dev liblapack-dev libblas-dev gfortran
-        sudo apt-get install python3-pip
-        sudo pip3 install -U pip testresources setuptools==49.6.0
-        sudo pip3 install -U numpy==1.19.4 future==0.18.2 mock==3.0.5 h5py==2.10.0 keras_preprocessing==1.1.1 keras_applications==1.0.8 gast==0.2.2 futures protobuf pybind11
-        sudo pip3 install --pre --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v46 tensorflow
-        ~~~
+    ~~~
+    sudo apt-get update
+    sudo apt-get install -y python3-pip pkg-config
+    sudo apt-get install -y libhdf5-serial-dev hdf5-tools libhdf5-dev zlib1g-dev zip libjpeg8-dev liblapack-dev libblas-dev gfortran
+    sudo ln -s /usr/include/locale.h /usr/include/xlocale.h
+    sudo pip3 install --verbose 'protobuf<4' 'Cython<3'
+    sudo wget --no-check-certificate https://developer.download.nvidia.com/compute/redist/jp/v461/tensorflow/tensorflow-2.7.0+nv22.1-cp36-cp36m-linux_aarch64.whl
+    sudo pip3 install --verbose tensorflow-2.7.0+nv22.1-cp36-cp36m-linux_aarch64.whl
+    ~~~
         
-    2. ONNX Runtime
+2. Install ONNX Runtime
 
-        Download the .whl file from [here](https://nvidia.box.com/s/bfs688apyvor4eo8sf3y1oqtnarwafww) and run
-
-        ~~~
-        pip3 install onnxruntime_gpu-1.8.0-cp36-cp36m-linux_aarch64.whl
-        ~~~
-
-2. Install OpenCV 4.5 with CUDA enabled. To do so, download and execute
-[this script](https://github.com/AastaNV/JEP/blob/b5209e3edfad0f3f6b33e0cbc7e15ca3a49701cf/script/install_opencv4.5.0_Jetson.sh). Warning: this process will take a few hours and
-you will need at least 4GB of swap space.
-
-3. Install [onnx-tensorrt](https://github.com/onnx/onnx-tensorrt/) with the
-following commands:
+    Download the .whl file from [here](https://nvidia.box.com/s/bfs688apyvor4eo8sf3y1oqtnarwafww) and run
 
     ~~~
-    git clone --recursive https://github.com/onnx/onnx-tensorrt.git
-    cd onnx-tensorrt
-    git checkout 8.0-GA
-    mkdir build && cd build
-    cmake .. -DCUDA_INCLUDE_DIRS=/usr/local/cuda/include -DTENSORRT_ROOT=/usr/src/tensorrt -DGPU_ARCHS="53"
-    make
-    sudo make install
-    export LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH
+    sudo pip3 install onnxruntime_gpu-1.8.0-cp36-cp36m-linux_aarch64.whl
     ~~~
 
-4. Install Python 3.10 (note that [Python 3.11 currently does not support ONNX
-Runtime](https://github.com/microsoft/onnxruntime/issues/13482)) and the
-following dependencies:
+3. Install OpenCV 4.5 with CUDA enabled. To do so, download and execute
+[this script](https://github.com/AastaNV/JEP/blob/b5209e3edfad0f3f6b33e0cbc7e15ca3a49701cf/script/install_opencv4.5.0_Jetson.sh). Warning: this process will take some time and
+you may need to increase the swap space with `jtop`.
 
-   - `numpy`
-   - `chess`
-   - `matplotlib`
-   - `pyclipper`
-   - `scikit-learn`
-   - `tqdm`
-   - `pandas`
+4. If you plan on [converting ONNX models to TensorRT](https://docs.nvidia.com/deeplearning/tensorrt/quick-start-guide/index.html#convert-onnx-engine), add the following lines
+to the `.bashrc` file to access `trtexec`:
 
-    (Note: you can find a list of version numbers for the Python packages that
-    have been tested to work in the `requirements.txt` file.)
+    ~~~
+    export PATH=$PATH:/usr/src/tensorrt/bin
+    ~~~
+
+    Then, you can run `trtexec --onnx=model.onnx --saveEngine=model.trt` to convert an ONNX model to a TensorRT engine.
+
+5. Install the rest of the required packages:
+
+    ~~~
+    sudo pip3 install -r requirements.txt
+    ~~~
+
 
 ### Utilities
 
@@ -124,7 +111,7 @@ following dependencies:
 monitor the usage of the Jetson Nano. To install, run
 
     ~~~
-    sudo -H pip install -U jetson-stats
+    sudo pip3 install -U jetson-stats
     ~~~
 
     and reboot the Jetson Nano. You can execute it by running `jtop`.
