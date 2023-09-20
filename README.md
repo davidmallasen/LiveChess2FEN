@@ -166,6 +166,19 @@ error `error: command 'aarch64-linux-gnu-gcc' failed with exit status 1`, run
     sudo apt-get install python3-dev
     ~~~
 
+- If you cannot install `pycuda` because it doesn't find `cuda.h`, run
+
+    ~~~
+    export CPATH=$CPATH:/usr/local/cuda-10.2/targets/aarch64-linux/include
+    export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/cuda-10.2/targets/aarch64-linux/lib
+    ~~~
+
+    In order to permanently fix the error, add those lines to the end of your
+    `~/.bashrc` file.
+
+- In any case, if you find that there is a library missing, you can try to install
+it using pip or google how to install it on the Jetson Nano.
+
 </p></details>
 
 <details><summary>Ubuntu PC</summary><p>
