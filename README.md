@@ -225,7 +225,7 @@ Installation instructions for a Windows computer are presented below.
 
 1. First, install Python 3.10 from Microsoft Store. It is important NOT to
 install Python 3.11 instead as
-[it is currently incompatible with `onnxruntime`](https://github.com/microsoft/onnxruntime/issues/13482).
+it would create dependency (`numpy`) issues when we later install `onnxruntime` and `tensorflow==2.12.0`.
 
 2. Then make sure your pip is up to date by running the following command in
 Windows PowerShell:
@@ -248,21 +248,20 @@ commands in Windows PowerShell:
     pip install numpy
     pip install opencv-python
     pip install chess
-    pip install tensorflow==2.11.0
+    pip install tensorflow==2.12.0
     pip install onnxruntime
     pip install matplotlib
     pip install pyclipper
     pip install scikit-learn
     pip install tqdm
     pip install pandas
-    pip install onnx==1.12.0
-    pip install tf2onnx==1.13.0
+    pip install onnx
+    pip install tf2onnx
     ```
 
     Note: the above commands would install all the latest-possible versions of
     the required packages (it was found that there might not be any
-    restrictions on the versions of non`tensorflow`, non`onnx`, and
-    non`tf2onnx` packages). Alternatively, you could use the
+    restrictions on the versions of non`tensorflow` packages). Alternatively, you could use the
     "requirements_pc.txt" file (`pip install -r requirements_pc.txt`) to
     install the specific versions that have been
     tested to be 100% working.
