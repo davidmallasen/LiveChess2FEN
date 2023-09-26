@@ -284,10 +284,7 @@ def predict_board_trt(
 
         for binding in engine:
             # Get binding (tensor/buffer) size
-            size = (
-                trt.volume(engine.get_binding_shape(binding))
-                * engine.max_batch_size
-            )
+            size = trt.volume(engine.get_binding_shape(binding))
             # Get binding (tensor/buffer) data type (numpy-equivalent)
             dtype = trt.nptype(engine.get_binding_dtype(binding))
             # Allocate page-locked memory (i.e., pinned memory) buffers
@@ -305,16 +302,14 @@ def predict_board_trt(
         stream = cuda.Stream()
         return inputs, outputs, bindings, stream
 
-    def __infer(context, bindings, inputs, outputs, stream, batch_size=64):
+    def __infer(context, bindings, inputs, outputs, stream):
         """Infer outputs on IExecutionContext for specified inputs."""
         # Transfer input data to the GPU
         for inp in inputs:
             cuda.memcpy_htod_async(inp.device, inp.host, stream)
         # Run inference
-        context.execute_async(
-            batch_size=batch_size,
-            bindings=bindings,
-            stream_handle=stream.handle,
+        context.execute_async_v2(
+            bindings=bindings, stream_handle=stream.handle
         )
         # Transfer predictions back from the GPU
         for out in outputs:
@@ -331,9 +326,8 @@ def predict_board_trt(
 
     inputs, outputs, bindings, stream = __allocate_buffers(engine)
 
-    img_array = np.zeros(
-        (engine.max_batch_size, trt.volume((img_size, img_size, 3)))
-    )
+    # Assuming batch size == 64
+    img_array = np.zeros((64, trt.volume((img_size, img_size, 3))))
 
     # Create an IExecutionContext (context for executing inference)
     with engine.create_execution_context() as context:
