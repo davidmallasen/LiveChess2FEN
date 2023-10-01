@@ -66,10 +66,10 @@ def predict_board_keras(
     a1_pos="",
     test=False,
     previous_fen: (str | None) = None,
-) -> tuple[str, int] | None:
+) -> tuple[str, list[list[int]]] | None:
     """Predict FEN(s) from board image(s) using Keras for inference.
 
-    This function predicts FEN string(s) from chessboard images using
+    This function predicts FEN string(s) from chessboard image(s) using
     Keras as the inference engine.
 
     :param model_path: Path to the Keras model (ending with ".h5").
@@ -101,8 +101,9 @@ def predict_board_keras(
         This parameter is only used when `path` points to a single image
         and `test` is `False`.
 
-    :return: Predicted FEN string of the current board position for
-    single-FEN prediction.
+    :return: A pair formed by the predicted FEN string, the coordinates
+    of the corners of the chessboard in the input image for single-FEN
+    prediction.
 
         If `test` is `True`, the function returns `None`.
 
@@ -143,7 +144,7 @@ def predict_board_onnx(
     a1_pos="",
     test=False,
     previous_fen: (str | None) = None,
-) -> tuple[str, int] | None:
+) -> tuple[str, list[list[int]]] | None:
     """Predict FEN(s) from board image(s) using ONNX for inference.
 
     This function predicts FEN string(s) from chessboard image(s) using
@@ -178,8 +179,9 @@ def predict_board_onnx(
         This parameter is only used when `path` points to a single image
         and `test` is `False`.
 
-    :return: Predicted FEN string of the current board position for
-    single-FEN prediction.
+    :return: A pair formed by the predicted FEN string, the coordinates
+    of the corners of the chessboard in the input image for single-FEN
+    prediction.
 
         If `test` is `True`, the function returns `None`.
 
@@ -222,7 +224,7 @@ def predict_board_trt(
     a1_pos="",
     test=False,
     previous_fen: (str | None) = None,
-) -> tuple[str, int] | None:
+) -> tuple[str, list[list[int]]] | None:
     """Predict FEN(s) from board image(s) using TensorRT for inference.
 
     This function predicts FEN string(s) from chessboard image(s) using
@@ -259,8 +261,9 @@ def predict_board_trt(
         This parameter is only used when `path` points to a single image
         and `test` is `False`.
 
-    :return: Predicted FEN string of the current board position for
-    single-FEN prediction.
+    :return: A pair formed by the predicted FEN string, the coordinates
+    of the corners of the chessboard in the input image for single-FEN
+    prediction.
 
         If `test` is `True`, the function returns `None`.
 
