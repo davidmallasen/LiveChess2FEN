@@ -530,7 +530,7 @@ def _generate_fen_based_on_previous_fen_and_detected_move(
     initial_sq, final_sq, action = move
     initial_coordinates = _FILES[initial_sq % 8] + _RANKS[initial_sq // 8]
     final_coordinates = _FILES[final_sq % 8] + _RANKS[final_sq // 8]
-    move_UCI = initial_coordinates + final_coordinates
+    move_uci = initial_coordinates + final_coordinates
     if action.startswith("white"):
         previous_board.turn = chess.WHITE
     else:
@@ -541,8 +541,8 @@ def _generate_fen_based_on_previous_fen_and_detected_move(
         promoted_piece = _determine_promoted_piece(
             previous_fen, probs_with_no_indices, final_sq, "white"
         )
-        move_UCI = move_UCI + promoted_piece.lower()
-        previous_board.push_uci(move_UCI)
+        move_uci = move_uci + promoted_piece.lower()
+        previous_board.push_uci(move_uci)
         return previous_board.board_fen()
     elif (
         previous_list[initial_sq] == "p" and initial_coordinates[1] == "2"
@@ -550,29 +550,29 @@ def _generate_fen_based_on_previous_fen_and_detected_move(
         promoted_piece = _determine_promoted_piece(
             previous_fen, probs_with_no_indices, final_sq, "black"
         )
-        move_UCI = move_UCI + promoted_piece
-        previous_board.push_uci(move_UCI)
+        move_uci = move_uci + promoted_piece
+        previous_board.push_uci(move_uci)
         return previous_board.board_fen()
     elif action.endswith("en_passants"):
         previous_board.ep_square = chess.parse_square(final_coordinates)
-        previous_board.push_uci(move_UCI)
+        previous_board.push_uci(move_uci)
         return previous_board.board_fen()
     elif action.startswith("white") and action[6:13] == "castles":
         if action.endswith("kingside"):
             previous_board.set_castling_fen("K")
         else:
             previous_board.set_castling_fen("Q")
-        previous_board.push_uci(move_UCI)
+        previous_board.push_uci(move_uci)
         return previous_board.board_fen()
     elif action.startswith("black") and action[6:13] == "castles":
         if action.endswith("kingside"):
             previous_board.set_castling_fen("k")
         else:
             previous_board.set_castling_fen("q")
-        previous_board.push_uci(move_UCI)
+        previous_board.push_uci(move_uci)
         return previous_board.board_fen()
     else:
-        previous_board.push_uci(move_UCI)
+        previous_board.push_uci(move_uci)
         return previous_board.board_fen()
 
 
