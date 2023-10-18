@@ -257,6 +257,7 @@ commands in Windows PowerShell:
     pip install pandas
     pip install onnx
     pip install tf2onnx
+    pip install pytest
     ```
 
     Note: the above commands would install all the latest-possible versions of
