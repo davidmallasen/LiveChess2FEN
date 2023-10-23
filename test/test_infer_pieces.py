@@ -29,11 +29,11 @@ def generate_probs_with_no_indices_from_fen(fen: str):
         Each sublist contains 13 piece probabilities (in the order of
         `_IDX_TO_PIECE_FULL`) for the corresponding square.
 
-        The probabilities are hardcoded such that each sublist has exactly
-        twelve 0s and one 1, where the 1 corresponds to the piece type given by
-        the input FEN string. For example, if `fen` says that there is a piece
-        of type `piece` on the a8 square of the chessboard, then the first
-        sublist `sublist` of the returned `probs_with_no_indices` will satisfy
+        The probabilities are hardcoded such that they are all 0s and
+        1s; each sublist has exactly twelve 0s and one 1. For example,
+        if `fen` says that there is a piece of type `piece` on the a8
+        square of the chessboard, then the first sublist `sublist` of
+        the returned `probs_with_no_indices` will satisfy
         `sublist[_PIECE_TO_IDX_FULL[piece]] == 1`.
     """
     piece_list = board_to_list(fen_to_board(fen))
