@@ -1,11 +1,6 @@
-<h1 align="center">LiveChess2FEN</h1>
+# LiveChess2FEN
 
-<p align="center">
-<a href="https://github.com/psf/black">
-<img alt="Code style: black" 
-src="https://img.shields.io/badge/code%20style-black-000000.svg">
-</a>
-</p>
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 LiveChess2FEN is a fully functional framework that automatically digitizes the
 configuration of a chessboard. It is optimized for execution on an Nvidia
@@ -303,7 +298,7 @@ root.
 
 5. Run the "test_lc2fen.py" script.
 
-6. You can then use LiveChess2FEN by repeating steps 6 and 7 with the
+6. You can then use LiveChess2FEN by repeating steps 4 and 5 with the
 "lc2fen.py" program instead of the "test_lc2fen.py" script. Run
 `python3 lc2fen.py -h` to display the help message.
 
