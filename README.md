@@ -10,7 +10,7 @@ This repository contains the code used in our
 [paper](https://arxiv.org/abs/2012.06858). If you find this useful, please
 consider citing us.
 
-~~~
+~~~bibtex
 @article{mallasen2020LiveChess2FEN,
   title = {LiveChess2FEN: A Framework for Classifying Chess Pieces Based on CNNs},
   author = {Mallas{\'e}n Quintana, David and Del Barrio Garc{\'i}a, Alberto Antonio and Prieto Mat{\'i}as, Manuel},
@@ -24,7 +24,7 @@ consider citing us.
 }
 ~~~
 
-![](docs/complete_method.png)
+![Digitization process](docs/complete_method.png)
 
 ## Benchmarks
 
@@ -32,21 +32,21 @@ The following testing data have been obtained with the Nvidia Jetson
 Nano 4GB. Each time value represents how long it takes to perform an
 operation on a single chessboard.
 
-#### Piece-classification times
+### Piece-classification times
 
-![](docs/runtime_vs_accuracy_wfront.png)
+![Runtime vs accuracy Pareto front](docs/runtime_vs_accuracy_wfront.png)
 
-![](docs/piece_classification_times.png)
+![Summary of time and accuracy](docs/piece_classification_times.png)
 
-#### Full-digitization times
+### Full-digitization times
 
-![](docs/full_digitization_times_summary.png)
+![Full digitization times](docs/full_digitization_times_summary.png)
 
-#### Static-digitization times
+### Static-digitization times
 
 _See `lc2fen/detectboard/laps.py -> check_board_position()`_
 
-![](docs/static_digitization_times_summary.png)
+![Static board digitization times](docs/static_digitization_times_summary.png)
 
 ## Installation instructions
 
@@ -62,7 +62,7 @@ see the [Troubleshooting](#troubleshooting) section. You can find a list of the 
 
 1. Install [tensorflow for Jetson Nano](https://forums.developer.nvidia.com/t/official-tensorflow-for-jetson-nano/71770):
 
-    ~~~
+    ~~~bash
     sudo apt-get update
     sudo apt-get install -y python3-pip pkg-config
     sudo apt-get install -y libhdf5-serial-dev hdf5-tools libhdf5-dev zlib1g-dev zip libjpeg8-dev liblapack-dev libblas-dev gfortran
@@ -71,12 +71,12 @@ see the [Troubleshooting](#troubleshooting) section. You can find a list of the 
     sudo wget --no-check-certificate https://developer.download.nvidia.com/compute/redist/jp/v461/tensorflow/tensorflow-2.7.0+nv22.1-cp36-cp36m-linux_aarch64.whl
     sudo pip3 install --verbose tensorflow-2.7.0+nv22.1-cp36-cp36m-linux_aarch64.whl
     ~~~
-        
+
 2. Install ONNX Runtime
 
     Download the .whl file from [here](https://nvidia.box.com/s/bfs688apyvor4eo8sf3y1oqtnarwafww) and run
 
-    ~~~
+    ~~~bash
     sudo pip3 install onnxruntime_gpu-1.8.0-cp36-cp36m-linux_aarch64.whl
     ~~~
 
@@ -87,7 +87,7 @@ you may need to increase the swap space with `jtop`.
 4. If you plan on [converting ONNX models to TensorRT](https://docs.nvidia.com/deeplearning/tensorrt/quick-start-guide/index.html#convert-onnx-engine), add the following lines
 to the `.bashrc` file to access `trtexec`:
 
-    ~~~
+    ~~~bash
     export PATH=$PATH:/usr/src/tensorrt/bin
     ~~~
 
@@ -95,17 +95,16 @@ to the `.bashrc` file to access `trtexec`:
 
 5. Install the rest of the required packages:
 
-    ~~~
+    ~~~bash
     sudo pip3 install -r requirements.txt
     ~~~
-
 
 ### Utilities
 
 - You can also install [jtop](https://github.com/rbonghi/jetson_stats) to
 monitor the usage of the Jetson Nano. To install, run
 
-    ~~~
+    ~~~bash
     sudo pip3 install -U jetson-stats
     ~~~
 
@@ -115,8 +114,8 @@ monitor the usage of the Jetson Nano. To install, run
 
 - To upgrade CMake, download
 [CMake 3.14.7](https://cmake.org/files/v3.14/cmake-3.14.7.tar.gz) and run
-    
-    ~~~
+
+    ~~~bash
     tar -zxvf cmake-3.14.7.tar.gz
     cd cmake-3.14.7
     sudo apt-get install libcurl4-openssl-dev
@@ -127,7 +126,8 @@ monitor the usage of the Jetson Nano. To install, run
     ~~~
 
 - To install [protobuf](https://github.com/protocolbuffers/protobuf/blob/master/src/README.md) download [protobuf 3.17.3](https://github.com/protocolbuffers/protobuf/releases/download/v3.17.3/protobuf-cpp-3.17.3.tar.gz) and run
-    ~~~
+
+    ~~~bash
     tar -zxvf protobuf-cpp-3.17.3.tar.gz
     cd protobuf-3.17.3
     ./configure
@@ -138,7 +138,7 @@ monitor the usage of the Jetson Nano. To install, run
 
 - If you get the error `ImportError: /usr/lib/aarch64-linux-gnu/libgomp.so.1: cannot allocate memory in static TLS block`, run
 
-    ~~~
+    ~~~bash
     export LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libgomp.so.1
     ~~~
 
@@ -147,7 +147,7 @@ monitor the usage of the Jetson Nano. To install, run
 
 - If you get the error `Illegal instruction (core dumped)`, run
 
-    ~~~
+    ~~~bash
     export OPENBLAS_CORETYPE=ARMV8
     ~~~
 
@@ -157,13 +157,13 @@ monitor the usage of the Jetson Nano. To install, run
 - If you get the
 error `error: command 'aarch64-linux-gnu-gcc' failed with exit status 1`, run
 
-    ~~~
+    ~~~bash
     sudo apt-get install python3-dev
     ~~~
 
 - If you cannot install `pycuda` because it doesn't find `cuda.h`, run
 
-    ~~~
+    ~~~bash
     export CPATH=$CPATH:/usr/local/cuda-10.2/targets/aarch64-linux/include
     export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/cuda-10.2/targets/aarch64-linux/lib
     ~~~
@@ -181,23 +181,28 @@ it using pip or google how to install it on the Jetson Nano.
 Installation instructions for Ubuntu (22.04) are presented below. Other Linux distributions should be similar.
 
 1. First clone the repository and `cd` into it:
-    ~~~
+
+    ~~~bash
     git clone https://github.com/davidmallasen/LiveChess2FEN.git
     cd LiveChess2FEN
     ~~~
 
 2. Create a python virtual environment, activate it and upgrade pip:
-    ~~~
+
+    ~~~bash
     python -m venv venv
     source venv/bin/activate
     pip install --upgrade pip
     ~~~
+
     You will have to activate the virtual environment every time you want to use LiveChess2FEN.
 
 3. Install the required python packages:
-    ~~~
+
+    ~~~bash
     pip install -r requirements_pc.txt
     ~~~
+
     This should include the following packages:
     - NumPy
     - OpenCV4
@@ -206,7 +211,7 @@ Installation instructions for Ubuntu (22.04) are presented below. Other Linux di
     - Pillow
     - Pyclipper
     - Tqdm
-    
+
     Also, depending on the inference engine you want to use, install the following dependencies:
     - Keras with tensorflow backend.
     - ONNX Runtime.
@@ -225,7 +230,9 @@ it would create dependency (`numpy`) issues when we later install `onnxruntime` 
 2. Then make sure your pip is up to date by running the following command in
 Windows PowerShell:
 
-    `pip install --upgrade pip`
+    ~~~bash
+    pip install --upgrade pip
+    ~~~
 
 3. If you see any warning about some directory not on PATH, follow [this](https://stackoverflow.com/questions/49966547/pip-10-0-1-warning-consider-adding-this-directory-to-path-or/51165784#51165784)
 and restart the computer to resolve it.
@@ -234,12 +241,14 @@ and restart the computer to resolve it.
 long paths](https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation?tabs=powershell#enable-long-paths-in-windows-10-version-1607-and-later). To do
 so, open another PowerShell as administrator and run the following command:
 
-    `New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force`
+    ~~~text
+    New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
+    ~~~
 
 5. Now you can install all the relevant packages by running the following
 commands in Windows PowerShell:
 
-    ```
+    ~~~bash
     pip install numpy
     pip install opencv-python
     pip install chess
@@ -253,7 +262,7 @@ commands in Windows PowerShell:
     pip install onnx
     pip install tf2onnx
     pip install pytest
-    ```
+    ~~~
 
     Note: the above commands would install all the latest-possible versions of
     the required packages (it was found that there might not be any
@@ -275,10 +284,10 @@ If you are using Windows 11 ([Windows 11 only has the 64-bit version](https://ww
 1. Create a "selected_models" folder and a "predictions" folder in the project
 root.
 
-2. Download the prediction models from the 
+2. Download the prediction models from the
  [releases](https://github.com/davidmallasen/LiveChess2FEN/releases)
  and save them to the "selected_models" folder.
- 
+
 3. Download the contents of `TestImages.zip->FullDetection` from the
 [releases](https://github.com/davidmallasen/LiveChess2FEN/releases) into the
 "predictions" folder. You should have 5 test images and a "boards.fen" file.
@@ -292,7 +301,7 @@ root.
    - `ACTIVATE_ONNX = True` will select ONNX Runtime as the inference engine.
    It is significantly faster than Keras but almost just as accurate. It is the
    recommended choice for any non-Jetson computer.
-   
+
    - `ACTIVATE_TRT = True` will select TensorRT as the inference engine. It is
    the fastest of the three but only available on Jetson computers.
 
@@ -304,7 +313,7 @@ root.
 
 ## Contributing
 
-Contributions are very welcome! Please check the 
+Contributions are very welcome! Please check the
 [CONTRIBUTING](CONTRIBUTING.md) file for more information on how to
  contribute to LiveChess2FEN.
 
