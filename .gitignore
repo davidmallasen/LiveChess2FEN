@@ -1,17 +1,10 @@
 # PyCharm .idea folder
 .idea/
 
-# Python bytecode files
+# Python cache files
 *.pyc
+**/__pycache__/
+.pytest_cache/
 
 # Virtual environment
 venv/
-
-# Images
-data/
-predictions/
-cont_predictions/
-
-# Trained models
-selected_models/
-cpmodels/models/

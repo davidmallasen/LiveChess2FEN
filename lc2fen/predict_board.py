@@ -85,7 +85,8 @@ def predict_board_keras(
 
         The path must have rw permission.
 
-        Example: `"../predictions/board.jpg"` or `"../predictions/"`.
+        Example: `"../data/predictions/board.jpg"` or 
+        `"../data/predictions/"`.
 
     :param a1_pos: Position of the a1 square of the chessboard images.
 
@@ -163,7 +164,8 @@ def predict_board_onnx(
 
         The path must have rw permission.
 
-        Example: `"../predictions/board.jpg"` or `"../predictions/"`.
+        Example: `"../data/predictions/board.jpg"` or 
+        `"../data/predictions/"`.
 
     :param a1_pos: Position of the a1 square of the chessboard images.
 
@@ -245,7 +247,8 @@ def predict_board_trt(
 
         The path must have rw permission.
 
-        Example: `"../predictions/board.jpg"` or `"../predictions/"`.
+        Example: `"../data/predictions/board.jpg"` or 
+        `"../data/predictions/"`.
 
     :param a1_pos: Position of the a1 square of the chessboard images.
 
@@ -379,7 +382,7 @@ def predict_board(
 
         The path must have rw permission.
 
-        Example: `"../predictions/board.jpg"`.
+        Example: `"../data/predictions/board.jpg"`.
 
     :param a1_pos: Position of the a1 square of the chessboard image.
 
@@ -444,7 +447,7 @@ def continuous_predictions(
 
     :param path: Path to the folder that contains chessboard image(s).
 
-        Example: '../predictions/'.
+        Example: '../data/predictions/'.
 
     :param a1_pos: Position of the a1 square of the chessboard image(s).
 
@@ -496,12 +499,12 @@ def test_predict_board(obtain_piece_probs_for_all_64_squares):
         length-13 sublist that contains 13 piece probabilities).
     """
     fens, a1_squares, previous_fens = read_correct_fen(
-        os.path.join("predictions", "boards_with_previous.fen")
+        os.path.join("data", "predictions", "boards_with_previous.fen")
     )
 
     for i in range(5):
         fen = time_predict_board(
-            os.path.join("predictions", "test" + str(i + 1) + ".jpg"),
+            os.path.join("data", "predictions", "test" + str(i + 1) + ".jpg"),
             a1_squares[i],
             obtain_piece_probs_for_all_64_squares,
         )
@@ -523,7 +526,7 @@ def test_predict_board(obtain_piece_probs_for_all_64_squares):
 
         if previous_fens[i] is not None:
             fen = time_predict_board(
-                os.path.join("predictions", "test" + str(i + 1) + ".jpg"),
+                os.path.join("data", "predictions", "test" + str(i + 1) + ".jpg"),
                 a1_squares[i],
                 obtain_piece_probs_for_all_64_squares,
                 previous_fens[i],
@@ -550,7 +553,7 @@ def detect_input_board(
 
         The path must have rw permission.
 
-        Example: `"../predictions/board.jpg"`.
+        Example: `"../data/predictions/board.jpg"`.
 
     :param board_corners: Length-4 list of coordinates of four corners.
 
@@ -587,7 +590,7 @@ def obtain_individual_pieces(board_path: str) -> list[str]:
         The image of the detected chessboard must be in the
         corresponding "tmp" folder (see `detect_input_board()`).
 
-        Example: `"../predictions/board.jpg"`.
+        Example: `"../data/predictions/board.jpg"`.
 
     :return: Length-64 list of paths to chess-piece images
     """
@@ -614,7 +617,7 @@ def time_predict_board(
 
         The path must have rw permission.
 
-        Example: `"../predictions/board.jpg"`.
+        Example: `"../data/predictions/board.jpg"`.
 
     :param a1_pos: Position of the a1 square of the chessboard image.
 

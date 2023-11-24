@@ -1,0 +1,6 @@
+TestImages/
+*.zip
+
+tmp/
+*.fen
+*.jpg

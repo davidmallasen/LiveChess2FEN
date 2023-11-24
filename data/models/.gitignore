@@ -1,0 +1,4 @@
+# Do not commit the models
+*.h5
+*.onnx
+*.trt

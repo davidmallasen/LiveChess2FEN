@@ -281,18 +281,15 @@ If you are using Windows 11 ([Windows 11 only has the 64-bit version](https://ww
 
 ## Usage instructions
 
-1. Create a "selected_models" folder and a "predictions" folder in the project
-root.
-
-2. Download the prediction models from the
+1. Download the prediction models (the `.h5`, `.onnx` or `.trt` files) from the
  [releases](https://github.com/davidmallasen/LiveChess2FEN/releases)
- and save them to the "selected_models" folder.
+ and save them to the `data/models` folder.
 
-3. Download the contents of `TestImages.zip->FullDetection` from the
+2. Download the contents of `TestImages.zip->FullDetection` from the
 [releases](https://github.com/davidmallasen/LiveChess2FEN/releases) into the
-"predictions" folder. You should have 5 test images and a "boards.fen" file.
+`data/predictions` folder. You should have 5 test images and 2 `.fen` files.
 
-4. Edit "test_lc2fen.py" and set the `ACTIVATE_*`, `MODEL_PATH_*`,
+3. Edit `test_lc2fen.py` and set the `ACTIVATE_*`, `MODEL_PATH_*`,
  `IMG_SIZE_*`, and `PRE_INPUT_*` constants.
 
    - `ACTIVATE_KERAS = True` will select Keras with tensorflow backend as the
@@ -300,22 +297,43 @@ root.
 
    - `ACTIVATE_ONNX = True` will select ONNX Runtime as the inference engine.
    It is significantly faster than Keras but almost just as accurate. It is the
-   recommended choice for any non-Jetson computer.
+   recommended choice for any standard computer.
 
    - `ACTIVATE_TRT = True` will select TensorRT as the inference engine. It is
-   the fastest of the three but only available on Jetson computers.
+   the fastest of the three but only available on computers with Nvidia GPUs.
 
-5. Run the "test_lc2fen.py" script.
+4. Run the `test_lc2fen.py` script.
 
-6. You can then use LiveChess2FEN by repeating steps 4 and 5 with the
-"lc2fen.py" program instead of the "test_lc2fen.py" script. Run
+5. You can then use LiveChess2FEN by repeating steps 3 and 4 with the
+`lc2fen.py` program instead of the `test_lc2fen.py` script. Run
 `python3 lc2fen.py -h` to display the help message.
 
-## Contributing
+## Training new models
 
-Contributions are very welcome! Please check the
-[CONTRIBUTING](CONTRIBUTING.md) file for more information on how to
- contribute to LiveChess2FEN.
+To train new models, check the `cpmodels` folder. That directory contains 
+the python scripts used to train the chess piece models. It also contains 
+the scripts used to manipulate both the dataset and the models.
+
+### Setup
+
+1. Download the dataset from the [releases](https://github.com/davidmallasen/LiveChess2FEN/releases)
+into the `data/dataset` directory.
+2. Unzip the dataset into the same directory. It should be in `data/dataset/ChessPieceModels/`.
+3. Use the functions in `cpmodels/dataset.py` to split the dataset into
+training and validation sets. The training set should be in `data/dataset/train/`
+and the validation set should be in `data/dataset/validation/`. You can
+do this by running `python` and then:
+
+    ~~~python
+    from cpmodels.dataset import split_dataset
+    split_dataset()
+    exit()
+    ~~~
+
+4. Use the `train_*.py` scripts to train the models. The models will be
+saved in `cpmodels/models/`.
+5. When you want to use a trained model with LiveChess2FEN, copy the
+model file into `data/models/`.
 
 ## Testing
 
@@ -326,6 +344,11 @@ simply run:
 ~~~bash
 pytest -rA -v
 ~~~
+
+## Contributing
+
+Contributions are very welcome! Please check the [CONTRIBUTING](CONTRIBUTING.md)
+file for more information on how to contribute to LiveChess2FEN.
 
 ## License
 

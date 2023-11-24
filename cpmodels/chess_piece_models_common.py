@@ -40,8 +40,8 @@ def data_generators(
     preprocessing_func,
     target_size: tuple[int, int],
     batch_size: int,
-    train_path: str = "../data/train/",
-    validation_path: str = "../data/validation/",
+    train_path: str = "../data/dataset/train/",
+    validation_path: str = "../data/dataset/validation/",
 ):
     """Return the train and validation generators.
 

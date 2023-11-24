@@ -9,7 +9,7 @@ import tensorflow as tf
 import tf2onnx
 
 
-MODELS_PATH = "../selected_models/"
+MODELS_PATH = "../data/models/"
 KERAS_MODEL_NAME = "MobileNetV2_0p5_all.h5"
 ONNX_MODEL_NAME = KERAS_MODEL_NAME[:-2] + "onnx"
 

@@ -19,17 +19,17 @@ from lc2fen.predict_board import (
 
 
 ACTIVATE_KERAS = False
-MODEL_PATH_KERAS = "selected_models/SqueezeNet1p1.h5"
+MODEL_PATH_KERAS = "data/models/SqueezeNet1p1.h5"
 IMG_SIZE_KERAS = 227
 PRE_INPUT_KERAS = prein_squeezenet
 
 ACTIVATE_ONNX = False
-MODEL_PATH_ONNX = "selected_models/MobileNetV2_0p5_all.onnx"
+MODEL_PATH_ONNX = "data/models/MobileNetV2_0p5_all.onnx"
 IMG_SIZE_ONNX = 224
 PRE_INPUT_ONNX = prein_mobilenet
 
 ACTIVATE_TRT = False
-MODEL_PATH_TRT = "selected_models/MobileNetV2_0p5_all.trt"
+MODEL_PATH_TRT = "data/models/MobileNetV2_0p5_all.trt"
 IMG_SIZE_TRT = 224
 PRE_INPUT_TRT = prein_mobilenet
 

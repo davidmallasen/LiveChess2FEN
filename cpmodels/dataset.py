@@ -80,9 +80,7 @@ def create_dataset_csv(dataset_dir, csv_name, frac=1, validate=0.2, test=0.1):
     data_frame = load_dataset_images(dataset_dir, frac)
     total_rows = len(data_frame.index)
 
-    with open(
-        dataset_dir + csv_name, "w", newline="", encoding="utf-8"
-    ) as csvfile:
+    with open(dataset_dir + csv_name, "w", newline="", encoding="utf-8") as csvfile:
         csvwriter = csv.writer(
             csvfile, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL
         )
@@ -108,6 +106,9 @@ def randomize_dataset(dataset_dir):
 
     The randomized images are renamed using the "<number>.jpg" format.
 
+    Note that you should not use this on the downloaded dataset from
+    LiveChess2FEN, as the dataset is already randomized.
+
     :param dataset_dir: Directory of the dataset.
     """
     dirs = [
@@ -126,7 +127,12 @@ def randomize_dataset(dataset_dir):
                 os.rename(path, newpath)
 
 
-def split_dataset(dataset_dir, train_dir, validation_dir, train_perc=0.8):
+def split_dataset(
+    dataset_dir: str = "./data/dataset/ChessPiecesDataset/",
+    train_dir: str = "./data/dataset/train/",
+    validation_dir: str = "./data/dataset/validation/",
+    train_perc: float = 0.8,
+):
     """Split the full dataset into training and validation datasets.
 
     This function splits the full dataset (`dataset_dir`) into a
@@ -141,8 +147,11 @@ def split_dataset(dataset_dir, train_dir, validation_dir, train_perc=0.8):
 
     :param train_perc: Percentage of training images.
     """
-    shutil.rmtree(train_dir)
-    shutil.rmtree(validation_dir)
+
+    if os.path.isdir(train_dir):
+        shutil.rmtree(train_dir)
+    if os.path.isdir(validation_dir):
+        shutil.rmtree(validation_dir)
 
     os.mkdir(train_dir)
     os.mkdir(train_dir + "/_/")
