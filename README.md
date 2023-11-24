@@ -51,7 +51,7 @@ _See `lc2fen/detectboard/laps.py -> check_board_position()`_
 ## Installation instructions
 
 Follow the installation instructions for your specific computer.
-After this, you will be ready to use LiveChess2FEN by following 
+After this, you will be ready to use LiveChess2FEN by following
 the [usage instructions](#usage-instructions). Note that you will
 need at least Python 3.9 installed in your system.
 
@@ -221,7 +221,7 @@ Installation instructions for Ubuntu (22.04) are presented below. Other Linux di
 
 <details><summary>Windows PC</summary><p>
 
-Installation instructions for a Windows computer are presented below. 
+Installation instructions for a Windows computer are presented below.
 
 1. First, install Python 3.10 from Microsoft Store. It is important NOT to
 install Python 3.11 instead as
@@ -316,6 +316,16 @@ root.
 Contributions are very welcome! Please check the
 [CONTRIBUTING](CONTRIBUTING.md) file for more information on how to
  contribute to LiveChess2FEN.
+
+## Testing
+
+LiveChess2FEN supports [pytest](https://docs.pytest.org/en/latest/) unit
+testing. All tests are located in the `test` folder. To run the tests,
+simply run:
+
+~~~bash
+pytest -rA -v
+~~~
 
 ## License
 
